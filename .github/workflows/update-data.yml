@@ -1,0 +1,169 @@
+name: Monthly data refresh
+
+on:
+  schedule:
+    # 5th of each month, 09:00 UTC — most upstream sources publish
+    # prior-month CPI in the first week of the following month.
+    - cron: "0 9 5 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Run data fetchers
+        id: fetch
+        run: |
+          set -o pipefail
+          bundle exec ruby scripts/update_data.rb 2>&1 | tee /tmp/update.log
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if git diff --quiet data/; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No data changes — exiting cleanly."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run default test suite against new data
+        if: steps.diff.outputs.changed == 'true'
+        run: bundle exec rspec
+
+      - name: Run :real_data gated suite against new data
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          TIMEPRICE_REAL_DATA: "1"
+        run: bundle exec rspec
+
+      - name: Schema-stability gate
+        id: schema
+        if: steps.diff.outputs.changed == 'true'
+        run: bundle exec ruby scripts/check_schema_stability.rb
+
+      - name: Validate PR scope (data/ only)
+        id: scope
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          # Any tracked, non-data path changed? (excluding untracked workflow noise)
+          if git diff --name-only | grep -v '^data/' | grep -q .; then
+            echo "out_of_scope=true" >> "$GITHUB_OUTPUT"
+            echo "Out-of-scope changes detected:"
+            git diff --name-only | grep -v '^data/' || true
+          else
+            echo "out_of_scope=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Extract auto-merge gate signals
+        id: gates
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          # Per §9.4: no rebase / >0.5% drift events.
+          if grep -E "^(REBASE:|DRIFT WARNING:)" /tmp/update.log; then
+            echo "drift=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "drift=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Compose PR body
+        id: body
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          {
+            echo "Automated monthly data refresh."
+            echo ""
+            echo "## Fetcher summary"
+            echo ""
+            echo '```'
+            awk '/^=== Summary ===$/{flag=1; next} /^=== End Summary ===$/{flag=0} flag' /tmp/update.log || true
+            echo '```'
+            echo ""
+            echo "## Drift / rebase signals"
+            echo ""
+            if grep -E "^(REBASE:|DRIFT WARNING:)" /tmp/update.log; then
+              echo ""
+              echo '```'
+              grep -E "^(REBASE:|DRIFT WARNING:)" /tmp/update.log || true
+              echo '```'
+            else
+              echo "_None detected._"
+            fi
+            echo ""
+            echo "## Auto-merge gates (§9.4)"
+            echo ""
+            echo "- CI default suite: see checks"
+            echo "- :real_data suite: see checks"
+            echo "- Schema stability: see checks"
+            echo "- Scope is data/-only: \`${{ steps.scope.outputs.out_of_scope == 'false' }}\`"
+            echo "- No drift/rebase events: \`${{ steps.gates.outputs.drift == 'false' }}\`"
+          } > /tmp/pr_body.md
+          # Expose path for the next step
+          echo "path=/tmp/pr_body.md" >> "$GITHUB_OUTPUT"
+
+      - name: Compute PR branch / title
+        id: meta
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          YM=$(date -u +%Y-%m)
+          echo "branch=chore/data-refresh-${YM}" >> "$GITHUB_OUTPUT"
+          echo "title=chore(data): refresh CPI/FX data ${YM}" >> "$GITHUB_OUTPUT"
+
+      - name: Create pull request
+        if: steps.diff.outputs.changed == 'true'
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ steps.meta.outputs.branch }}
+          base: main
+          title: ${{ steps.meta.outputs.title }}
+          body-path: /tmp/pr_body.md
+          labels: data-refresh
+          commit-message: ${{ steps.meta.outputs.title }}
+          add-paths: |
+            data/**
+
+      - name: Enable auto-merge (all gates passed)
+        if: |
+          steps.diff.outputs.changed == 'true' &&
+          steps.cpr.outputs.pull-request-number &&
+          steps.scope.outputs.out_of_scope == 'false' &&
+          steps.gates.outputs.drift == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr merge --auto --squash "${{ steps.cpr.outputs.pull-request-number }}"
+
+      - name: Comment when auto-merge is withheld
+        if: |
+          steps.diff.outputs.changed == 'true' &&
+          steps.cpr.outputs.pull-request-number &&
+          (steps.scope.outputs.out_of_scope != 'false' ||
+           steps.gates.outputs.drift != 'false')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          {
+            echo "Auto-merge withheld. Failing gates:"
+            if [ "${{ steps.scope.outputs.out_of_scope }}" != "false" ]; then
+              echo "- Out-of-scope files changed (not under data/)"
+            fi
+            if [ "${{ steps.gates.outputs.drift }}" != "false" ]; then
+              echo "- Drift or rebase event detected by fetcher (see PR body)"
+            fi
+            echo ""
+            echo "Schema-stability and test-suite gates are enforced as required checks; they will block merge independently if they fail."
+          } > /tmp/comment.md
+          gh pr comment "${{ steps.cpr.outputs.pull-request-number }}" --body-file /tmp/comment.md

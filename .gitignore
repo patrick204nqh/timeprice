@@ -1,0 +1,10 @@
+.claude/settings.local.json
+.env
+.envrc
+PLAN.md
+/Gemfile.lock
+/pkg/
+/tmp/
+/.bundle/
+/coverage/
+*.gem

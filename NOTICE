@@ -1,0 +1,12 @@
+timeprice
+Copyright (c) 2026 patrick204nqh
+
+This product redistributes public statistical data from the following sources.
+Each source retains its own license; see DATA_LICENSES.md for details and URLs.
+
+Data: U.S. Bureau of Labor Statistics
+Contains public sector information licensed under the Open Government Licence v3.0
+Source: Eurostat
+Source: World Bank, FP.CPI.TOTL
+FX data: European Central Bank reference rates via Frankfurter
+VND FX: World Bank, PA.NUS.FCRF

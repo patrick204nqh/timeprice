@@ -1,0 +1,12 @@
+{
+  "base": "USD",
+  "rates": {
+    "1997-01-02": {
+      "VND": 11683.33
+    }
+  },
+  "schema_version": 1,
+  "source": "Frankfurter (ECB) for EUR/GBP/JPY; World Bank PA.NUS.FCRF for VND (annual avg, broadcast to every day in year)",
+  "updated_at": "2026-05-11",
+  "year": 1997
+}
