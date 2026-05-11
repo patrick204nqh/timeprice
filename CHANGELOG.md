@@ -21,11 +21,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     `providers[]` is the source of truth for provenance.
   - FX year files now carry `provenance` + `providers` blocks, symmetric
     with CPI.
-  - Pre-1999 stub year files (1983, 1986–1998) consolidated into
-    `data/fx/_annual.json` for the sparse historical VND coverage. The
-    daily-rate per-year files only exist for years with real daily data.
-  - `Exchange.lookup_usd_base` adds a final fallback to `_annual.json`
-    after the per-year `annual` block, tagged with `Granularity::ANNUAL`.
+  - All annual FX (today only VND from World Bank) lives in
+    `data/fx/usd/_annual.json` — the single canonical source, every year.
+    Per-year files (`data/fx/usd/<year>.json`) hold daily rates only. Pre-1999
+    stub year files are gone. `Exchange.lookup_usd_base` collapses to a
+    two-tier chain (daily → annual fallback), one source per tier.
 
 ## [0.4.0] - 2026-05-11
 

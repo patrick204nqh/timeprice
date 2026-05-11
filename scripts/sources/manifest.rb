@@ -25,7 +25,7 @@ module Sources
           "base" => "USD",
           "currencies" => currencies,
           "daily_years" => daily_years,
-          "annual_file" => "fx/_annual.json",
+          "annual_file" => "fx/usd/_annual.json",
         },
       }
       path = File.join(Sources::DATA_ROOT, "manifest.json")
@@ -51,6 +51,7 @@ module Sources
 
     def fx_daily_years
       Dir[File.join(Sources::DATA_ROOT, "fx", "usd", "*.json")]
+        .reject { |p| File.basename(p) == "_annual.json" }
         .map { |p| File.basename(p, ".json").to_i }
         .sort
     end
@@ -60,9 +61,8 @@ module Sources
       daily_years.each do |y|
         data = JSON.parse(File.read(File.join(Sources::DATA_ROOT, "fx", "usd", "#{y}.json")))
         (data["rates"] || {}).each_value { |day| seen.concat(day.keys) }
-        seen.concat((data["annual"] || {}).keys)
       end
-      annual_path = File.join(Sources::DATA_ROOT, "fx", "_annual.json")
+      annual_path = File.join(Sources::DATA_ROOT, "fx", "usd", "_annual.json")
       if File.exist?(annual_path)
         data = JSON.parse(File.read(annual_path))
         (data["annual"] || {}).each_value { |yh| seen.concat(yh.keys) }

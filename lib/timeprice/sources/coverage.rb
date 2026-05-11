@@ -51,27 +51,15 @@ module Timeprice
         "USD↔EUR/GBP/JPY daily #{years.first}..#{years.last}"
       end
 
-      # World Bank VND lives in two places: the per-year `annual` block on
-      # daily-coverage year files, and the sparse `_annual.json` for years
-      # that predate daily coverage. Walk both.
+      # All annual FX (today only VND) lives in data/fx/usd/_annual.json.
       def vnd_summary
-        years = vnd_years
+        fallback = DataLoader.load_fx_annual_fallback
+        years = (fallback&.dig("annual") || {})
+                .select { |_y, ccy_hash| ccy_hash.key?("VND") }
+                .keys.map(&:to_i).sort
         return "no VND data" if years.empty?
 
         "USD↔VND #{years.first}..#{years.last}"
-      end
-
-      def vnd_years
-        years = []
-        (DataLoader.load_manifest.dig("fx", "daily_years") || []).each do |y|
-          year_data = DataLoader.load_fx_year(y)
-          years << y if year_data.dig("annual", "VND")
-        end
-        fallback = DataLoader.load_fx_annual_fallback
-        (fallback&.dig("annual") || {}).each do |year_str, ccy_hash|
-          years << year_str.to_i if ccy_hash.key?("VND")
-        end
-        years.sort
       end
     end
   end

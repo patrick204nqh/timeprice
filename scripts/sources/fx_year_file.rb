@@ -3,20 +3,9 @@
 require_relative "_common"
 
 module Sources
-  # Owns one data/fx/usd/<year>.json file in schema v3.
-  #
-  # Accepts contributions of two shapes:
-  #   - `{ daily: { "YYYY-MM-DD" => { "EUR" => Float, ... } }, provider_id:, source_label: }`
-  #   - `{ annual: { "VND" => Float }, provider_id:, source_label: }`
-  #
-  # Merges with whatever is already on disk, refreshes the contributing
-  # provider's entry in the providers[] list while preserving other providers'
-  # entries (so a Frankfurter refresh does not clobber World Bank's annual
-  # contribution and vice versa), and rewrites provenance.
-  #
-  # Provenance is regenerated from the merged data on every write — derived
-  # state, not maintained-in-place, so the on-disk file is always consistent
-  # with its own data blocks.
+  # Owns one data/fx/usd/<year>.json file in schema v3 — daily rates only.
+  # Annual fallback rates (VND today) live in data/fx/usd/_annual.json,
+  # written via Sources::FxAnnualFile.
   class FxYearFile
     def initialize(year)
       @year = year.to_i
@@ -27,22 +16,31 @@ module Sources
       merged_rates = (prior["rates"] || {}).merge(rates_by_date) do |_date, old_v, new_v|
         old_v.merge(new_v)
       end
-      write(rates: merged_rates,
-            annual: prior["annual"] || {},
-            provider_id: provider_id,
-            source_label: source_label,
-            prior_providers: prior["providers"] || [])
-      merged_rates
-    end
 
-    def write_annual(annual_by_currency:, provider_id:, source_label:)
-      prior = load_prior
-      merged_annual = (prior["annual"] || {}).merge(annual_by_currency)
-      write(rates: prior["rates"] || {},
-            annual: merged_annual,
-            provider_id: provider_id,
-            source_label: source_label,
-            prior_providers: prior["providers"] || [])
+      dates_sorted = merged_rates.keys.sort
+      daily_currencies = merged_rates.values.flat_map(&:keys).uniq.sort
+
+      data = {
+        "schema_version" => 3,
+        "base" => "USD",
+        "year" => year,
+        "rates" => merged_rates,
+        "provenance" => [{
+          "series" => "daily",
+          "currencies" => daily_currencies,
+          "from" => dates_sorted.first,
+          "to" => dates_sorted.last,
+          "provider" => provider_id,
+        }],
+        "providers" => [{
+          "id" => provider_id,
+          "label" => source_label,
+          "fetched_at" => Sources.today,
+          "status" => "ok",
+        }],
+      }
+      Sources.write_json(path, data)
+      merged_rates
     end
 
     private
@@ -56,61 +54,12 @@ module Sources
     def load_prior
       Sources.read_json_if_exists(path) || {}
     end
-
-    def write(rates:, annual:, provider_id:, source_label:, prior_providers:)
-      data = {
-        "schema_version" => 3,
-        "base" => "USD",
-        "year" => year,
-        "rates" => rates,
-        "provenance" => build_provenance(rates, annual),
-        "providers" => provider_entries(prior_providers, provider_id, source_label),
-      }
-      data["annual"] = annual if annual.any?
-      Sources.write_json(path, data)
-    end
-
-    def build_provenance(rates, annual)
-      out = []
-      if rates.any?
-        dates_sorted = rates.keys.sort
-        daily_currencies = rates.values.flat_map(&:keys).uniq.sort
-        out << {
-          "series" => "daily",
-          "currencies" => daily_currencies,
-          "from" => dates_sorted.first,
-          "to" => dates_sorted.last,
-          "provider" => "frankfurter",
-        }
-      end
-      if annual.any?
-        out << {
-          "series" => "annual",
-          "currencies" => annual.keys.sort,
-          "year" => year,
-          "provider" => "world_bank",
-        }
-      end
-      out
-    end
-
-    # Refresh the contributing provider's entry; keep prior entries for other
-    # providers in the chain.
-    def provider_entries(prior_providers, provider_id, source_label)
-      others = (prior_providers || []).reject { |p| p["id"] == provider_id }
-      others + [{
-        "id" => provider_id,
-        "label" => source_label,
-        "fetched_at" => Sources.today,
-        "status" => "ok",
-      }]
-    end
   end
 
-  # Owns data/fx/_annual.json — the sparse fallback for years that predate
-  # daily FX coverage (pre-1999, today only VND from World Bank).
+  # Owns data/fx/usd/_annual.json — the single source of truth for USD-base
+  # annual FX rates across all years (today only VND from World Bank).
   class FxAnnualFile
-    PATH_REL = "fx/_annual.json"
+    PATH_REL = "fx/usd/_annual.json"
 
     def self.path
       File.join(Sources::DATA_ROOT, PATH_REL)
