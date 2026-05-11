@@ -62,7 +62,8 @@ module Sources
       y1, m1 = from.split("-").map(&:to_i)
       y2, m2 = to.split("-").map(&:to_i)
       out = []
-      y, m = y1, m1
+      y = y1
+      m = m1
       until y > y2 || (y == y2 && m > m2)
         out << format("%04d-%02d", y, m)
         m += 1
@@ -98,7 +99,7 @@ module Sources
 
     def next_period(series, period)
       case series
-      when "annual"  then (Integer(period) + 1).to_s
+      when "annual" then (Integer(period) + 1).to_s
       when "monthly"
         y, m = period.split("-").map(&:to_i)
         m += 1

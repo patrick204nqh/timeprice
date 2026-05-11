@@ -110,14 +110,10 @@ module Timeprice
 
     # Consult the year file's top-level `annual` block. Returns Float or nil.
     def annual_fallback(currency, year)
-      year_data =
-        begin
-          DataLoader.load_fx_year(year)
-        rescue DataNotFound
-          return nil
-        end
-      rate = year_data.dig("annual", currency)
-      rate&.to_f
+      year_data = DataLoader.load_fx_year(year)
+      year_data.dig("annual", currency)&.to_f
+    rescue DataNotFound
+      nil
     end
 
     def parse_date(date)
