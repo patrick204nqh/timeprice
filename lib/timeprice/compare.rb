@@ -38,7 +38,7 @@ module Timeprice
     #   accepts a {Point} or a 2-tuple like `["USD", "2010"]` or `["USD", "2010-06"]`
     # @param to     [Timeprice::Point, Array(String, String)] destination point
     # @return [CompareResult]
-    # @raise [UnsupportedCurrency] if either currency is not in {Supported::CURRENCIES}
+    # @raise [UnsupportedCurrency] if either currency is not in {Supported.currencies}
     def run(amount:, from:, to:)
       from_point, to_point, to_country = resolve_points(from, to)
 

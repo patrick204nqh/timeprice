@@ -21,7 +21,7 @@ module Timeprice
     end
   end
 
-  # CPI-based inflation adjustment for the {Supported::COUNTRIES} list.
+  # CPI-based inflation adjustment for the {Supported.countries} list.
   module Inflation
     module_function
 
@@ -32,7 +32,7 @@ module Timeprice
     # @param amount  [Numeric]
     # @param from    [String] source date ("YYYY" or "YYYY-MM")
     # @param to      [String] target date ("YYYY" or "YYYY-MM")
-    # @param country [String] country code (see {Supported::COUNTRIES})
+    # @param country [String] country code (see {Supported.countries})
     # @return [InflationResult]
     # @raise [UnsupportedCountry] if `country` is not supported
     # @raise [DataNotFound]       if no CPI data covers the requested period

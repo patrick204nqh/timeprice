@@ -1,9 +1,26 @@
 {
-  "schema_version": 2,
   "base": "USD",
-  "year": 2026,
-  "source": "Frankfurter (ECB) — daily reference rates",
-  "updated_at": "2026-05-11",
+  "provenance": [
+    {
+      "currencies": [
+        "EUR",
+        "GBP",
+        "JPY"
+      ],
+      "from": "2026-01-02",
+      "provider": "frankfurter",
+      "series": "daily",
+      "to": "2026-05-08"
+    }
+  ],
+  "providers": [
+    {
+      "fetched_at": "2026-05-11",
+      "id": "frankfurter",
+      "label": "Frankfurter (ECB) daily reference rates",
+      "status": "ok"
+    }
+  ],
   "rates": {
     "2026-01-02": {
       "EUR": 0.85317,
@@ -445,5 +462,7 @@
       "GBP": 0.73472,
       "JPY": 156.76
     }
-  }
+  },
+  "schema_version": 3,
+  "year": 2026
 }

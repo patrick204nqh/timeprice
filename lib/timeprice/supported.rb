@@ -1,34 +1,43 @@
 # frozen_string_literal: true
 
 module Timeprice
-  # Canonical lists of supported country and currency codes, plus the
-  # bidirectional currency↔country map used by `Compare` and CLI output.
+  # Supported country and currency codes, derived from `data/manifest.json`.
+  # Adding a country = drop a CPI file + regenerate the manifest. No code
+  # change required.
   #
   # Everything that needs to know "which currency pairs with which CPI series"
-  # must read it from here — duplicating the map elsewhere has bitten us before
-  # when a new country was added in one place and forgotten in the other.
+  # must read it from here.
   module Supported
-    COUNTRIES  = %w[US UK EU JP VN].freeze
-    CURRENCIES = %w[USD GBP EUR JPY VND].freeze
-
-    COUNTRY_TO_CURRENCY = {
-      "US" => "USD",
-      "UK" => "GBP",
-      "EU" => "EUR",
-      "JP" => "JPY",
-      "VN" => "VND",
-    }.freeze
-
-    CURRENCY_TO_COUNTRY = COUNTRY_TO_CURRENCY.invert.freeze
-
-    # Currencies with no minor unit — formatted as whole numbers.
+    # Currencies with no minor unit — formatted as whole numbers. This is
+    # ISO 4217 metadata, not bundled data, so it stays hardcoded.
     ZERO_DECIMAL_CURRENCIES = %w[JPY VND].freeze
 
     module_function
 
+    # @return [Array<String>] frozen list of supported country codes.
+    def countries
+      manifest_countries.map { |c| c["code"] }.freeze
+    end
+
+    # @return [Array<String>] frozen list of supported currency codes
+    #   (the FX base USD plus every currency the manifest declares).
+    def currencies
+      base = DataLoader.load_manifest.dig("fx", "base")
+      ([base] + DataLoader.load_manifest.dig("fx", "currencies")).uniq.freeze
+    end
+
+    # @return [Hash{String=>String}] country code → currency code.
+    def country_to_currency
+      manifest_countries.to_h { |c| [c["code"], c["currency"]] }.freeze
+    end
+
+    # @return [Hash{String=>String}] currency code → country code.
+    def currency_to_country
+      country_to_currency.invert.freeze
+    end
+
     # ISO 4217 minor-unit count for a currency. Falls back to 2 for unknown
     # codes so callers can still render *some* value rather than crashing.
-    #
     # @param currency [String]
     # @return [Integer]
     def decimals_for(currency)
@@ -38,25 +47,33 @@ module Timeprice
     # @param country [String]
     # @return [Boolean]
     def country?(country)
-      COUNTRIES.include?(country.to_s.upcase)
+      countries.include?(country.to_s.upcase)
     end
 
     # @param currency [String]
     # @return [Boolean]
     def currency?(currency)
-      CURRENCIES.include?(currency.to_s.upcase)
+      currencies.include?(currency.to_s.upcase)
     end
 
     # @param currency [String] ISO 4217 code (e.g. "USD")
     # @return [String, nil] country code, or nil if unsupported
     def country_for_currency(currency)
-      CURRENCY_TO_COUNTRY[currency.to_s.upcase]
+      currency_to_country[currency.to_s.upcase]
     end
 
     # @param country [String] country code (e.g. "US")
     # @return [String, nil] currency code, or nil if unsupported
     def currency_for_country(country)
-      COUNTRY_TO_CURRENCY[country.to_s.upcase]
+      country_to_currency[country.to_s.upcase]
+    end
+
+    class << self
+      private
+
+      def manifest_countries
+        DataLoader.load_manifest["countries"] || []
+      end
     end
   end
 end

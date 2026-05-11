@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 require_relative "timeprice/version"
+require_relative "timeprice/data_loader"
 require_relative "timeprice/supported"
 require_relative "timeprice/errors"
 require_relative "timeprice/point"
-require_relative "timeprice/data_loader"
 require_relative "timeprice/inflation"
 require_relative "timeprice/exchange"
 require_relative "timeprice/compare"
@@ -30,7 +30,7 @@ module Timeprice
   # @param amount  [Numeric] the original amount
   # @param from    [String]  source date as "YYYY" or "YYYY-MM"
   # @param to      [String]  target date as "YYYY" or "YYYY-MM"
-  # @param country [String]  country code from {Supported::COUNTRIES}
+  # @param country [String]  country code from {Supported.countries}
   # @return [InflationResult]
   # @raise [UnsupportedCountry] if `country` is not supported
   # @raise [DataNotFound]       if no CPI point covers `from` or `to`

@@ -1,9 +1,43 @@
 {
-  "schema_version": 2,
+  "annual": {
+    "VND": 16302.25
+  },
   "base": "USD",
-  "year": 2008,
-  "source": "Frankfurter (ECB) for EUR/GBP/JPY (daily); World Bank PA.NUS.FCRF for VND (annual)",
-  "updated_at": "2026-05-11",
+  "provenance": [
+    {
+      "currencies": [
+        "EUR",
+        "GBP",
+        "JPY"
+      ],
+      "from": "2008-01-02",
+      "provider": "frankfurter",
+      "series": "daily",
+      "to": "2008-12-31"
+    },
+    {
+      "currencies": [
+        "VND"
+      ],
+      "provider": "world_bank",
+      "series": "annual",
+      "year": 2008
+    }
+  ],
+  "providers": [
+    {
+      "fetched_at": "2026-05-11",
+      "id": "frankfurter",
+      "label": "Frankfurter (ECB) daily reference rates",
+      "status": "ok"
+    },
+    {
+      "fetched_at": "2026-05-11",
+      "id": "world_bank",
+      "label": "World Bank PA.NUS.FCRF",
+      "status": "ok"
+    }
+  ],
   "rates": {
     "2008-01-02": {
       "EUR": 0.68083,
@@ -1286,7 +1320,6 @@
       "JPY": 90.64
     }
   },
-  "annual": {
-    "VND": 16302.25
-  }
+  "schema_version": 3,
+  "year": 2008
 }

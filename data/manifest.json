@@ -1,0 +1,90 @@
+{
+  "countries": [
+    {
+      "code": "EU",
+      "cpi_file": "cpi/eu.json",
+      "currency": "EUR",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
+      "code": "JP",
+      "cpi_file": "cpi/jp.json",
+      "currency": "JPY",
+      "granularities": [
+        "annual"
+      ]
+    },
+    {
+      "code": "UK",
+      "cpi_file": "cpi/uk.json",
+      "currency": "GBP",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
+      "code": "US",
+      "cpi_file": "cpi/us.json",
+      "currency": "USD",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
+      "code": "VN",
+      "cpi_file": "cpi/vn.json",
+      "currency": "VND",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    }
+  ],
+  "fx": {
+    "annual_file": "fx/_annual.json",
+    "base": "USD",
+    "currencies": [
+      "EUR",
+      "GBP",
+      "JPY",
+      "VND"
+    ],
+    "daily_years": [
+      1999,
+      2000,
+      2001,
+      2002,
+      2003,
+      2004,
+      2005,
+      2006,
+      2007,
+      2008,
+      2009,
+      2010,
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025,
+      2026
+    ]
+  },
+  "generated_at": "2026-05-11",
+  "schema_version": 3
+}

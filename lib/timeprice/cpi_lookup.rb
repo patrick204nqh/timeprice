@@ -14,8 +14,8 @@ module Timeprice
   class CpiLookup
     def initialize(data)
       @data = data
-      @monthly = data["monthly"] || {}
-      @annual  = data["annual"]  || {}
+      @monthly = data.dig("series", "monthly") || {}
+      @annual  = data.dig("series", "annual")  || {}
     end
 
     # @param key [String] "YYYY" or "YYYY-MM"

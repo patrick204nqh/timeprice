@@ -1,0 +1,36 @@
+{
+  "countries": [
+    {
+      "code": "US",
+      "cpi_file": "cpi/us.json",
+      "currency": "USD",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
+      "code": "VN",
+      "cpi_file": "cpi/vn.json",
+      "currency": "VND",
+      "granularities": [
+        "annual"
+      ]
+    }
+  ],
+  "fx": {
+    "annual_file": "fx/_annual.json",
+    "base": "USD",
+    "currencies": [
+      "EUR",
+      "GBP",
+      "JPY",
+      "VND"
+    ],
+    "daily_years": [
+      2010
+    ]
+  },
+  "generated_at": "2026-05-11",
+  "schema_version": 3
+}
