@@ -39,5 +39,23 @@ module Timeprice
 
       new(currency: currency.upcase, date: date)
     end
+
+    # Resolve `date` to a full YYYY-MM-DD for FX lookup.
+    #
+    # Coarser grains anchor to a representative day:
+    #   - "YYYY"    → mid-year (YYYY-06-30)
+    #   - "YYYY-MM" → mid-month (YYYY-MM-15)
+    #   - "YYYY-MM-DD" → passes through
+    #
+    # @return [String]
+    # @raise [ArgumentError] if `date` doesn't match any supported shape
+    def fx_anchor_date
+      case date.to_s
+      when /\A\d{4}\z/         then "#{date}-06-30"
+      when /\A\d{4}-\d{2}\z/   then "#{date}-15"
+      when /\A\d{4}-\d{2}-\d{2}\z/ then date.to_s
+      else raise ArgumentError, "Invalid date for Point: #{date.inspect}"
+      end
+    end
   end
 end
