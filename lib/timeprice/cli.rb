@@ -167,13 +167,12 @@ module Timeprice
           raise ArgumentError,
                 "#{label} must be \"YEAR CURRENCY\" or \"CURRENCY YEAR\", got #{token.inspect}"
         end
-        year = parts.find { |p| p.match?(/\A\d{4}\z/) }
-        currency = parts.find { |p| p.match?(/\A[A-Za-z]{3}\z/) }
-        if year.nil? || currency.nil?
-          raise ArgumentError,
-                "#{label} must contain a 4-digit year and a 3-letter currency code, got #{token.inspect}"
-        end
-        [currency.upcase, year]
+
+        Point.coerce(parts)
+      rescue ArgumentError => e
+        raise if e.message.start_with?(label)
+
+        raise ArgumentError, "#{label}: #{e.message}"
       end
     end
   end
