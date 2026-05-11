@@ -3,6 +3,7 @@
 require "date"
 require_relative "errors"
 require_relative "data_loader"
+require_relative "supported"
 
 module Timeprice
   ExchangeResult = Data.define(
@@ -31,8 +32,8 @@ module Timeprice
     def convert(amount:, from:, to:, date:)
       from = from.to_s.upcase
       to   = to.to_s.upcase
-      raise UnsupportedCurrency, from unless SUPPORTED_CURRENCIES.include?(from)
-      raise UnsupportedCurrency, to   unless SUPPORTED_CURRENCIES.include?(to)
+      raise UnsupportedCurrency, from unless Supported::CURRENCIES.include?(from)
+      raise UnsupportedCurrency, to   unless Supported::CURRENCIES.include?(to)
 
       d = parse_date(date)
 

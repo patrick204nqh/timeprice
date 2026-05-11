@@ -28,10 +28,6 @@ module Timeprice
   # If a future refactor flips the order, the regression test in
   # spec/timeprice/compare_spec.rb will fail.
   module Compare
-    # Map ISO currency → CPI country code. Kept as a back-compat alias;
-    # the canonical map lives in {Supported::CURRENCY_TO_COUNTRY}.
-    CURRENCY_TO_COUNTRY = Supported::CURRENCY_TO_COUNTRY
-
     module_function
 
     # Compare an amount across two (currency, date) points.
@@ -43,15 +39,14 @@ module Timeprice
     # @return [CompareResult]
     # @raise [UnsupportedCurrency] if either currency is not in {Supported::CURRENCIES}
     def run(amount:, from:, to:)
-      from_currency, from_date, to_currency, to_date, to_country = resolve_points(from, to)
+      from_point, to_point, to_country = resolve_points(from, to)
 
       # Step 1: convert at source date into destination currency.
-      fx_date = normalize_fx_date(from_date)
       fx_result = Exchange.convert(
         amount: amount,
-        from: from_currency,
-        to: to_currency,
-        date: fx_date
+        from: from_point.currency,
+        to: to_point.currency,
+        date: from_point.fx_anchor_date
       )
       converted = fx_result.amount
 
@@ -59,18 +54,18 @@ module Timeprice
       # destination date using destination-country CPI.
       infl = Inflation.adjust(
         amount: converted,
-        from: from_date.to_s,
-        to: to_date.to_s,
+        from: from_point.date.to_s,
+        to: to_point.date.to_s,
         country: to_country
       )
 
       CompareResult.new(
         amount: infl.amount,
         original_amount: amount.to_f,
-        from_currency: from_currency,
-        from_date: from_date.to_s,
-        to_currency: to_currency,
-        to_date: to_date.to_s,
+        from_currency: from_point.currency,
+        from_date: from_point.date.to_s,
+        to_currency: to_point.currency,
+        to_date: to_point.date.to_s,
         country: to_country,
         fx_rate: fx_result.rate,
         cpi_ratio: infl.to_index.to_f / infl.from_index,
@@ -79,29 +74,16 @@ module Timeprice
       )
     end
 
-    # Coerce both points and resolve to_country. Returns a 5-element tuple.
+    # Coerce both points and resolve to_country.
     def resolve_points(from, to)
       from_point = Point.coerce(from)
       to_point   = Point.coerce(to)
-      from_currency = from_point.currency
-      to_currency   = to_point.currency
-      to_country = Supported.country_for_currency(to_currency) ||
-                   (raise UnsupportedCurrency, to_currency)
-      Supported.country_for_currency(from_currency) || (raise UnsupportedCurrency, from_currency)
+      raise UnsupportedCurrency, from_point.currency unless Supported.country_for_currency(from_point.currency)
 
-      [from_currency, from_point.date, to_currency, to_point.date, to_country]
-    end
+      to_country = Supported.country_for_currency(to_point.currency)
+      raise UnsupportedCurrency, to_point.currency unless to_country
 
-    # If the user gave a year like "2010", anchor FX to mid-year (2010-06-30).
-    # If they gave "YYYY-MM", anchor to the 15th. Full dates pass through.
-    def normalize_fx_date(date)
-      s = date.to_s
-      case s
-      when /\A\d{4}\z/ then "#{s}-06-30"
-      when /\A\d{4}-\d{2}\z/ then "#{s}-15"
-      when /\A\d{4}-\d{2}-\d{2}\z/ then s
-      else raise ArgumentError, "Invalid date for compare: #{date.inspect}"
-      end
+      [from_point, to_point, to_country]
     end
   end
 end

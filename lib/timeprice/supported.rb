@@ -21,7 +21,19 @@ module Timeprice
 
     CURRENCY_TO_COUNTRY = COUNTRY_TO_CURRENCY.invert.freeze
 
+    # Currencies with no minor unit — formatted as whole numbers.
+    ZERO_DECIMAL_CURRENCIES = %w[JPY VND].freeze
+
     module_function
+
+    # ISO 4217 minor-unit count for a currency. Falls back to 2 for unknown
+    # codes so callers can still render *some* value rather than crashing.
+    #
+    # @param currency [String]
+    # @return [Integer]
+    def decimals_for(currency)
+      ZERO_DECIMAL_CURRENCIES.include?(currency.to_s.upcase) ? 0 : 2
+    end
 
     # @param country [String]
     # @return [Boolean]
@@ -47,9 +59,4 @@ module Timeprice
       COUNTRY_TO_CURRENCY[country.to_s.upcase]
     end
   end
-
-  # Back-compat aliases — keep the old top-level constants pointing at the
-  # canonical lists so existing requires of "errors" keep working.
-  SUPPORTED_COUNTRIES  = Supported::COUNTRIES
-  SUPPORTED_CURRENCIES = Supported::CURRENCIES
 end

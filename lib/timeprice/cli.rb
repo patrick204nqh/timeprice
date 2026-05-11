@@ -3,6 +3,10 @@
 require "thor"
 require "json"
 require_relative "../timeprice"
+require_relative "cli/presenters/inflation"
+require_relative "cli/presenters/exchange"
+require_relative "cli/presenters/compare"
+require_relative "cli/presenters/sources"
 
 module Timeprice
   class CLI < Thor
@@ -16,8 +20,59 @@ module Timeprice
 
     class_option :json, type: :boolean, default: false, desc: "Output result as JSON"
 
+    # Return false so Thor::Error propagates to our wrapper in `start`, where
+    # we prettify the message and add a `See: timeprice help COMMAND` hint.
     def self.exit_on_failure?
-      true
+      false
+    end
+
+    KNOWN_COMMANDS = %w[inflation fx compare sources version].freeze
+
+    # Top-level help lists command names + descriptions only — matching git,
+    # gh, cargo. Arg signatures live in per-command help (`timeprice help fx`).
+    HELP_ROWS = [
+      ["inflation", "Inflation-adjust an amount between two dates"],
+      ["fx",        "Convert an amount between currencies on a date"],
+      ["compare",   "Combine FX + inflation across (year, currency) points"],
+      ["sources",   "List bundled data sources and coverage"],
+      ["version",   "Print the installed timeprice version"],
+    ].freeze
+
+    # Pass debug: true so Thor re-raises Thor::Error (including option-parse
+    # failures) instead of printing its own message and silently continuing
+    # when exit_on_failure? is false. We catch and format ourselves.
+    def self.start(given_args = ARGV, config = {})
+      super(given_args, config.merge(debug: true))
+    rescue Thor::Error => e
+      warn "Error: #{prettify_thor_message(e.message)}"
+      cmd = given_args.first
+      warn "  See: timeprice help #{cmd}" if KNOWN_COMMANDS.include?(cmd)
+      exit 1
+    end
+
+    def self.prettify_thor_message(msg)
+      msg
+        .sub(/\ANo value provided for required options /, "missing required options: ")
+        .gsub("'", "")
+    end
+
+    # Thor's API dictates the positional boolean signature — keyword arg
+    # would break the override.
+    def self.help(shell, subcommand = false) # rubocop:disable Style/OptionalBooleanParameter
+      return super if subcommand
+
+      shell.say "timeprice — offline historical inflation & FX for Ruby"
+      shell.say ""
+      shell.say "Commands:"
+      width = HELP_ROWS.map { |usage, _| usage.length }.max
+      HELP_ROWS.each do |usage, desc|
+        shell.say format("  %-#{width}s  %s", usage, desc)
+      end
+      shell.say ""
+      shell.say "Global options:"
+      shell.say "  --json   Output result as JSON"
+      shell.say ""
+      shell.say "Run `timeprice help COMMAND` for usage and options."
     end
 
     desc "inflation AMOUNT", "Inflation-adjust an amount between two dates"
@@ -27,12 +82,12 @@ module Timeprice
     def inflation(amount)
       with_error_handling do
         result = Timeprice.inflation(
-          amount: Float(amount),
+          amount: parse_amount(amount),
           from: options[:from],
           to: options[:to],
           country: options[:country]
         )
-        emit_inflation(result)
+        render Presenters::Inflation.new(result)
       end
     end
 
@@ -41,12 +96,12 @@ module Timeprice
     def fx(amount, from_currency, to_currency)
       with_error_handling do
         result = Timeprice.exchange(
-          amount: Float(amount),
+          amount: parse_amount(amount),
           from: from_currency,
           to: to_currency,
           date: options[:date]
         )
-        emit_exchange(result)
+        render Presenters::Exchange.new(result)
       end
     end
 
@@ -58,30 +113,19 @@ module Timeprice
         from_tuple = parse_compare_token(options[:from], label: "--from")
         to_tuple   = parse_compare_token(options[:to],   label: "--to")
         result = Timeprice.compare(
-          amount: Float(amount),
+          amount: parse_amount(amount),
           from: from_tuple,
           to: to_tuple
         )
-        emit_compare(result)
+        render Presenters::Compare.new(result)
       end
     end
 
     desc "sources", "List bundled data sources and coverage"
+    method_option :verbose, type: :boolean, default: false, aliases: "-v",
+                            desc: "Include license URLs and full attribution"
     def sources
-      list = Timeprice::Sources.list
-      if options[:json]
-        say JSON.generate(list)
-      else
-        list.each do |s|
-          say s[:name].to_s
-          say "  id:           #{s[:id]}"
-          say "  license:      #{s[:license]}"
-          say "  license_url:  #{s[:license_url]}"
-          say "  attribution:  #{s[:attribution]}"
-          say "  coverage:     #{s[:coverage]}"
-          say ""
-        end
-      end
+      render Presenters::Sources.new(Timeprice::Sources.list, verbose: options[:verbose])
     end
 
     desc "version", "Print the installed timeprice version"
@@ -94,17 +138,25 @@ module Timeprice
     end
 
     no_commands do
-      # Currencies with no minor unit — render whole numbers, no decimals.
-      ZERO_DECIMAL_CURRENCIES = %w[JPY VND].freeze
+      def render(presenter)
+        if options[:json]
+          say JSON.generate(presenter.json_hash)
+        else
+          presenter.text_lines.each { |line| say line }
+        end
+      end
 
       def with_error_handling
         yield
-      rescue Timeprice::Error => e
+      rescue Timeprice::Error, ArgumentError => e
         warn "Error: #{e.message}"
         exit 1
-      rescue ArgumentError => e
-        warn "Error: #{e.message}"
-        exit 1
+      end
+
+      def parse_amount(raw)
+        Float(raw)
+      rescue ArgumentError, TypeError
+        raise ArgumentError, "AMOUNT must be a number, got #{raw.inspect}"
       end
 
       def parse_compare_token(token, label:)
@@ -115,96 +167,13 @@ module Timeprice
           raise ArgumentError,
                 "#{label} must be \"YEAR CURRENCY\" or \"CURRENCY YEAR\", got #{token.inspect}"
         end
-        year = parts.find { |p| p.match?(/\A\d{4}\z/) }
-        currency = parts.find { |p| p.match?(/\A[A-Za-z]{3}\z/) }
-        if year.nil? || currency.nil?
-          raise ArgumentError,
-                "#{label} must contain a 4-digit year and a 3-letter currency code, got #{token.inspect}"
-        end
-        [currency.upcase, year]
+
+        Point.coerce(parts)
+      rescue ArgumentError => e
+        raise if e.message.start_with?(label)
+
+        raise ArgumentError, "#{label}: #{e.message}"
       end
-
-      def fmt_money(amount, currency)
-        decimals = ZERO_DECIMAL_CURRENCIES.include?(currency.to_s.upcase) ? 0 : 2
-        format("%.#{decimals}f", amount)
-      end
-
-      def fmt_rate(rate)
-        abs = rate.to_f.abs
-        decimals = if abs >= 1000 then 0
-                   elsif abs >= 100 then 2
-                   elsif abs >= 10  then 3
-                   else 4
-                   end
-        format("%.#{decimals}f", rate)
-      end
-
-      # Granularity is loud noise on the happy path. Only surface it when the
-      # answer actually used annual data — that's where users want a heads-up.
-      def granularity_suffix(granularity)
-        return "" if granularity == :monthly
-
-        " (granularity: #{granularity})"
-      end
-
-      def emit_inflation(result)
-        if options[:json]
-          say JSON.generate(result.to_h)
-        else
-          ccy = result.country_currency_label
-          say format(
-            "%s %s in %s is %s %s in %s [%s]%s",
-            fmt_money(result.original_amount, ccy), ccy, result.from,
-            fmt_money(result.amount, ccy), ccy, result.to,
-            result.country, granularity_suffix(result.granularity)
-          )
-        end
-      end
-
-      def emit_exchange(result)
-        if options[:json]
-          say JSON.generate(result.to_h)
-        else
-          line = format(
-            "%s %s on %s = %s %s (rate: %s)",
-            fmt_money(result.original_amount, result.from), result.from, result.date,
-            fmt_money(result.amount, result.to), result.to, fmt_rate(result.rate)
-          )
-          if result.effective_date && result.effective_date != result.date
-            line += " [effective: #{result.effective_date}, fallback]"
-          end
-          say line
-        end
-      end
-
-      def emit_compare(result)
-        if options[:json]
-          say JSON.generate(result.to_h)
-        else
-          say format(
-            "%s %s in %s -> %s %s in %s",
-            fmt_money(result.original_amount, result.from_currency), result.from_currency, result.from_date,
-            fmt_money(result.amount, result.to_currency), result.to_currency, result.to_date
-          )
-          say format(
-            "  steps: %s %s -> %s %s (fx %s on %s), then inflate in %s x%.4f%s",
-            fmt_money(result.original_amount, result.from_currency), result.from_currency,
-            fmt_money(result.converted_amount, result.to_currency), result.to_currency,
-            fmt_rate(result.fx_rate), result.from_date,
-            result.country, result.cpi_ratio, granularity_suffix(result.granularity)
-          )
-        end
-      end
-    end
-  end
-end
-
-# Tiny shim so we can include currency context in the inflation line without
-# bloating the value object — the result doesn't carry currency, only country.
-module Timeprice
-  class InflationResult
-    def country_currency_label
-      Supported.currency_for_country(country) || country.to_s.upcase
     end
   end
 end

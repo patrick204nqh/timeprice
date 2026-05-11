@@ -70,6 +70,8 @@ Metrics/AbcSize:
 
 Metrics/ClassLength:
   Max: 200
+  Exclude:
+    - "lib/timeprice/cli.rb"  # Thor DSL (desc/method_option per command) inflates line count
 
 Metrics/ModuleLength:
   Max: 200
@@ -105,10 +107,6 @@ Lint/NonAtomicFileOperation:
 Lint/NoReturnInBeginEndBlocks:
   Exclude:
     - "scripts/**/*"
-
-Lint/DuplicateBranch:
-  Exclude:
-    - "lib/timeprice/cli.rb"  # Timeprice::Error and ArgumentError both surface to user the same way
 
 # --- RSpec ---
 

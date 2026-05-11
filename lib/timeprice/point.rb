@@ -21,23 +21,42 @@ module Timeprice
     # @return [Point]
     # @raise [ArgumentError] if shape can't be recognised
     def self.coerce(input)
-      return input if input.is_a?(Point)
+      case input
+      in Point
+        input
+      in [_, _]
+        a, b = input.map(&:to_s)
+        currency = [a, b].find { |s| s.match?(/\A[A-Za-z]{3}\z/) }
+        date     = [a, b].find { |s| s.match?(/\A\d{4}(-\d{2}(-\d{2})?)?\z/) }
+        raise ArgumentError, malformed_pair_message(input) if currency.nil? || date.nil?
 
-      unless input.is_a?(Array) && input.size == 2
+        new(currency: currency.upcase, date: date)
+      else
         raise ArgumentError, "Expected Timeprice::Point or [currency, date] tuple, got #{input.inspect}"
       end
+    end
 
-      a, b = input.map(&:to_s)
-      currency = [a, b].find { |s| s.match?(/\A[A-Za-z]{3}\z/) }
-      date     = [a, b].find { |s| s.match?(/\A\d{4}(-\d{2}(-\d{2})?)?\z/) }
+    def self.malformed_pair_message(input)
+      "Could not detect currency + date in #{input.inspect} " \
+        "(expected a 3-letter currency and a YYYY[-MM[-DD]] date)"
+    end
 
-      if currency.nil? || date.nil?
-        raise ArgumentError,
-              "Could not detect currency + date in #{input.inspect} " \
-              "(expected a 3-letter currency and a YYYY[-MM[-DD]] date)"
+    # Resolve `date` to a full YYYY-MM-DD for FX lookup.
+    #
+    # Coarser grains anchor to a representative day:
+    #   - "YYYY"    → mid-year (YYYY-06-30)
+    #   - "YYYY-MM" → mid-month (YYYY-MM-15)
+    #   - "YYYY-MM-DD" → passes through
+    #
+    # @return [String]
+    # @raise [ArgumentError] if `date` doesn't match any supported shape
+    def fx_anchor_date
+      case date.to_s
+      when /\A\d{4}\z/         then "#{date}-06-30"
+      when /\A\d{4}-\d{2}\z/   then "#{date}-15"
+      when /\A\d{4}-\d{2}-\d{2}\z/ then date.to_s
+      else raise ArgumentError, "Invalid date for Point: #{date.inspect}"
       end
-
-      new(currency: currency.upcase, date: date)
     end
   end
 end

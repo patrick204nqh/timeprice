@@ -36,13 +36,14 @@ RSpec.describe "timeprice CLI" do
   end
 
   describe "inflation" do
-    it "produces a human-readable line" do
+    it "leads with the answer and shows the transformation" do
       out, _err, status = run_cli("inflation", "100", "--from", "1990-01", "--to", "2024-01", "--country", "US")
       expect(status.exitstatus).to eq(0)
-      expect(out).to match(/100\.00 USD in 1990-01 is .* USD in 2024-01/)
-      expect(out).to include("[US]")
-      # monthly is the happy path — granularity is intentionally omitted.
-      expect(out).not_to include("granularity")
+      lines = out.lines.map(&:chomp).reject(&:empty?)
+      expect(lines.first).to match(/\A[\d,.]+ USD\s+in 2024-01\z/)
+      expect(out).to include("100.00 USD (1990-01) -> ")
+      expect(out).to include("USD (2024-01)")
+      expect(out).to match(/US\s.\smonthly CPI/)
     end
 
     it "outputs valid JSON with --json and no extra text" do
@@ -68,19 +69,20 @@ RSpec.describe "timeprice CLI" do
   end
 
   describe "fx" do
-    it "produces a human-readable line" do
+    it "leads with the answer and shows rate" do
       out, _err, status = run_cli("fx", "100", "USD", "JPY", "--date", "2010-06-15")
       expect(status.exitstatus).to eq(0)
-      expect(out).to match(/100\.00 USD on 2010-06-15 = .* JPY/)
-      expect(out).to include("rate:")
+      lines = out.lines.map(&:chomp).reject(&:empty?)
+      expect(lines.first).to match(/\A[\d,]+ JPY\s+on 2010-06-15\z/)
+      expect(out).to include("100.00 USD -> ")
+      expect(out).to match(/rate [\d,.]+/)
     end
 
     it "notes effective_date when fallback occurred" do
       # 2010-06-13 is Sunday — no data; should fall back to 2010-06-11 (Friday).
       out, _err, status = run_cli("fx", "100", "USD", "JPY", "--date", "2010-06-13")
       expect(status.exitstatus).to eq(0)
-      expect(out).to include("effective: 2010-06-11")
-      expect(out).to include("fallback")
+      expect(out).to include("from 2010-06-11 (fallback)")
     end
 
     it "outputs valid JSON with --json" do
@@ -106,17 +108,20 @@ RSpec.describe "timeprice CLI" do
   end
 
   describe "compare" do
-    it "accepts \"YEAR CURRENCY\"" do
+    it "accepts \"YEAR CURRENCY\" and shows the fx + cpi chain" do
       out, _err, status = run_cli("compare", "100", "--from", "2010 USD", "--to", "2024 VND")
       expect(status.exitstatus).to eq(0)
-      expect(out).to include("100.00 USD in 2010 -> ")
-      expect(out).to include("VND in 2024")
+      lines = out.lines.map(&:chomp).reject(&:empty?)
+      expect(lines.first).to match(/\A[\d,]+ VND\s+in 2024\z/)
+      expect(out).to include("100.00 USD (2010)")
+      expect(out).to match(/-> fx @ [\d,.]+\s+-> [\d,]+ VND \(2010\)/)
+      expect(out).to match(/-> inflate x[\d.]+ VN\s+-> [\d,]+ VND \(2024, annual\)/)
     end
 
     it "accepts \"CURRENCY YEAR\" (reverse order)" do
       out, _err, status = run_cli("compare", "100", "--from", "USD 2010", "--to", "VND 2024")
       expect(status.exitstatus).to eq(0)
-      expect(out).to include("100.00 USD in 2010 -> ")
+      expect(out).to include("100.00 USD (2010)")
     end
 
     it "outputs valid JSON with --json" do
@@ -138,16 +143,24 @@ RSpec.describe "timeprice CLI" do
   end
 
   describe "sources" do
-    it "lists all bundled data sources with attribution and coverage" do
+    it "lists all bundled data sources in a table" do
       out, err, status = run_cli("sources", data_root: REAL_DATA)
       expect(status.exitstatus).to eq(0)
       expect(err).to be_empty
+      expect(out).to match(/^\s*ID\s+SOURCE\s+LICENSE\s+COVERAGE/)
+      expect(out).to include("us_cpi")
       expect(out).to include("U.S. Bureau of Labor Statistics")
       expect(out).to include("Open Government Licence v3.0")
       expect(out).to include("Eurostat")
-      expect(out).to include("World Bank")
       expect(out).to include("European Central Bank")
+      expect(out).to include("--verbose")
+    end
+
+    it "shows full attribution and license URLs with --verbose" do
+      out, _err, status = run_cli("sources", "--verbose", data_root: REAL_DATA)
+      expect(status.exitstatus).to eq(0)
       expect(out).to include("attribution:")
+      expect(out).to include("license_url:")
       expect(out).to include("coverage:")
     end
 
