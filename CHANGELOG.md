@@ -5,11 +5,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-### Removed
-- Undocumented back-compat constants: `Timeprice::SUPPORTED_COUNTRIES`,
-  `Timeprice::SUPPORTED_CURRENCIES`, and `Timeprice::Compare::CURRENCY_TO_COUNTRY`.
-  Use `Supported::COUNTRIES`, `Supported::CURRENCIES`, and
-  `Supported::CURRENCY_TO_COUNTRY` directly.
+## [0.3.0] - 2026-05-11
+
+### Added
+- `Timeprice::CpiLookup` and `Timeprice::CpiPoint` (Data.define of value +
+  granularity). Owns all knowledge of the parsed CPI JSON shape so
+  `Inflation.adjust` is a 6-line orchestration.
+- `Timeprice::Sources::Coverage` — isolates runtime filesystem walking
+  (FX year scan, JSON.parse of rate files) from the attribution registry.
+- `Timeprice::Point#fx_anchor_date` — resolves a year / month / day `Point`
+  to the day-resolved string FX lookup needs (mid-year for `YYYY`,
+  mid-month for `YYYY-MM`).
+- `Timeprice::Supported.decimals_for(currency)` — single source of truth
+  for ISO 4217 minor-unit counts; non-CLI callers of `Timeprice.exchange`
+  can now format results consistently.
+- `Timeprice::CLI::Presenters::{Inflation, Exchange, Compare, Sources}` —
+  each presenter exposes `#text_lines` and `#json_hash`; the CLI dispatches
+  via a single `#render(presenter)` helper.
 
 ### Changed
 - CLI output redesigned for readability: every `inflation`, `fx`, and `compare`
@@ -22,6 +34,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   previous detailed view with license URLs and full attribution.
 - Top-level `timeprice help` rewritten — no more truncated descriptions; lists
   command names + descriptions, matching the `git` / `gh` / `cargo` convention.
+- `Point.coerce` rewritten with pattern matching; the CLI's
+  `parse_compare_token` now delegates to it instead of re-implementing
+  the shape rules.
+- `Compare.resolve_points` uses explicit `raise … unless` guards instead of
+  `… || (raise …)` nil-pun.
+
+### Removed
+- Undocumented back-compat constants: `Timeprice::SUPPORTED_COUNTRIES`,
+  `Timeprice::SUPPORTED_CURRENCIES`, and `Timeprice::Compare::CURRENCY_TO_COUNTRY`.
+  Use `Supported::COUNTRIES`, `Supported::CURRENCIES`, and
+  `Supported::CURRENCY_TO_COUNTRY` directly.
+- `Lint/DuplicateBranch` RuboCop exclusion for `cli.rb` — the duplicate
+  was collapsed into a single `rescue Timeprice::Error, ArgumentError`.
 
 ### Fixed
 - Friendlier error messages: `Error: AMOUNT must be a number, got "abc"`
