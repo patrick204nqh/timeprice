@@ -10,6 +10,7 @@ require_relative "sources/world_bank"
 require_relative "sources/ons"
 require_relative "sources/eurostat"
 require_relative "sources/estat"
+require_relative "sources/imf"
 
 results = {}
 
@@ -24,6 +25,7 @@ SOURCE_FILES = {
   "ONS" => "scripts/sources/ons.rb",
   "Eurostat" => "scripts/sources/eurostat.rb",
   "e-Stat / JP" => "scripts/sources/estat.rb",
+  "IMF / VN" => "scripts/sources/imf.rb",
 }.freeze
 
 run = lambda { |name, &blk|
@@ -56,6 +58,11 @@ run.call("Frankfurter") { Sources::Frankfurter.run }
 run.call("World Bank VND FX") { Sources::WorldBank.run_vnd_fx }
 run.call("BLS") { Sources::BLS.run }
 run.call("World Bank VN CPI") { Sources::WorldBank.run_vn_cpi }
+# IMF runs AFTER WorldBank for VN: WB writes the annual baseline first,
+# IMF layers monthly on top via CountryFile + MergePolicy (provenance
+# records which provider supplied each period). If IMF fails, the file
+# is still valid with WB-only annual data — non-critical.
+run.call("IMF / VN") { Sources::IMF.run }
 run.call("ONS") { Sources::ONS.run }
 run.call("Eurostat") { Sources::Eurostat.run }
 run.call("e-Stat / JP") { Sources::EStat.run }
