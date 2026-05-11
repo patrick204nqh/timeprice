@@ -267,10 +267,17 @@ strings. `timeprice sources` prints them in plain text and as JSON.
 
 ## Data format
 
-Bundled data lives under `data/` in schema v3 — a `manifest.json` plus
-per-country CPI files and per-year FX files. See
-[`docs/SCHEMA_V3_MIGRATION.md`](docs/SCHEMA_V3_MIGRATION.md) for the full
-contract, including the migration path from v2.
+Bundled data lives under `data/` in schema v3 and is self-describing:
+
+- `data/manifest.json` — the supported set (countries, currencies, FX years).
+- `data/cpi/<country>.json` — CPI for one country: `series.{monthly,annual}`,
+  structured `index` block, `provenance` ranges, `providers` attribution.
+- `data/fx/usd/<year>.json` — daily USD-base FX for one year, plus an optional
+  `annual` block for currencies sourced at annual resolution (VND).
+- `data/fx/_annual.json` — sparse historical annual-only FX for years that
+  predate daily coverage.
+
+`scripts/check_schema_stability.rb` enforces the shape in CI.
 
 ## Author
 
