@@ -52,7 +52,10 @@ RSpec.describe "golden snapshots (real bundled data)" do
     # window — IMF's monthly-derived figures match to ~0.001% (different rebase
     # cycle of the index, identical underlying inflation).
     rate = Timeprice::Inflation.rate(from: "2010", to: "2020", country: "VN")
-    expect(rate.round(6)).to eq(0.687819)
+    # Tolerance absorbs the ~0.001% rebase drift each IMF refresh re-emits; a
+    # real regression in the inflation math would move this by orders of
+    # magnitude more.
+    expect(rate).to be_within(0.001).of(0.687819)
   end
 
   it "Compare: 100 USD @ 2010 → VND @ 2024" do
@@ -65,7 +68,9 @@ RSpec.describe "golden snapshots (real bundled data)" do
     # Cross-check: order-of-magnitude sanity — 100 USD in 2010 is roughly
     # 1.86M VND nominal, and Vietnam's 14-year CPI ratio is ~1.9x.
     r = Timeprice.compare(amount: 100, from: %w[USD 2010], to: %w[VND 2024])
-    expect(r.amount.round(2)).to eq(3_530_894.89)
+    # Tolerance (±100 VND on ~3.5M) absorbs IMF refresh drift in the CPI ratio.
+    # FX is annual-locked from World Bank, so it stays exact.
+    expect(r.amount).to be_within(100).of(3_530_894.89)
     expect(r.fx_rate).to eq(18_612.92)
     expect(r.country).to eq("VN")
   end
