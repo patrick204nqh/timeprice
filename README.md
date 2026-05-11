@@ -32,15 +32,24 @@ Requires Ruby >= 3.2.
 
 ```bash
 $ timeprice inflation 100 --from 1990-01 --to 2024-01 --country US
-100.00 USD in 1990-01 is 242.09 USD in 2024-01 (US, granularity: monthly)
+242.09 USD  in 2024-01
+  100.00 USD (1990-01) -> 242.09 USD (2024-01)
+  US · monthly CPI
 
 $ timeprice fx 100 USD JPY --date 2010-06-15
-100.00 USD on 2010-06-15 = 9118.00 JPY (rate: 91.1800)
+9,118 JPY  on 2010-06-15
+  100.00 USD -> 9,118 JPY
+  rate 91.18
 
 $ timeprice compare 100 --from "2010 USD" --to "2024 VND"
-100.00 USD in 2010 -> 3530920.58 VND in 2024
-  steps: convert at 2010 (fx rate 18612.920000) -> 1861292.0000 VND, then inflate in VN (cpi ratio 1.897027, granularity: annual)
+3,530,921 VND  in 2024
+  100.00 USD (2010)
+    -> fx @ 18,612.92     -> 1,861,292 VND (2010)
+    -> inflate x1.8970 VN -> 3,530,921 VND (2024, annual)
 ```
+
+The first line of each result is the answer — pipe through `head -1` if a
+script only needs the headline figure.
 
 Every command supports `--json` for machine-readable output:
 

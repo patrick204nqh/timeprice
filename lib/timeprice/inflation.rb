@@ -14,7 +14,15 @@ module Timeprice
   InflationResult = Data.define(
     :amount, :original_amount, :from, :to, :country,
     :from_index, :to_index, :granularity
-  )
+  ) do
+    # The country's primary currency (e.g. "USD" for "US"). Falls back to the
+    # uppercased country code if the country isn't in the supported map —
+    # callers can still render *some* unit rather than crashing.
+    def country_currency_label
+      require_relative "supported"
+      Supported.currency_for_country(country) || country.to_s.upcase
+    end
+  end
 
   # CPI-based inflation adjustment for the {Supported::COUNTRIES} list.
   module Inflation

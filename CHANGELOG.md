@@ -5,6 +5,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- CLI output redesigned for readability: every `inflation`, `fx`, and `compare`
+  command now leads with the answer on line 1 (e.g. `3,530,921 VND  in 2024`),
+  followed by the calculation chain indented below. `head -1` extracts just
+  the headline. Numbers are comma-grouped; JSON output is rounded to currency
+  precision (no more `1861291.9999999998`).
+- `timeprice sources` now renders as an aligned `ID / SOURCE / LICENSE /
+  COVERAGE` table by default. Use `timeprice sources --verbose` (`-v`) for the
+  previous detailed view with license URLs and full attribution.
+- Top-level `timeprice help` rewritten — no more truncated descriptions; lists
+  command names + descriptions, matching the `git` / `gh` / `cargo` convention.
+
+### Fixed
+- Friendlier error messages: `Error: AMOUNT must be a number, got "abc"`
+  instead of Ruby's raw `invalid value for Float(): "abc"`. Missing-options
+  errors now say `missing required options: --from, --to` with a `See:
+  timeprice help inflation` hint.
+
 ## [0.2.0] - 2026-05-11
 
 ### Added

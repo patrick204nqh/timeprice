@@ -70,6 +70,8 @@ Metrics/AbcSize:
 
 Metrics/ClassLength:
   Max: 200
+  Exclude:
+    - "lib/timeprice/cli.rb"  # Thor DSL (desc/method_option per command) inflates line count
 
 Metrics/ModuleLength:
   Max: 200
