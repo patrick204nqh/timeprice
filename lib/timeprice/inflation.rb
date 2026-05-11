@@ -2,6 +2,7 @@
 
 require_relative "errors"
 require_relative "data_loader"
+require_relative "cpi_lookup"
 
 module Timeprice
   # Value object returned by Inflation.adjust.
@@ -40,20 +41,20 @@ module Timeprice
     # @raise [UnsupportedCountry] if `country` is not supported
     # @raise [DataNotFound]       if no CPI data covers the requested period
     def adjust(amount:, from:, to:, country:)
-      data = DataLoader.load_cpi(country)
-      from_index, from_gran = lookup_index(data, from)
-      to_index,   to_gran   = lookup_index(data, to)
+      lookup = CpiLookup.new(DataLoader.load_cpi(country))
+      from_point = lookup.at(from)
+      to_point   = lookup.at(to)
 
-      ratio = to_index.to_f / from_index
+      ratio = to_point.value.to_f / from_point.value
       InflationResult.new(
         amount: amount.to_f * ratio,
         original_amount: amount.to_f,
         from: from,
         to: to,
         country: country.to_s.upcase,
-        from_index: from_index,
-        to_index: to_index,
-        granularity: merge_granularity(from_gran, to_gran)
+        from_index: from_point.value,
+        to_index: to_point.value,
+        granularity: merge_granularity(from_point.granularity, to_point.granularity)
       )
     end
 
@@ -66,53 +67,6 @@ module Timeprice
     def rate(from:, to:, country:)
       result = adjust(amount: 1.0, from: from, to: to, country: country)
       result.amount - 1.0
-    end
-
-    # Returns [index_value, granularity_symbol]
-    def lookup_index(data, key)
-      key = key.to_s
-      monthly = data["monthly"] || {}
-      annual  = data["annual"]  || {}
-
-      case key
-      when /\A\d{4}-\d{2}\z/
-        if monthly.key?(key)
-          [monthly[key], :monthly]
-        else
-          year = key[0, 4]
-          raise DataNotFound, missing_cpi_message(key, data, monthly, annual) unless annual.key?(year)
-
-          [annual[year], :annual]
-
-        end
-      when /\A\d{4}\z/
-        if annual.key?(key)
-          [annual[key], :annual]
-        else
-          months = monthly.select { |k, _| k.start_with?("#{key}-") }
-          raise DataNotFound, missing_cpi_message(key, data, monthly, annual) if months.empty?
-
-          avg = months.values.sum.to_f / months.size
-          [avg, :annual_from_monthly_avg]
-        end
-      else
-        raise ArgumentError, "Invalid date format: #{key.inspect} (use YYYY or YYYY-MM)"
-      end
-    end
-
-    def missing_cpi_message(key, data, monthly, annual)
-      country = data["country"]
-      ranges = []
-      if monthly.any?
-        ks = monthly.keys.sort
-        ranges << "monthly #{ks.first}..#{ks.last}"
-      end
-      if annual.any?
-        ks = annual.keys.sort
-        ranges << "annual #{ks.first}..#{ks.last}"
-      end
-      hint = ranges.empty? ? "" : " (supported: #{ranges.join(", ")})"
-      "No CPI data for #{key.inspect} in #{country}#{hint}"
     end
 
     # If either end fell back to annual_from_monthly_avg, propagate that label;
