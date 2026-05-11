@@ -20,6 +20,8 @@ module Timeprice
     def convert(amount:, from:, to:, date:)
       from = from.to_s.upcase
       to   = to.to_s.upcase
+      raise UnsupportedCurrency, from unless SUPPORTED_CURRENCIES.include?(from)
+      raise UnsupportedCurrency, to   unless SUPPORTED_CURRENCIES.include?(to)
       d = parse_date(date)
 
       rate, eff_date = resolve_rate(from, to, d)

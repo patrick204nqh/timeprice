@@ -40,7 +40,9 @@ RSpec.describe "timeprice CLI" do
       out, _err, status = run_cli("inflation", "100", "--from", "1990-01", "--to", "2024-01", "--country", "US")
       expect(status.exitstatus).to eq(0)
       expect(out).to match(/100\.00 USD in 1990-01 is .* USD in 2024-01/)
-      expect(out).to include("granularity: monthly")
+      expect(out).to include("[US]")
+      # monthly is the happy path — granularity is intentionally omitted.
+      expect(out).not_to include("granularity")
     end
 
     it "outputs valid JSON with --json and no extra text" do
@@ -76,7 +78,8 @@ RSpec.describe "timeprice CLI" do
       # 2010-06-13 is Sunday — no data; should fall back to 2010-06-11 (Friday).
       out, _err, status = run_cli("fx", "100", "USD", "JPY", "--date", "2010-06-13")
       expect(status.exitstatus).to eq(0)
-      expect(out).to include("effective date: 2010-06-11")
+      expect(out).to include("effective: 2010-06-11")
+      expect(out).to include("fallback")
     end
 
     it "outputs valid JSON with --json" do

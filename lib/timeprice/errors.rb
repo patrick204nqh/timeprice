@@ -3,12 +3,15 @@
 module Timeprice
   class Error < StandardError; end
 
+  SUPPORTED_COUNTRIES = %w[US UK EU JP VN].freeze
+  SUPPORTED_CURRENCIES = %w[USD GBP EUR JPY VND].freeze
+
   class UnsupportedCountry < Error
     attr_reader :country
 
     def initialize(country)
       @country = country
-      super("Unsupported country: #{country.inspect}")
+      super("Unsupported country: #{country.inspect} (supported: #{SUPPORTED_COUNTRIES.join(", ")})")
     end
   end
 
@@ -17,7 +20,7 @@ module Timeprice
 
     def initialize(currency)
       @currency = currency
-      super("Unsupported currency: #{currency.inspect}")
+      super("Unsupported currency: #{currency.inspect} (supported: #{SUPPORTED_CURRENCIES.join(", ")})")
     end
   end
 

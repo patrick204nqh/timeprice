@@ -61,7 +61,7 @@ module Timeprice
           if annual.key?(year)
             [annual[year], :annual]
           else
-            raise DataNotFound, "No CPI data for #{key.inspect} in #{data["country"]}"
+            raise DataNotFound, missing_cpi_message(key, data, monthly, annual)
           end
         end
       when /\A\d{4}\z/
@@ -69,13 +69,28 @@ module Timeprice
           [annual[key], :annual]
         else
           months = monthly.select { |k, _| k.start_with?("#{key}-") }
-          raise DataNotFound, "No CPI data for #{key.inspect} in #{data["country"]}" if months.empty?
+          raise DataNotFound, missing_cpi_message(key, data, monthly, annual) if months.empty?
           avg = months.values.sum.to_f / months.size
           [avg, :annual_from_monthly_avg]
         end
       else
         raise ArgumentError, "Invalid date format: #{key.inspect} (use YYYY or YYYY-MM)"
       end
+    end
+
+    def missing_cpi_message(key, data, monthly, annual)
+      country = data["country"]
+      ranges = []
+      if monthly.any?
+        ks = monthly.keys.sort
+        ranges << "monthly #{ks.first}..#{ks.last}"
+      end
+      if annual.any?
+        ks = annual.keys.sort
+        ranges << "annual #{ks.first}..#{ks.last}"
+      end
+      hint = ranges.empty? ? "" : " (supported: #{ranges.join(", ")})"
+      "No CPI data for #{key.inspect} in #{country}#{hint}"
     end
 
     # If either end fell back to annual_from_monthly_avg, propagate that label;

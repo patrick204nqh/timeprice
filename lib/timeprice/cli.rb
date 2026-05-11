@@ -6,15 +6,23 @@ require_relative "../timeprice"
 
 module Timeprice
   class CLI < Thor
+    # Thor 1.5 ships a built-in `tree` command on every subclass. Strip it
+    # from this subclass — it's an internal debugging aid that leaks into
+    # our help output. all_commands inherits from the base Thor class, so
+    # filter it on read.
+    def self.all_commands
+      super.except("tree")
+    end
+
     class_option :json, type: :boolean, default: false, desc: "Output result as JSON"
 
     def self.exit_on_failure?
       true
     end
 
-    desc "inflation AMOUNT", "Adjust AMOUNT for inflation between two dates"
-    method_option :from, type: :string, required: true, desc: "Source date (YYYY or YYYY-MM)"
-    method_option :to,   type: :string, required: true, desc: "Target date (YYYY or YYYY-MM)"
+    desc "inflation AMOUNT", "Inflation-adjust an amount between two dates"
+    method_option :from,    type: :string, required: true, desc: "Source date (YYYY or YYYY-MM)"
+    method_option :to,      type: :string, required: true, desc: "Target date (YYYY or YYYY-MM)"
     method_option :country, type: :string, required: true, desc: "Country code (US, UK, EU, JP, VN)"
     def inflation(amount)
       with_error_handling do
@@ -28,7 +36,7 @@ module Timeprice
       end
     end
 
-    desc "fx AMOUNT FROM_CURRENCY TO_CURRENCY", "Convert AMOUNT between currencies on a given date"
+    desc "fx AMOUNT FROM TO", "Convert an amount between currencies on a date"
     method_option :date, type: :string, required: true, desc: "Date (YYYY-MM-DD)"
     def fx(amount, from_currency, to_currency)
       with_error_handling do
@@ -58,7 +66,7 @@ module Timeprice
       end
     end
 
-    desc "sources", "List bundled data sources, licenses, attribution, and coverage"
+    desc "sources", "List bundled data sources and coverage"
     def sources
       list = Timeprice::Sources.list
       if options[:json]
@@ -86,19 +94,19 @@ module Timeprice
     end
 
     no_commands do
+      # Currencies with no minor unit — render whole numbers, no decimals.
+      ZERO_DECIMAL_CURRENCIES = %w[JPY VND KRW IDR HUF CLP].freeze
+
       def with_error_handling
         yield
       rescue Timeprice::Error => e
         warn "Error: #{e.message}"
         exit 1
       rescue ArgumentError => e
-        # Bad numeric/date format from Float() or library parsers — treat as user error.
         warn "Error: #{e.message}"
         exit 1
       end
 
-      # Accepts "1995 USD" or "USD 1995" — order-agnostic.
-      # Returns [currency, year_string] tuple matching Timeprice.compare's API.
       def parse_compare_token(token, label:)
         raise ArgumentError, "#{label} is required" if token.nil? || token.strip.empty?
         parts = token.strip.split(/\s+/)
@@ -115,15 +123,38 @@ module Timeprice
         [currency.upcase, year]
       end
 
+      def fmt_money(amount, currency)
+        decimals = ZERO_DECIMAL_CURRENCIES.include?(currency.to_s.upcase) ? 0 : 2
+        format("%.#{decimals}f", amount)
+      end
+
+      def fmt_rate(rate)
+        abs = rate.to_f.abs
+        decimals = if abs >= 1000 then 0
+                   elsif abs >= 100 then 2
+                   elsif abs >= 10  then 3
+                   else 4
+                   end
+        format("%.#{decimals}f", rate)
+      end
+
+      # Granularity is loud noise on the happy path. Only surface it when the
+      # answer actually used annual data — that's where users want a heads-up.
+      def granularity_suffix(granularity)
+        return "" if granularity == :monthly
+        " (granularity: #{granularity})"
+      end
+
       def emit_inflation(result)
         if options[:json]
           say JSON.generate(result.to_h)
         else
+          ccy = result.country_currency_label
           say format(
-            "%.2f %s in %s is %.2f %s in %s (%s, granularity: %s)",
-            result.original_amount, result.country_currency_label,
-            result.from, result.amount, result.country_currency_label,
-            result.to, result.country, result.granularity
+            "%s %s in %s is %s %s in %s [%s]%s",
+            fmt_money(result.original_amount, ccy), ccy, result.from,
+            fmt_money(result.amount, ccy), ccy, result.to,
+            result.country, granularity_suffix(result.granularity)
           )
         end
       end
@@ -133,12 +164,12 @@ module Timeprice
           say JSON.generate(result.to_h)
         else
           line = format(
-            "%.2f %s on %s = %.2f %s (rate: %.4f)",
-            result.original_amount, result.from, result.date,
-            result.amount, result.to, result.rate
+            "%s %s on %s = %s %s (rate: %s)",
+            fmt_money(result.original_amount, result.from), result.from, result.date,
+            fmt_money(result.amount, result.to), result.to, fmt_rate(result.rate)
           )
           if result.effective_date && result.effective_date != result.date
-            line += " (effective date: #{result.effective_date} — fallback)"
+            line += " [effective: #{result.effective_date}, fallback]"
           end
           say line
         end
@@ -149,14 +180,16 @@ module Timeprice
           say JSON.generate(result.to_h)
         else
           say format(
-            "%.2f %s in %s -> %.2f %s in %s",
-            result.original_amount, result.from_currency, result.from_date,
-            result.amount, result.to_currency, result.to_date
+            "%s %s in %s -> %s %s in %s",
+            fmt_money(result.original_amount, result.from_currency), result.from_currency, result.from_date,
+            fmt_money(result.amount, result.to_currency), result.to_currency, result.to_date
           )
           say format(
-            "  steps: convert at %s (fx rate %.6f) -> %.4f %s, then inflate in %s (cpi ratio %.6f, granularity: %s)",
-            result.from_date, result.fx_rate, result.converted_amount,
-            result.to_currency, result.country, result.cpi_ratio, result.granularity
+            "  steps: %s %s -> %s %s (fx %s on %s), then inflate in %s x%.4f%s",
+            fmt_money(result.original_amount, result.from_currency), result.from_currency,
+            fmt_money(result.converted_amount, result.to_currency), result.to_currency,
+            fmt_rate(result.fx_rate), result.from_date,
+            result.country, result.cpi_ratio, granularity_suffix(result.granularity)
           )
         end
       end

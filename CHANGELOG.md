@@ -5,6 +5,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-05-11
+
+### Changed
+- CLI output formatting: currency-aware decimals (no `.0000` on JPY/VND), magnitude-aware FX rate precision (no `91.180000` for a 91.18 rate).
+- `granularity` is omitted from human output when it's `monthly` (the happy path); surfaced only when the result used annual data.
+- Error messages hint at supported values: `Unsupported country: "FR" (supported: US, UK, EU, JP, VN)`; out-of-range CPI errors include the actual coverage range.
+- Validate FX currencies against the supported list up front instead of failing with a generic "no FX rate" message.
+- Tightened CLI command descriptions so `timeprice help` fits in a standard terminal.
+
+### Fixed
+- Hide Thor's built-in `tree` command — it was leaking into `timeprice help` as an internal-looking debug command.
+
 ## [0.1.0] - 2026-05-11
 
 ### Added
