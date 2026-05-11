@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "_common"
+require_relative "merge_policy"
 
 module Sources
   # Owns one data/cpi/<code>.json file. Given the freshly-fetched series
@@ -22,13 +23,14 @@ module Sources
       @log_label         = log_label
     end
 
-    def write_merged(monthly:, annual:)
+    def write_merged(monthly:, annual:, provider_id:)
       prior = load_prior
-      base_year, prior_monthly, prior_annual = apply_drift(prior, monthly, annual)
-      merged = { monthly: prior_monthly.merge(monthly), annual: prior_annual.merge(annual) }
-      write(base_year, merged[:monthly], merged[:annual])
-      log_summary(merged: merged, incoming: { monthly: monthly, annual: annual },
-                  prior: { monthly: prior_monthly, annual: prior_annual })
+      base_year, prior_normalized = apply_drift(prior, monthly, annual)
+      contribution = { monthly: monthly, annual: annual, provider_id: provider_id }
+      merged = MergePolicy.layer(prior_normalized, contribution)
+      write(base_year, merged, prior_normalized["providers"], provider_id)
+      log_summary(merged: merged, incoming: contribution,
+                  prior: { monthly: prior_normalized["monthly"], annual: prior_normalized["annual"] })
     end
 
     private
@@ -44,20 +46,21 @@ module Sources
       Sources.read_json_if_exists(path) || {}
     end
 
-    # Returns [base_year, prior_monthly, prior_annual] — renormalizing prior
-    # if the new series indicates a rebase (drift >0.5% on shared periods).
+    # Returns [base_year, prior_normalized] where prior_normalized has the
+    # same keys as prior but with monthly/annual rebased if the new series
+    # indicates a rebase (drift >0.5% on shared periods).
     def apply_drift(prior, monthly, annual)
       prior_monthly = prior["monthly"] || {}
       prior_annual  = prior["annual"]  || {}
       base_year     = prior["base_year"] || default_base_year
       verdict, ratio = drift_check(prior_monthly, prior_annual, monthly, annual)
-      return [base_year, prior_monthly, prior_annual] unless verdict == :rebase
+      return [base_year, prior] unless verdict == :rebase
 
-      [
-        "rebased #{Sources.today}",
-        Sources.renormalize(prior_monthly, ratio),
-        Sources.renormalize(prior_annual, ratio),
-      ]
+      rebased = prior.merge(
+        "monthly" => Sources.renormalize(prior_monthly, ratio),
+        "annual" => Sources.renormalize(prior_annual, ratio)
+      )
+      ["rebased #{Sources.today}", rebased]
     end
 
     # Drift is most informative on whichever granularity has the most overlap.
@@ -70,16 +73,30 @@ module Sources
       [verdict, ratio]
     end
 
-    def write(base_year, merged_monthly, merged_annual)
+    def write(base_year, merged, prior_providers, provider_id)
       Sources.write_json(path, {
                            "schema_version" => 1,
                            "country" => country_code.upcase,
                            "base_year" => base_year,
                            "source" => source_label,
                            "updated_at" => Sources.today,
-                           "monthly" => merged_monthly,
-                           "annual" => merged_annual,
+                           "monthly" => merged[:monthly],
+                           "annual" => merged[:annual],
+                           "provenance" => merged[:provenance],
+                           "providers" => provider_entries(prior_providers, provider_id),
                          })
+    end
+
+    # Maintains the file-level providers[] list: keeps prior entries for
+    # other providers in the chain, refreshes this provider's entry.
+    def provider_entries(prior_providers, provider_id)
+      others = (prior_providers || []).reject { |p| p["id"] == provider_id }
+      others + [{
+        "id" => provider_id,
+        "label" => source_label,
+        "fetched_at" => Sources.today,
+        "status" => "ok",
+      }]
     end
 
     def log_summary(merged:, incoming:, prior:)

@@ -25,18 +25,22 @@ module Sources
       #   @return [String] base_year written if the file doesn't exist yet
       # @!attribute [rw] log_label
       #   @return [String] short prefix for log lines (e.g. "BLS")
+      # @!attribute [rw] provider_id
+      #   @return [String] stable short id recorded as per-period provenance
+      #   (e.g. "bls", "ons", "eurostat"). Lowercase, no spaces.
       attr_accessor :country_code, :country_label, :source_label,
-                    :default_base_year, :log_label
+                    :default_base_year, :log_label, :provider_id
     end
 
     # Convenience for subclasses to register metadata in one block.
     def self.configure(country_code:, country_label:, source_label:,
-                       default_base_year:, log_label:)
+                       default_base_year:, log_label:, provider_id:)
       self.country_code = country_code
       self.country_label = country_label
       self.source_label = source_label
       self.default_base_year = default_base_year
       self.log_label = log_label
+      self.provider_id = provider_id
     end
 
     def self.run
@@ -54,7 +58,8 @@ module Sources
       annual  ||= {}
       Sources.validate_positive_numeric!(monthly, "#{log_label} monthly") unless monthly.empty?
       Sources.validate_positive_numeric!(annual,  "#{log_label} annual")  unless annual.empty?
-      country_file.write_merged(monthly: monthly, annual: annual)
+      country_file.write_merged(monthly: monthly, annual: annual,
+                                provider_id: self.class.provider_id)
     end
 
     private

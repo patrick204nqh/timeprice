@@ -19,7 +19,8 @@ module Sources
       country_label: "United Kingdom",
       source_label: "ONS D7BT — UK CPI all-items index (2015=100)",
       default_base_year: "2015=100",
-      log_label: "ONS"
+      log_label: "ONS",
+      provider_id: "ons"
     )
 
     def parse_month(entry)

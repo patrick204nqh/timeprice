@@ -93,6 +93,11 @@ Metrics/PerceivedComplexity:
   Exclude:
     - "scripts/**/*"
 
+# Keyword args are self-documenting; the Sandi-Metz-style limit is meant for
+# positional args. The Provider/CountryFile metadata DSL needs ≥6 named args.
+Metrics/ParameterLists:
+  CountKeywordArgs: false
+
 # --- Lint ---
 
 Lint/ConstantDefinitionInBlock:
