@@ -1,16 +1,15 @@
 # frozen_string_literal: true
 
+require_relative "../supported"
+
 module Timeprice
   class CLI < Thor
     # Number/currency formatting helpers shared by every CLI emitter.
     # Lives as a mixin (rather than a free-standing module function set) so
     # callers can use the helpers as plain methods inside `no_commands` blocks.
     module Formatting
-      # Currencies with no minor unit — render whole numbers, no decimals.
-      ZERO_DECIMAL_CURRENCIES = %w[JPY VND].freeze
-
       def fmt_money(amount, currency)
-        with_commas(format("%.#{currency_decimals(currency)}f", amount))
+        with_commas(format("%.#{Supported.decimals_for(currency)}f", amount))
       end
 
       # Two decimals once we're past the unit threshold; six decimals for
@@ -20,12 +19,8 @@ module Timeprice
         with_commas(format("%.#{decimals}f", rate))
       end
 
-      def currency_decimals(currency)
-        ZERO_DECIMAL_CURRENCIES.include?(currency.to_s.upcase) ? 0 : 2
-      end
-
       def round_money(amount, currency)
-        amount.to_f.round(currency_decimals(currency))
+        amount.to_f.round(Supported.decimals_for(currency))
       end
 
       def with_commas(num_str)
