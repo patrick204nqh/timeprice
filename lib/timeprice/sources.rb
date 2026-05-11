@@ -77,6 +77,7 @@ module Timeprice
 
     # Returns an array of hashes with :id, :kind, :name, :license, :license_url,
     # :attribution, :coverage (string like "1990-01 to 2026-03 (monthly+annual)").
+    # @return [Array<Hash>]
     def list
       ATTRIBUTIONS.map { |s| s.merge(coverage: coverage_for(s)) }
     end

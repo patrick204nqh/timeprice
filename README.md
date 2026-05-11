@@ -155,6 +155,91 @@ inflated = Timeprice.inflation(amount: 100, from: "2010", to: "2024", country: "
 converted = Timeprice.exchange(amount: inflated, from: "USD", to: "VND", date: "2024-06-30").amount
 ```
 
+## Using from Rails / Rake
+
+`timeprice` is a plain Ruby library — no Railtie, no engine, no autoload magic. It works
+the same way as `BigDecimal` or `JSON`: require it once, call the module functions.
+
+### In a Rails app
+
+Add the gem to your `Gemfile`:
+
+```ruby
+gem "timeprice", "~> 0.1"
+```
+
+Then call it directly from controllers, jobs, presenters, or service objects. The library
+is thread-safe (data files are loaded once and cached as frozen hashes), so it's safe to
+call from threaded servers (Puma) and Sidekiq workers:
+
+```ruby
+# app/services/historical_price.rb
+class HistoricalPrice
+  def self.in_today_dollars(amount, year)
+    Timeprice.inflation(
+      amount: amount,
+      from: year.to_s,
+      to: Date.current.strftime("%Y-%m"),
+      country: "US"
+    ).amount
+  end
+end
+```
+
+Errors all inherit from `Timeprice::Error`, so a single rescue covers everything:
+
+```ruby
+rescue Timeprice::Error => e
+  Rails.logger.warn("timeprice lookup failed: #{e.message}")
+  nil
+end
+```
+
+Result objects respond to `#to_h`, so they serialize cleanly in JSON APIs:
+
+```ruby
+def show
+  render json: Timeprice.exchange(amount: 100, from: "USD", to: "EUR", date: params[:date]).to_h
+end
+```
+
+### In a Rake task
+
+```ruby
+# lib/tasks/inflation.rake
+require "timeprice"
+
+namespace :inflation do
+  desc "Print 1990→today inflation for the supported countries"
+  task :report do
+    today = Date.today.strftime("%Y-%m")
+    %w[US UK EU JP VN].each do |c|
+      r = Timeprice.inflation(amount: 100, from: "1990", to: today, country: c)
+      puts "#{c}: 100 in 1990 → #{r.amount.round(2)} in #{today} (#{r.granularity})"
+    end
+  end
+end
+```
+
+### Configuring the data root
+
+By default the gem reads from its bundled `data/` directory. To point at a different
+checkout (useful for testing a new data refresh before releasing it), set
+`TIMEPRICE_DATA_ROOT`:
+
+```bash
+TIMEPRICE_DATA_ROOT=/path/to/timeprice/data bundle exec rake inflation:report
+```
+
+Or programmatically:
+
+```ruby
+Timeprice::DataLoader.data_root = "/path/to/timeprice/data"
+```
+
+Reassigning `data_root` clears the in-memory cache, so it's safe to call between requests
+in development.
+
 ## Data sources & attribution
 
 `timeprice` redistributes data from several public sources. Each is governed by its own

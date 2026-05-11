@@ -13,6 +13,19 @@ require_relative "sources/estat"
 
 results = {}
 
+# Map fetcher display name → source file path (relative to repo root).
+# The file path is used in GitHub `::warning file=...::` annotations so that
+# fetcher failures show up directly next to the responsible source.
+SOURCE_FILES = {
+  "Frankfurter" => "scripts/sources/frankfurter.rb",
+  "World Bank VND FX" => "scripts/sources/world_bank.rb",
+  "BLS" => "scripts/sources/bls.rb",
+  "World Bank VN CPI" => "scripts/sources/world_bank.rb",
+  "ONS" => "scripts/sources/ons.rb",
+  "Eurostat" => "scripts/sources/eurostat.rb",
+  "e-Stat / JP" => "scripts/sources/estat.rb",
+}.freeze
+
 run = lambda { |name, &blk|
   print_name = name.to_s
   begin
@@ -21,6 +34,19 @@ run = lambda { |name, &blk|
   rescue StandardError => e
     msg = "#{print_name}: FAILED — #{e.class}: #{e.message}"
     Sources.log msg
+    # Per-fetcher GitHub Actions annotation. Picked up automatically by the
+    # workflow run UI without any extra step. Title carries the fetcher name;
+    # `file=` points at the script so the annotation links to the source.
+    file = SOURCE_FILES[print_name]
+    annotation_title = "Fetcher failed: #{print_name}"
+    # Escape per GitHub's rules: %, \r, \n must be encoded in annotation messages.
+    safe_msg = "#{e.class}: #{e.message}"
+               .gsub("%", "%25").gsub("\r", "%0D").gsub("\n", "%0A")
+    if file
+      warn "::warning file=#{file},title=#{annotation_title}::#{safe_msg}"
+    else
+      warn "::warning title=#{annotation_title}::#{safe_msg}"
+    end
     results[print_name] = msg
   end
 }

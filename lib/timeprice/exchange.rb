@@ -9,6 +9,10 @@ module Timeprice
     :amount, :original_amount, :from, :to, :date, :effective_date, :rate
   )
 
+  # Historical FX conversion using bundled per-year USD-base rate files.
+  # Handles identity (USD→USD), direct lookup, inverse, and triangulation
+  # through USD. Weekend/holiday dates fall back up to {MAX_FALLBACK_DAYS}
+  # days to the nearest prior trading day.
   module Exchange
     BASE = "USD"
     MAX_FALLBACK_DAYS = 7
@@ -16,7 +20,14 @@ module Timeprice
     module_function
 
     # Convert `amount` from currency `from` to currency `to` on `date`.
-    # date: "YYYY-MM-DD".
+    #
+    # @param amount [Numeric]
+    # @param from   [String] ISO 4217 source currency
+    # @param to     [String] ISO 4217 destination currency
+    # @param date   [String, Date] date as "YYYY-MM-DD" or a Date instance
+    # @return [ExchangeResult]
+    # @raise [UnsupportedCurrency] if `from` or `to` is not supported
+    # @raise [DataNotFound]        if no FX point exists within {MAX_FALLBACK_DAYS}
     def convert(amount:, from:, to:, date:)
       from = from.to_s.upcase
       to   = to.to_s.upcase

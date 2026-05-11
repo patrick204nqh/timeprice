@@ -203,12 +203,8 @@ end
 # bloating the value object — the result doesn't carry currency, only country.
 module Timeprice
   class InflationResult
-    COUNTRY_TO_CURRENCY = {
-      "US" => "USD", "UK" => "GBP", "EU" => "EUR", "JP" => "JPY", "VN" => "VND"
-    }.freeze
-
     def country_currency_label
-      COUNTRY_TO_CURRENCY[country.to_s.upcase] || country.to_s.upcase
+      Supported.currency_for_country(country) || country.to_s.upcase
     end
   end
 end

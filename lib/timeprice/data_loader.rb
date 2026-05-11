@@ -4,26 +4,41 @@ require "json"
 require_relative "errors"
 
 module Timeprice
+  # Loads and caches the bundled JSON data files. Override the search root
+  # by setting `TIMEPRICE_DATA_ROOT` in the environment or assigning
+  # {DataLoader.data_root=}.
   module DataLoader
     SUPPORTED_SCHEMA_VERSION = 1
 
     DEFAULT_DATA_ROOT = File.expand_path("../../data", __dir__)
 
     class << self
+      # @return [String] absolute path to the directory containing `cpi/` and `fx/`
       def data_root
         ENV["TIMEPRICE_DATA_ROOT"] || @data_root || DEFAULT_DATA_ROOT
       end
 
+      # Override the data root and clear caches. Mostly useful in tests.
+      # @param path [String]
+      # @return [void]
       def data_root=(path)
         @data_root = path
         clear_cache!
       end
 
+      # Drop in-memory caches of parsed data files.
+      # @return [void]
       def clear_cache!
         @cpi_cache = {}
         @fx_cache = {}
       end
 
+      # Load the CPI series for a supported country.
+      # @param country [String]
+      # @return [Hash] parsed JSON with "monthly" / "annual" / metadata keys
+      # @raise [UnsupportedCountry] if `country` is not in {Supported::COUNTRIES}
+      # @raise [DataNotFound]       if the file is missing
+      # @raise [UnsupportedSchemaVersion] if the file uses a future schema
       def load_cpi(country)
         @cpi_cache ||= {}
         key = country.to_s.downcase
@@ -41,6 +56,10 @@ module Timeprice
         end
       end
 
+      # Load the FX rates for a year.
+      # @param year [Integer, String]
+      # @return [Hash] parsed JSON with a "rates" map of date → currency → Float
+      # @raise [DataNotFound] if the per-year file is missing
       def load_fx_year(year)
         @fx_cache ||= {}
         key = year.to_i

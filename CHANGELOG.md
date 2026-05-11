@@ -5,6 +5,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-11
+
+### Added
+- `Timeprice::Point` value object for compare inputs; `Point.coerce` accepts `Point` instances or 2-tuples in either `[currency, date]` or `[date, currency]` order.
+- `Timeprice::Supported` module — canonical home for `COUNTRIES`, `CURRENCIES`, and the bidirectional currency↔country map. Replaces the duplicated maps in `Compare` and the CLI's `InflationResult` monkey-patch.
+- `Sources::Base` class extracted from the CPI fetchers; `BLS`, `ONS`, and `Eurostat` now subclass it and implement only `fetch` returning `[monthly, annual]`. The drift-check, rebase, merge, write, and summary-log flow is shared.
+- Per-fetcher GitHub Actions `::warning file=…,title=…::` annotations in `scripts/update_data.rb`, so individual fetcher failures show up on the workflow run with a link to the responsible source file.
+- README "Using from Rails / Rake" section covering service objects, Sidekiq, Rake tasks, and `TIMEPRICE_DATA_ROOT`.
+- YARD documentation on the public API (`Timeprice.{inflation,exchange,compare}`, `Inflation`, `Exchange`, `Compare`, `DataLoader`, `Sources`, error classes, `Supported`, `Point`).
+
+### Changed
+- `SUPPORTED_COUNTRIES` / `SUPPORTED_CURRENCIES` are now thin aliases for `Supported::COUNTRIES` / `Supported::CURRENCIES`; existing consumers keep working unchanged.
+- `Compare::CURRENCY_TO_COUNTRY` is now an alias for `Supported::CURRENCY_TO_COUNTRY`.
+
 ## [0.1.2] - 2026-05-11
 
 ### Added

@@ -16,12 +16,21 @@ module Timeprice
     :from_index, :to_index, :granularity
   )
 
+  # CPI-based inflation adjustment for the {Supported::COUNTRIES} list.
   module Inflation
     module_function
 
     # Adjust `amount` from date `from` to date `to` using country CPI.
     #
     # Dates accept "YYYY" or "YYYY-MM".
+    #
+    # @param amount  [Numeric]
+    # @param from    [String] source date ("YYYY" or "YYYY-MM")
+    # @param to      [String] target date ("YYYY" or "YYYY-MM")
+    # @param country [String] country code (see {Supported::COUNTRIES})
+    # @return [InflationResult]
+    # @raise [UnsupportedCountry] if `country` is not supported
+    # @raise [DataNotFound]       if no CPI data covers the requested period
     def adjust(amount:, from:, to:, country:)
       data = DataLoader.load_cpi(country)
       from_index, from_gran = lookup_index(data, from)
@@ -41,6 +50,11 @@ module Timeprice
     end
 
     # Inflation rate as decimal (e.g. 0.42 = 42%).
+    #
+    # @param from    [String]
+    # @param to      [String]
+    # @param country [String]
+    # @return [Float] decimal rate (positive means inflation, negative deflation)
     def rate(from:, to:, country:)
       result = adjust(amount: 1.0, from: from, to: to, country: country)
       result.amount - 1.0

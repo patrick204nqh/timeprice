@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require_relative "errors"
+require_relative "supported"
+require_relative "point"
 require_relative "inflation"
 require_relative "exchange"
 
@@ -26,29 +28,22 @@ module Timeprice
   # If a future refactor flips the order, the regression test in
   # spec/timeprice/compare_spec.rb will fail.
   module Compare
-    # Map ISO currency → CPI country code.
-    CURRENCY_TO_COUNTRY = {
-      "USD" => "US",
-      "GBP" => "UK",
-      "EUR" => "EU",
-      "JPY" => "JP",
-      "VND" => "VN",
-    }.freeze
+    # Map ISO currency → CPI country code. Kept as a back-compat alias;
+    # the canonical map lives in {Supported::CURRENCY_TO_COUNTRY}.
+    CURRENCY_TO_COUNTRY = Supported::CURRENCY_TO_COUNTRY
 
     module_function
 
-    # amount: Numeric
-    # from:   [currency, date_or_year] e.g. ["USD", "2010"] or ["USD", "2010-06"]
-    # to:     [currency, date_or_year]
+    # Compare an amount across two (currency, date) points.
+    #
+    # @param amount [Numeric]
+    # @param from   [Timeprice::Point, Array(String, String)] source point;
+    #   accepts a {Point} or a 2-tuple like `["USD", "2010"]` or `["USD", "2010-06"]`
+    # @param to     [Timeprice::Point, Array(String, String)] destination point
+    # @return [CompareResult]
+    # @raise [UnsupportedCurrency] if either currency is not in {Supported::CURRENCIES}
     def run(amount:, from:, to:)
-      from_currency, from_date = from
-      to_currency,   to_date   = to
-      from_currency = from_currency.to_s.upcase
-      to_currency   = to_currency.to_s.upcase
-
-      to_country = CURRENCY_TO_COUNTRY[to_currency] ||
-                   (raise UnsupportedCurrency, to_currency)
-      CURRENCY_TO_COUNTRY[from_currency] || (raise UnsupportedCurrency, from_currency)
+      from_currency, from_date, to_currency, to_date, to_country = resolve_points(from, to)
 
       # Step 1: convert at source date into destination currency.
       fx_date = normalize_fx_date(from_date)
@@ -82,6 +77,19 @@ module Timeprice
         converted_amount: converted,
         granularity: infl.granularity
       )
+    end
+
+    # Coerce both points and resolve to_country. Returns a 5-element tuple.
+    def resolve_points(from, to)
+      from_point = Point.coerce(from)
+      to_point   = Point.coerce(to)
+      from_currency = from_point.currency
+      to_currency   = to_point.currency
+      to_country = Supported.country_for_currency(to_currency) ||
+                   (raise UnsupportedCurrency, to_currency)
+      Supported.country_for_currency(from_currency) || (raise UnsupportedCurrency, from_currency)
+
+      [from_currency, from_point.date, to_currency, to_point.date, to_country]
     end
 
     # If the user gave a year like "2010", anchor FX to mid-year (2010-06-30).
