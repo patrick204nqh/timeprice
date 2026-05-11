@@ -1,7 +1,11 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Schema-stability gate for schema_version 3.
+# Schema-stability gate for schema_version 4.
+#
+# v4 (current): adds optional `series.quarterly` block to CPI files.
+# v3 files remain readable, but every fresh fetcher run upgrades the file
+# to v4 — so the on-disk gate locks new writes to the current version.
 #
 # Asserts every bundled data file has exactly the expected top-level keys
 # and that data/manifest.json references every CPI/FX file present. New keys
@@ -14,7 +18,7 @@ require "json"
 
 ROOT = File.expand_path("..", __dir__)
 DATA = File.join(ROOT, "data")
-EXPECTED_VERSION = 3
+EXPECTED_VERSION = 4
 
 CPI_KEYS = %w[country index provenance providers schema_version series].freeze
 FX_YEAR_REQUIRED_KEYS = %w[base provenance providers rates schema_version year].freeze
@@ -51,7 +55,7 @@ end
 
 # --- manifest ---
 manifest_path = File.join(DATA, "manifest.json")
-failures << "data/manifest.json missing — required for v3" unless File.exist?(manifest_path)
+failures << "data/manifest.json missing — required for v#{EXPECTED_VERSION}" unless File.exist?(manifest_path)
 manifest = File.exist?(manifest_path) ? load.call(manifest_path) : nil
 if manifest
   assert_schema_version.call(manifest_path, manifest)
@@ -113,7 +117,7 @@ if manifest
 end
 
 if failures.empty?
-  puts "Schema stability OK: every data file matches schema v3."
+  puts "Schema stability OK: every data file matches schema v#{EXPECTED_VERSION}."
   exit 0
 else
   warn "Schema stability FAILED:"

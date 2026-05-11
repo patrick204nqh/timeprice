@@ -32,7 +32,7 @@
       "status": "ok"
     }
   ],
-  "schema_version": 3,
+  "schema_version": 4,
   "series": {
     "annual": {
       "1990": 130.658,

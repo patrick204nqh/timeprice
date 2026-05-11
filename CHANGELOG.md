@@ -5,6 +5,36 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-05-12
+
+### Added
+- **Five new countries: AU, CA, KR, CN, RU.** CPI + FX coverage:
+  - AU (Australia): quarterly CPI from ABS 6401.0, annual baseline from World
+    Bank `FP.CPI.TOTL`; AUD daily FX from Frankfurter.
+  - CA (Canada): monthly CPI from Statistics Canada WDS (table 18-10-0004-01),
+    annual baseline from World Bank; CAD daily FX from Frankfurter.
+  - KR (Korea, Rep.): monthly CPI from IMF Data Portal CPI dataflow, annual
+    baseline from World Bank; KRW daily FX from Frankfurter. (KOSIS Open API
+    is a future upgrade path — see `scripts/sources/kosis.rb`.)
+  - CN (China): annual CPI from World Bank, monthly layered from IMF Data
+    Portal; CNY daily FX from Frankfurter.
+  - RU (Russia): annual CPI from World Bank, monthly layered from IMF; RUB FX
+    from IMF IFS `ENDA_XDC_USD_RATE` written as annual averages to
+    `_annual.json` (Frankfurter dropped RUB after the ECB suspended reference
+    rates in March 2022, so daily RUB is intentionally not bundled).
+- `KRW` added to `Supported::ZERO_DECIMAL_CURRENCIES`.
+
+### Changed
+- **Schema v3 → v4.** Backward-compatible bump:
+  - CPI files gain an optional `series.quarterly` block (keyed `YYYY-Qn`)
+    alongside `series.monthly` and `series.annual`. Files without quarterly
+    data are byte-identical to v3 layout other than the version field.
+  - `DataLoader` accepts both v3 and v4 files; new writes are v4.
+  - `Granularity` gains `:quarterly`, `:annual_from_quarterly_avg`,
+    `:quarterly_from_annual_fallback`, and `:monthly_from_quarterly_fallback`.
+    `CpiLookup` resolves "YYYY-Qn" keys and falls back monthly → quarterly →
+    annual.
+
 ## [0.5.0] - 2026-05-11
 
 ### Changed

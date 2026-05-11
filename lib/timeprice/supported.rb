@@ -10,7 +10,7 @@ module Timeprice
   module Supported
     # Currencies with no minor unit — formatted as whole numbers. This is
     # ISO 4217 metadata, not bundled data, so it stays hardcoded.
-    ZERO_DECIMAL_CURRENCIES = %w[JPY VND].freeze
+    ZERO_DECIMAL_CURRENCIES = %w[JPY KRW VND].freeze
 
     module_function
 

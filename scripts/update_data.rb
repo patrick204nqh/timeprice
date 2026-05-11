@@ -11,6 +11,9 @@ require_relative "sources/ons"
 require_relative "sources/eurostat"
 require_relative "sources/estat"
 require_relative "sources/imf"
+require_relative "sources/abs"
+require_relative "sources/statcan"
+require_relative "sources/kosis"
 require_relative "sources/manifest"
 
 results = {}
@@ -23,10 +26,22 @@ SOURCE_FILES = {
   "World Bank VND FX" => "scripts/sources/world_bank.rb",
   "BLS" => "scripts/sources/bls.rb",
   "World Bank VN CPI" => "scripts/sources/world_bank.rb",
+  "World Bank AU CPI baseline" => "scripts/sources/world_bank.rb",
+  "World Bank CA CPI baseline" => "scripts/sources/world_bank.rb",
+  "World Bank KR CPI baseline" => "scripts/sources/world_bank.rb",
+  "World Bank CN CPI" => "scripts/sources/world_bank.rb",
+  "World Bank RU CPI" => "scripts/sources/world_bank.rb",
   "ONS" => "scripts/sources/ons.rb",
   "Eurostat" => "scripts/sources/eurostat.rb",
   "e-Stat / JP" => "scripts/sources/estat.rb",
   "IMF / VN" => "scripts/sources/imf.rb",
+  "IMF / KR" => "scripts/sources/imf.rb",
+  "IMF / CN" => "scripts/sources/imf.rb",
+  "IMF / RU" => "scripts/sources/imf.rb",
+  "IMF / RU FX" => "scripts/sources/imf.rb",
+  "ABS / AU" => "scripts/sources/abs.rb",
+  "StatCan / CA" => "scripts/sources/statcan.rb",
+  "KOSIS / KR" => "scripts/sources/kosis.rb",
 }.freeze
 
 run = lambda { |name, &blk|
@@ -37,12 +52,8 @@ run = lambda { |name, &blk|
   rescue StandardError => e
     msg = "#{print_name}: FAILED — #{e.class}: #{e.message}"
     Sources.log msg
-    # Per-fetcher GitHub Actions annotation. Picked up automatically by the
-    # workflow run UI without any extra step. Title carries the fetcher name;
-    # `file=` points at the script so the annotation links to the source.
     file = SOURCE_FILES[print_name]
     annotation_title = "Fetcher failed: #{print_name}"
-    # Escape per GitHub's rules: %, \r, \n must be encoded in annotation messages.
     safe_msg = "#{e.class}: #{e.message}"
                .gsub("%", "%25").gsub("\r", "%0D").gsub("\n", "%0A")
     if file
@@ -57,13 +68,27 @@ run = lambda { |name, &blk|
 # FX first (so VN/WB step has files to merge VND into), then CPIs.
 run.call("Frankfurter") { Sources::Frankfurter.run }
 run.call("World Bank VND FX") { Sources::WorldBank.run_vnd_fx }
+run.call("IMF / RU FX") { Sources::IMF.run_ru_fx }
+
+# CPIs — annual baselines first (cheap), then monthly/quarterly layers.
 run.call("BLS") { Sources::BLS.run }
 run.call("World Bank VN CPI") { Sources::WorldBank.run_vn_cpi }
-# IMF runs AFTER WorldBank for VN: WB writes the annual baseline first,
-# IMF layers monthly on top via CountryFile + MergePolicy (provenance
-# records which provider supplied each period). If IMF fails, the file
-# is still valid with WB-only annual data — non-critical.
-run.call("IMF / VN") { Sources::IMF.run }
+run.call("World Bank AU CPI baseline") { Sources::WorldBank.run_au_cpi_fallback }
+run.call("World Bank CA CPI baseline") { Sources::WorldBank.run_ca_cpi_fallback }
+run.call("World Bank KR CPI baseline") { Sources::WorldBank.run_kr_cpi_fallback }
+run.call("World Bank CN CPI") { Sources::WorldBank.run_cn_cpi }
+run.call("World Bank RU CPI") { Sources::WorldBank.run_ru_cpi }
+
+# Higher-fidelity monthly/quarterly layers — each merges via CountryFile
+# on top of the annual baseline. Best-effort: a failure here still leaves
+# valid annual-only data on disk.
+run.call("IMF / VN") { Sources::IMF.run_vn_cpi }
+run.call("IMF / KR") { Sources::IMF.run_kr_cpi }
+run.call("IMF / CN") { Sources::IMF.run_cn_cpi }
+run.call("IMF / RU") { Sources::IMF.run_ru_cpi }
+run.call("ABS / AU") { Sources::ABS.run }
+run.call("StatCan / CA") { Sources::StatCan.run }
+run.call("KOSIS / KR") { Sources::KOSIS.run }
 run.call("ONS") { Sources::ONS.run }
 run.call("Eurostat") { Sources::Eurostat.run }
 run.call("e-Stat / JP") { Sources::EStat.run }

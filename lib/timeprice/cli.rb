@@ -76,9 +76,9 @@ module Timeprice
     end
 
     desc "inflation AMOUNT", "Inflation-adjust an amount between two dates"
-    method_option :from,    type: :string, required: true, desc: "Source date (YYYY or YYYY-MM)"
-    method_option :to,      type: :string, required: true, desc: "Target date (YYYY or YYYY-MM)"
-    method_option :country, type: :string, required: true, desc: "Country code (US, UK, EU, JP, VN)"
+    method_option :from,    type: :string, required: true, desc: "Source date (YYYY, YYYY-MM, or YYYY-Qn)"
+    method_option :to,      type: :string, required: true, desc: "Target date (YYYY, YYYY-MM, or YYYY-Qn)"
+    method_option :country, type: :string, required: true, desc: "Country code (US, UK, EU, JP, VN, AU, CA, KR, CN, RU)"
     def inflation(amount)
       with_error_handling do
         result = Timeprice.inflation(

@@ -47,18 +47,27 @@ module Sources
       new.run
     end
 
-    # @return [Array(Hash, Hash)] [monthly, annual] series fetched from upstream
+    # @return [Array(Hash, Hash)] [monthly, annual] series fetched from upstream,
+    #   or [Array(Hash, Hash, Hash)] [monthly, quarterly, annual] for providers
+    #   that emit quarterly data (e.g. ABS).
     def fetch
       raise NotImplementedError, "#{self.class} must implement #fetch returning [monthly, annual]"
     end
 
     def run
-      monthly, annual = fetch
-      monthly ||= {}
-      annual  ||= {}
-      Sources.validate_positive_numeric!(monthly, "#{log_label} monthly") unless monthly.empty?
-      Sources.validate_positive_numeric!(annual,  "#{log_label} annual")  unless annual.empty?
-      country_file.write_merged(monthly: monthly, annual: annual,
+      result = fetch
+      monthly, quarterly, annual = case result.length
+                                   when 2 then [result[0], {}, result[1]]
+                                   when 3 then result
+                                   else raise "#{self.class}#fetch must return [monthly, annual] or [monthly, quarterly, annual]"
+                                   end
+      monthly   ||= {}
+      quarterly ||= {}
+      annual    ||= {}
+      Sources.validate_positive_numeric!(monthly,   "#{log_label} monthly")   unless monthly.empty?
+      Sources.validate_positive_numeric!(quarterly, "#{log_label} quarterly") unless quarterly.empty?
+      Sources.validate_positive_numeric!(annual,    "#{log_label} annual")    unless annual.empty?
+      country_file.write_merged(monthly: monthly, quarterly: quarterly, annual: annual,
                                 provider_id: self.class.provider_id)
     end
 

@@ -32,7 +32,7 @@ RSpec.describe Timeprice::Granularity do
 
   describe ".humanize" do
     it "renders human-friendly labels for known tags" do
-      expect(described_class.humanize(fallback)).to eq("annual (month unavailable)")
+      expect(described_class.humanize(fallback)).to eq("month (annual fallback)")
       expect(described_class.humanize(avg)).to eq("annual (avg of months)")
     end
 

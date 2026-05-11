@@ -24,6 +24,11 @@ module Sources
     "EU" => "EUR",
     "JP" => "JPY",
     "VN" => "VND",
+    "AU" => "AUD",
+    "CA" => "CAD",
+    "KR" => "KRW",
+    "CN" => "CNY",
+    "RU" => "RUB",
   }.freeze
 
   module_function

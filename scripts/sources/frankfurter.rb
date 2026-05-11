@@ -7,14 +7,14 @@ require_relative "fx_year_file"
 # Splits output by year into data/fx/usd/<year>.json.
 #
 # Notes:
-#   - Frankfurter supports EUR/GBP/JPY back to 1999-01-04.
-#   - Frankfurter does NOT support VND. We obtain VND annual averages via
-#     World Bank PA.NUS.FCRF in scripts/sources/world_bank.rb and merge those
-#     in as a single anchor point per year (Jan-02 of each year).
+#   - Frankfurter supports EUR/GBP/JPY/AUD/CAD/KRW/CNY back to 1999-01-04.
+#   - Frankfurter does NOT support VND (handled via World Bank annual) or
+#     RUB (publication stopped after the ECB suspended RUB reference rates
+#     in March 2022 — see scripts/sources/imf.rb for the RUB FX fallback).
 module Sources
   module Frankfurter
     BASE         = "USD"
-    SYMBOLS      = %w[EUR GBP JPY].freeze
+    SYMBOLS      = %w[EUR GBP JPY AUD CAD KRW CNY].freeze
     START_DATE   = Date.new(1999, 1, 4)
     END_DATE     = Date.today - 1 # yesterday
     SOURCE_LABEL = "Frankfurter (ECB) — daily reference rates"
