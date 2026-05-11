@@ -5,6 +5,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- Multi-source CPI chain for Vietnam: IMF International Financial Statistics
+  (IFS) `PCPI_IX` is now the monthly primary, with World Bank `FP.CPI.TOTL`
+  remaining as the annual fallback. The on-disk `data/cpi/vn.json` gains two
+  additive fields — `provenance` (per-period source id) and `providers`
+  (per-source status array) — so consumers can see which upstream supplied
+  each datapoint. Schema version is unchanged; old readers ignore the new
+  fields. Other country files (US, UK, EU, JP) gain the same fields on the
+  next refresh.
+- Internal: `Sources::Provider` / `Sources::CountryFile` / `Sources::MergePolicy`
+  seam for layering multiple providers into a single country file with
+  per-period provenance. Designed so future fresher sources (e.g. JP via
+  e-Stat) can be added as one more entry without further plumbing.
+
 ## [0.3.0] - 2026-05-11
 
 ### Added

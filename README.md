@@ -98,7 +98,7 @@ Coverage is derived from the bundled `data/` files. Re-check with `timeprice sou
 | United Kingdom | GBP | ONS CPI all-items (`D7BT`) | Monthly + annual | 1988-01 → present |
 | Eurozone (EA) | EUR | Eurostat HICP (`prc_hicp_midx`) | Monthly + annual | 1996-01 → present |
 | Japan | JPY | World Bank `FP.CPI.TOTL` (fallback) | Annual | 1960 → 2024 |
-| Vietnam | VND | World Bank `FP.CPI.TOTL` | Annual | 1995 → 2024 |
+| Vietnam | VND | IMF IFS `PCPI_IX` (monthly primary) + World Bank `FP.CPI.TOTL` (annual fallback) | Monthly + annual | 1995 → present |
 
 **FX (USD base):** ECB reference rates via Frankfurter for **EUR / GBP / JPY**, daily
 1999 → present. **VND** uses the World Bank annual average (`PA.NUS.FCRF`) broadcast to
@@ -258,7 +258,7 @@ license — see `DATA_LICENSES.md` and `NOTICE` for the full table and license U
 - **UK CPI:** Contains public sector information licensed under the Open Government Licence v3.0.
 - **Eurozone HICP:** Source: Eurostat (reuse permitted with attribution).
 - **Japan CPI (fallback):** Source: World Bank, FP.CPI.TOTL (CC BY 4.0).
-- **Vietnam CPI:** Source: World Bank, FP.CPI.TOTL (CC BY 4.0).
+- **Vietnam CPI:** Sources: IMF International Financial Statistics PCPI_IX (monthly primary); World Bank, FP.CPI.TOTL (annual fallback, CC BY 4.0).
 - **FX rates:** European Central Bank reference rates via Frankfurter.
 - **VND FX (annual broadcast):** World Bank, PA.NUS.FCRF (CC BY 4.0).
 

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "_common"
+require_relative "provider"
 
 # World Bank fetchers.
 #
@@ -13,9 +14,6 @@ require_relative "_common"
 # Japan can reuse it.
 module Sources
   module WorldBank
-    SOURCE_CPI       = "World Bank FP.CPI.TOTL (annual)"
-    SOURCE_VND_FX    = "World Bank PA.NUS.FCRF — VND/USD official annual avg (Frankfurter has no VND)"
-
     module_function
 
     def fetch_indicator(country_iso3, indicator)
@@ -31,45 +29,46 @@ module Sources
       end
     end
 
-    def write_cpi(country_code, iso3, label_country)
-      annual = fetch_indicator(iso3, "FP.CPI.TOTL")
-      Sources.validate_positive_numeric!(annual, "WorldBank #{country_code} annual")
-      path = File.join(Sources::DATA_ROOT, "cpi", "#{country_code}.json")
-      prior = Sources.read_json_if_exists(path)
-      prior_annual = (prior && prior["annual"]) || {}
-
-      verdict, ratio, msg = Sources.cpi_drift_check(prior_annual, annual)
-      Sources.log "WorldBank #{country_code} drift: #{msg}"
-      base_year = (prior && prior["base_year"]) || "2010=100"
-      if verdict == :rebase
-        Sources.log "WorldBank #{country_code}: rebase — renormalizing prior by ratio #{ratio}"
-        prior_annual = Sources.renormalize(prior_annual, ratio)
-        base_year = "rebased #{Sources.today}"
-      end
-
-      merged_annual = prior_annual.merge(annual)
-      new_points = (annual.keys - prior_annual.keys).size
-      range = merged_annual.keys.minmax
-
-      data = {
-        "schema_version" => 1,
-        "country" => country_code.upcase,
-        "base_year" => base_year,
-        "source" => SOURCE_CPI,
-        "updated_at" => Sources.today,
-        "monthly" => (prior && prior["monthly"]) || {},
-        "annual" => merged_annual,
-      }
-      Sources.write_json(path, data)
-      Sources.log "WorldBank(#{label_country}): 0 monthly + #{merged_annual.size} annual data points, range #{range.first}..#{range.last}, #{new_points} new since last run."
-    end
-
     def run_vn_cpi
-      write_cpi("vn", "VNM", "Vietnam")
+      VietnamCPI.run
     end
 
     def run_jp_cpi_fallback
-      write_cpi("jp", "JPN", "Japan")
+      JapanCPI.run
+    end
+
+    # Provider subclasses for the two CPI countries served by World Bank.
+    # Both share `provider_id: "world_bank"`; the country_code disambiguates
+    # which file each writes to. The VN source_label intentionally names
+    # only WB — IMF runs second and re-labels the file to reflect the chain.
+    class VietnamCPI < Provider
+      configure(
+        country_code: "vn",
+        country_label: "Vietnam",
+        source_label: "World Bank FP.CPI.TOTL (annual)",
+        default_base_year: "2010=100",
+        log_label: "WorldBank",
+        provider_id: "world_bank"
+      )
+
+      def fetch
+        [{}, WorldBank.fetch_indicator("VNM", "FP.CPI.TOTL")]
+      end
+    end
+
+    class JapanCPI < Provider
+      configure(
+        country_code: "jp",
+        country_label: "Japan",
+        source_label: "World Bank FP.CPI.TOTL (annual, JP fallback)",
+        default_base_year: "2010=100",
+        log_label: "WorldBank",
+        provider_id: "world_bank"
+      )
+
+      def fetch
+        [{}, WorldBank.fetch_indicator("JPN", "FP.CPI.TOTL")]
+      end
     end
 
     # Write VND/USD annual averages into the per-year FX files as a single
