@@ -16,7 +16,7 @@ module Timeprice
   # Compare combines FX and inflation across two (currency, date) points.
   #
   # CONVENTION (critical): convert at SOURCE date first, then inflate in
-  # destination currency. See PLAN.md §2 last bullet and §7.
+  # destination currency. See README.md "Compare semantics" section.
   #
   # This preserves purchasing-power equivalence in the destination economy.
   # The naive alternative (inflate in source currency first, then convert at
@@ -32,7 +32,7 @@ module Timeprice
       "GBP" => "UK",
       "EUR" => "EU",
       "JPY" => "JP",
-      "VND" => "VN"
+      "VND" => "VN",
     }.freeze
 
     module_function
@@ -78,7 +78,7 @@ module Timeprice
         to_date: to_date.to_s,
         country: to_country,
         fx_rate: fx_result.rate,
-        cpi_ratio: infl.to_index.to_f / infl.from_index.to_f,
+        cpi_ratio: infl.to_index.to_f / infl.from_index,
         converted_amount: converted,
         granularity: infl.granularity
       )

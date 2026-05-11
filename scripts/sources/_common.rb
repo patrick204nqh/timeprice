@@ -18,47 +18,45 @@ module Sources
     uri = URI.parse(url)
     last_error = nil
     2.times do |attempt|
-      begin
-        Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https",
-                        open_timeout: timeout, read_timeout: timeout) do |http|
-          req = case method
-                when :post
-                  Net::HTTP::Post.new(uri.request_uri)
-                else
-                  Net::HTTP::Get.new(uri.request_uri)
-                end
-          req["User-Agent"] = USER_AGENT
-          req["Accept"] = headers["Accept"] || "application/json"
-          headers.each { |k, v| req[k] = v }
-          if body
-            req["Content-Type"] ||= "application/json"
-            req.body = body.is_a?(String) ? body : JSON.generate(body)
-          end
-          res = http.request(req)
-          unless res.is_a?(Net::HTTPSuccess)
-            raise "HTTP #{res.code} for #{url}: #{res.body.to_s[0, 200]}"
-          end
-          return res.body
+      Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https",
+                                          open_timeout: timeout, read_timeout: timeout) do |http|
+        req = case method
+              when :post
+                Net::HTTP::Post.new(uri.request_uri)
+              else
+                Net::HTTP::Get.new(uri.request_uri)
+              end
+        req["User-Agent"] = USER_AGENT
+        req["Accept"] = headers["Accept"] || "application/json"
+        headers.each { |k, v| req[k] = v }
+        if body
+          req["Content-Type"] ||= "application/json"
+          req.body = body.is_a?(String) ? body : JSON.generate(body)
         end
-      rescue StandardError => e
-        last_error = e
-        sleep(2) if attempt == 0
+        res = http.request(req)
+        raise "HTTP #{res.code} for #{url}: #{res.body.to_s[0, 200]}" unless res.is_a?(Net::HTTPSuccess)
+
+        return res.body
       end
+    rescue StandardError => e
+      last_error = e
+      sleep(2) if attempt.zero?
     end
     raise last_error
   end
 
-  def http_json(url, **opts)
-    JSON.parse(http_request(url, **opts))
+  def http_json(url, **)
+    JSON.parse(http_request(url, **))
   end
 
   def write_json(path, data)
     FileUtils.mkdir_p(File.dirname(path))
-    File.write(path, JSON.pretty_generate(deep_sort(data)) + "\n")
+    File.write(path, "#{JSON.pretty_generate(deep_sort(data))}\n")
   end
 
   def read_json_if_exists(path)
     return nil unless File.exist?(path)
+
     JSON.parse(File.read(path))
   end
 
@@ -82,24 +80,29 @@ module Sources
   # Compares shared keys between prior and incoming hash<period, value>.
   def cpi_drift_check(prior_series, new_series)
     return [:ok, nil, "no prior"] if prior_series.nil? || prior_series.empty?
+
     shared = prior_series.keys & new_series.keys
     return [:ok, nil, "no shared"] if shared.empty?
-    drifts = shared.map { |k|
+
+    drifts = shared.map do |k|
       old_v = prior_series[k].to_f
       new_v = new_series[k].to_f
       next nil if old_v.zero?
+
       [k, (new_v - old_v).abs / old_v]
-    }.compact
+    end.compact
     return [:ok, nil, "no comparable"] if drifts.empty?
+
     max_key, max_drift = drifts.max_by { |_, d| d }
     if max_drift > 0.005
       # >0.5%: probable rebase. Compute renormalization ratio at median shared.
-      ratios = shared.map { |k|
+      ratios = shared.map do |k|
         nv = new_series[k].to_f
         ov = prior_series[k].to_f
         next nil if ov.zero?
+
         nv / ov
-      }.compact.sort
+      end.compact.sort
       med = ratios[ratios.length / 2]
       # Stable, grep-able marker for the CI auto-merge gate (PLAN.md §9.4).
       log "REBASE: max drift #{(max_drift * 100).round(3)}% at #{max_key} (ratio≈#{med.round(4)})"

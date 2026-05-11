@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 #
 # Sanity tests against the REAL bundled data/ files (populated by
 # scripts/update_data.rb). Skipped by default — run with:
@@ -12,16 +13,17 @@
 require "timeprice"
 
 RSpec.describe "Real data smoke tests", :real_data do
-  before(:each) do
+  before do
     skip "Set TIMEPRICE_REAL_DATA=1 to run" unless ENV["TIMEPRICE_REAL_DATA"] == "1"
     @real_root = File.expand_path("../data", __dir__)
-    @prev_env  = ENV["TIMEPRICE_DATA_ROOT"]
+    @prev_env  = ENV.fetch("TIMEPRICE_DATA_ROOT", nil)
     ENV["TIMEPRICE_DATA_ROOT"] = @real_root
     Timeprice::DataLoader.clear_cache!
   end
 
-  after(:each) do
+  after do
     next unless @prev_env || ENV["TIMEPRICE_DATA_ROOT"] == @real_root
+
     ENV["TIMEPRICE_DATA_ROOT"] = @prev_env
     Timeprice::DataLoader.clear_cache!
   end
@@ -48,17 +50,17 @@ RSpec.describe "Real data smoke tests", :real_data do
 
   it "FX: USD→VND on 2020-06-15 is roughly 23000 (annual avg broadcast)" do
     r = Timeprice.exchange(amount: 1, from: "USD", to: "VND", date: "2020-06-15")
-    expect(r.rate).to be_within(500).of(23200)
+    expect(r.rate).to be_within(500).of(23_200)
   end
 
   it "Compare: 100 USD@2010 → VND@2020 yields a sane positive number" do
-    r = Timeprice.compare(amount: 100, from: ["USD", "2010"], to: ["VND", "2020"])
+    r = Timeprice.compare(amount: 100, from: %w[USD 2010], to: %w[VND 2020])
     expect(r.amount).to be > 0
   end
 
   it "Out-of-range date raises DateOutOfRange (or DataNotFound)" do
-    expect {
+    expect do
       Timeprice.inflation(amount: 100, from: "1800-01", to: "2024-01", country: "US")
-    }.to raise_error(Timeprice::Error)
+    end.to raise_error(Timeprice::Error)
   end
 end

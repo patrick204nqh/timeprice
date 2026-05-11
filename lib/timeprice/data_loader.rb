@@ -27,9 +27,16 @@ module Timeprice
       def load_cpi(country)
         @cpi_cache ||= {}
         key = country.to_s.downcase
+        code = country.to_s.upcase
         @cpi_cache[[data_root, key]] ||= begin
+          raise UnsupportedCountry, code unless SUPPORTED_COUNTRIES.include?(code)
+
           path = File.join(data_root, "cpi", "#{key}.json")
-          raise UnsupportedCountry, country.to_s.upcase unless File.exist?(path)
+          unless File.exist?(path)
+            raise DataNotFound, "CPI data file missing for #{code} (looked in #{path}). " \
+                                "Check TIMEPRICE_DATA_ROOT or reinstall the gem."
+          end
+
           parse_with_schema(path)
         end
       end
@@ -40,6 +47,7 @@ module Timeprice
         @fx_cache[[data_root, key]] ||= begin
           path = File.join(data_root, "fx", "usd", "#{key}.json")
           raise DataNotFound, "No FX data for year #{key}" unless File.exist?(path)
+
           parse_with_schema(path)
         end
       end
@@ -49,9 +57,8 @@ module Timeprice
       def parse_with_schema(path)
         data = JSON.parse(File.read(path))
         version = data["schema_version"]
-        unless version == SUPPORTED_SCHEMA_VERSION
-          raise UnsupportedSchemaVersion.new(version, path)
-        end
+        raise UnsupportedSchemaVersion.new(version, path) unless version == SUPPORTED_SCHEMA_VERSION
+
         data
       end
     end

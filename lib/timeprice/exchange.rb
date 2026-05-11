@@ -22,6 +22,7 @@ module Timeprice
       to   = to.to_s.upcase
       raise UnsupportedCurrency, from unless SUPPORTED_CURRENCIES.include?(from)
       raise UnsupportedCurrency, to   unless SUPPORTED_CURRENCIES.include?(to)
+
       d = parse_date(date)
 
       rate, eff_date = resolve_rate(from, to, d)
@@ -77,8 +78,10 @@ module Timeprice
           end
         rates_for_day = year_data.dig("rates", candidate.to_s)
         next unless rates_for_day
+
         rate = rates_for_day[currency]
         next unless rate
+
         return [rate.to_f, candidate]
       end
       raise DataNotFound, "No FX rate for USD->#{currency} on or before #{d}"
@@ -91,7 +94,12 @@ module Timeprice
         unless date.match?(/\A\d{4}-\d{2}-\d{2}\z/)
           raise ArgumentError, "Invalid date format: #{date.inspect} (use YYYY-MM-DD)"
         end
-        Date.parse(date)
+
+        begin
+          Date.parse(date)
+        rescue Date::Error
+          raise ArgumentError, "Invalid date: #{date.inspect} is not a real calendar date"
+        end
       else
         raise ArgumentError, "Invalid date: #{date.inspect}"
       end

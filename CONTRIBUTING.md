@@ -12,7 +12,7 @@ bundle exec rspec                       # default suite (fixture + real-data gol
 TIMEPRICE_REAL_DATA=1 bundle exec rspec  # also runs real-data smoke tests
 ```
 
-Specs must stay green on Ruby 3.2, 3.3, and 3.4 (CI matrix).
+CI runs against Ruby 3.4 (gem supports `>= 3.2`). Both `bundle exec rspec` and `bundle exec rubocop` must be green.
 
 ## Rules of the road
 

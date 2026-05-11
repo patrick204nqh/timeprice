@@ -17,3 +17,14 @@ jobs:
           bundler-cache: true
       # Default rspec excludes :real_data specs — no network in CI.
       - run: bundle exec rspec
+
+  lint:
+    name: RuboCop
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+      - run: bundle exec rubocop --format github

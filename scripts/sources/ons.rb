@@ -13,7 +13,9 @@ module Sources
 
     module_function
 
-    MONTH_ABBR = %w[jan feb mar apr may jun jul aug sep oct nov dec].each_with_index.to_h { |m, i| [m, format("%02d", i + 1)] }
+    MONTH_ABBR = %w[jan feb mar apr may jun jul aug sep oct nov dec].each_with_index.to_h do |m, i|
+      [m, format("%02d", i + 1)]
+    end
 
     def parse_month(entry)
       # entry["date"] looks like "2024 OCT" or sometimes "2024 OCTOBER"; entry["month"] is the month name.
@@ -21,6 +23,7 @@ module Sources
       mname = (entry["month"] || "").to_s.strip.downcase[0, 3]
       m = MONTH_ABBR[mname]
       return nil unless year && m
+
       "#{year}-#{m}"
     end
 
@@ -31,6 +34,7 @@ module Sources
       (body["months"] || []).each do |row|
         period = parse_month(row)
         next unless period
+
         monthly[period] = Float(row["value"])
       end
       annual = {}
@@ -44,8 +48,8 @@ module Sources
 
       path = File.join(Sources::DATA_ROOT, "cpi", "uk.json")
       prior = Sources.read_json_if_exists(path)
-      prior_monthly = prior && prior["monthly"] || {}
-      prior_annual  = prior && prior["annual"]  || {}
+      prior_monthly = (prior && prior["monthly"]) || {}
+      prior_annual  = (prior && prior["annual"])  || {}
 
       verdict, ratio, msg = Sources.cpi_drift_check(prior_monthly, monthly)
       Sources.log "ONS drift (monthly): #{msg}"
@@ -64,12 +68,12 @@ module Sources
 
       data = {
         "schema_version" => 1,
-        "country"        => "UK",
-        "base_year"      => base_year,
-        "source"         => SOURCE_LABEL,
-        "updated_at"     => Sources.today,
-        "monthly"        => merged_monthly,
-        "annual"         => merged_annual
+        "country" => "UK",
+        "base_year" => base_year,
+        "source" => SOURCE_LABEL,
+        "updated_at" => Sources.today,
+        "monthly" => merged_monthly,
+        "annual" => merged_annual,
       }
       Sources.write_json(path, data)
       Sources.log "ONS: #{merged_monthly.size} monthly + #{merged_annual.size} annual data points, range #{range.first}..#{range.last}, #{new_points} new since last run."
@@ -77,6 +81,4 @@ module Sources
   end
 end
 
-if __FILE__ == $PROGRAM_NAME
-  Sources::ONS.run
-end
+Sources::ONS.run if __FILE__ == $PROGRAM_NAME

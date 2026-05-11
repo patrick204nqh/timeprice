@@ -18,6 +18,7 @@ module Sources
       url  = "https://api.bls.gov/publicAPI/v2/timeseries/data/"
       json = Sources.http_json(url, method: :post, body: body)
       raise "BLS: #{json["status"]}: #{json["message"]}" unless json["status"] == "REQUEST_SUCCEEDED"
+
       json.dig("Results", "series", 0, "data") || []
     end
 
@@ -33,8 +34,14 @@ module Sources
         data.each do |entry|
           raw = entry["value"].to_s
           next if raw.empty? || raw == "-"
-          val = Float(raw) rescue nil
+
+          val = begin
+            Float(raw)
+          rescue StandardError
+            nil
+          end
           next if val.nil? || !val.positive?
+
           year = entry["year"]
           period = entry["period"] # "M01".."M12" or "M13" (annual avg)
           if period == "M13"
@@ -45,7 +52,7 @@ module Sources
           end
         end
         cursor = chunk_end + 1
-        sleep(1.0)  # be polite to BLS rate limits
+        sleep(1.0) # be polite to BLS rate limits
       end
 
       # Compute annual fallback from monthly averages where annual missing.
@@ -53,6 +60,7 @@ module Sources
       monthly_by_year.each do |year, pairs|
         next if annual.key?(year)
         next unless pairs.size == 12
+
         avg = pairs.sum { |_k, v| v } / 12.0
         annual[year] = avg.round(3)
       end
@@ -62,8 +70,8 @@ module Sources
 
       path = File.join(Sources::DATA_ROOT, "cpi", "us.json")
       prior = Sources.read_json_if_exists(path)
-      prior_monthly = prior && prior["monthly"] || {}
-      prior_annual  = prior && prior["annual"]  || {}
+      prior_monthly = (prior && prior["monthly"]) || {}
+      prior_annual  = (prior && prior["annual"])  || {}
 
       base_year = (prior && prior["base_year"]) || "1982-1984=100"
 
@@ -84,12 +92,12 @@ module Sources
 
       data = {
         "schema_version" => 1,
-        "country"        => "US",
-        "base_year"      => base_year,
-        "source"         => SOURCE_LABEL,
-        "updated_at"     => Sources.today,
-        "monthly"        => merged_monthly,
-        "annual"         => merged_annual
+        "country" => "US",
+        "base_year" => base_year,
+        "source" => SOURCE_LABEL,
+        "updated_at" => Sources.today,
+        "monthly" => merged_monthly,
+        "annual" => merged_annual,
       }
       Sources.write_json(path, data)
 
@@ -98,6 +106,4 @@ module Sources
   end
 end
 
-if __FILE__ == $PROGRAM_NAME
-  Sources::BLS.run
-end
+Sources::BLS.run if __FILE__ == $PROGRAM_NAME

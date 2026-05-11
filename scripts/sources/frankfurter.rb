@@ -13,16 +13,16 @@ require_relative "_common"
 module Sources
   module Frankfurter
     BASE         = "USD"
-    SYMBOLS      = %w[EUR GBP JPY]
+    SYMBOLS      = %w[EUR GBP JPY].freeze
     START_DATE   = Date.new(1999, 1, 4)
-    END_DATE     = Date.today - 1   # yesterday
+    END_DATE     = Date.today - 1 # yesterday
     SOURCE_LABEL = "Frankfurter (ECB) — daily reference rates"
 
     module_function
 
     def fetch_range(start_date, end_date)
       url = "https://api.frankfurter.dev/v1/#{start_date}..#{end_date}" \
-            "?base=#{BASE}&symbols=#{SYMBOLS.join(',')}"
+            "?base=#{BASE}&symbols=#{SYMBOLS.join(",")}"
       Sources.http_json(url)["rates"] || {}
     end
 
@@ -43,7 +43,9 @@ module Sources
         rates.each do |date_str, currencies|
           year = date_str[0, 4].to_i
           # validate
-          currencies.each_value { |v| raise "bad rate at #{date_str}" unless v.is_a?(Numeric) && v.positive? && v < 1e9 }
+          currencies.each_value do |v|
+            raise "bad rate at #{date_str}" unless v.is_a?(Numeric) && v.positive? && v < 1e9
+          end
           by_year[year][date_str] = currencies
         end
         by_year.each do |year, year_rates|
@@ -59,11 +61,11 @@ module Sources
 
           data = {
             "schema_version" => 1,
-            "base"           => BASE,
-            "year"           => year,
-            "source"         => SOURCE_LABEL,
-            "updated_at"     => Sources.today,
-            "rates"          => merged
+            "base" => BASE,
+            "year" => year,
+            "source" => SOURCE_LABEL,
+            "updated_at" => Sources.today,
+            "rates" => merged,
           }
           Sources.write_json(path, data)
           years_touched << year unless years_touched.include?(year)
@@ -77,6 +79,4 @@ module Sources
   end
 end
 
-if __FILE__ == $PROGRAM_NAME
-  Sources::Frankfurter.run
-end
+Sources::Frankfurter.run if __FILE__ == $PROGRAM_NAME

@@ -27,7 +27,7 @@ module Timeprice
       from_index, from_gran = lookup_index(data, from)
       to_index,   to_gran   = lookup_index(data, to)
 
-      ratio = to_index.to_f / from_index.to_f
+      ratio = to_index.to_f / from_index
       InflationResult.new(
         amount: amount.to_f * ratio,
         original_amount: amount.to_f,
@@ -58,11 +58,10 @@ module Timeprice
           [monthly[key], :monthly]
         else
           year = key[0, 4]
-          if annual.key?(year)
-            [annual[year], :annual]
-          else
-            raise DataNotFound, missing_cpi_message(key, data, monthly, annual)
-          end
+          raise DataNotFound, missing_cpi_message(key, data, monthly, annual) unless annual.key?(year)
+
+          [annual[year], :annual]
+
         end
       when /\A\d{4}\z/
         if annual.key?(key)
@@ -70,6 +69,7 @@ module Timeprice
         else
           months = monthly.select { |k, _| k.start_with?("#{key}-") }
           raise DataNotFound, missing_cpi_message(key, data, monthly, annual) if months.empty?
+
           avg = months.values.sum.to_f / months.size
           [avg, :annual_from_monthly_avg]
         end
@@ -98,6 +98,7 @@ module Timeprice
     def merge_granularity(a, b)
       return :annual_from_monthly_avg if a == :annual_from_monthly_avg || b == :annual_from_monthly_avg
       return :annual if a == :annual || b == :annual
+
       :monthly
     end
   end

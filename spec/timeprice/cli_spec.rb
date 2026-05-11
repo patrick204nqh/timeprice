@@ -46,7 +46,8 @@ RSpec.describe "timeprice CLI" do
     end
 
     it "outputs valid JSON with --json and no extra text" do
-      out, err, status = run_cli("inflation", "100", "--from", "1990-01", "--to", "2024-01", "--country", "US", "--json")
+      out, err, status = run_cli("inflation", "100", "--from", "1990-01", "--to", "2024-01", "--country", "US",
+                                 "--json")
       expect(status.exitstatus).to eq(0)
       expect(err).to be_empty
       parsed = JSON.parse(out)
@@ -61,7 +62,7 @@ RSpec.describe "timeprice CLI" do
       out, err, status = run_cli("inflation", "100", "--from", "1990", "--to", "2024", "--country", "ZZ")
       expect(status.exitstatus).to eq(1)
       expect(err).to match(/\AError: /)
-      expect(err).not_to include("\n\t")  # no stack trace
+      expect(err).not_to include("\n\t") # no stack trace
       expect(out).to be_empty
     end
   end

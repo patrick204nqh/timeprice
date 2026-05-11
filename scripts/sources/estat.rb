@@ -13,7 +13,7 @@ module Sources
     module_function
 
     def run
-      app_id = ENV["ESTAT_APP_ID"]
+      app_id = ENV.fetch("ESTAT_APP_ID", nil)
       if app_id.nil? || app_id.empty?
         Sources.log "e-Stat: ESTAT_APP_ID not set — falling back to World Bank annual CPI for Japan (per PLAN §7)."
         Sources::WorldBank.run_jp_cpi_fallback
@@ -37,6 +37,4 @@ module Sources
   end
 end
 
-if __FILE__ == $PROGRAM_NAME
-  Sources::EStat.run
-end
+Sources::EStat.run if __FILE__ == $PROGRAM_NAME

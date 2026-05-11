@@ -73,7 +73,7 @@ module Timeprice
         say JSON.generate(list)
       else
         list.each do |s|
-          say "#{s[:name]}"
+          say s[:name].to_s
           say "  id:           #{s[:id]}"
           say "  license:      #{s[:license]}"
           say "  license_url:  #{s[:license_url]}"
@@ -95,7 +95,7 @@ module Timeprice
 
     no_commands do
       # Currencies with no minor unit — render whole numbers, no decimals.
-      ZERO_DECIMAL_CURRENCIES = %w[JPY VND KRW IDR HUF CLP].freeze
+      ZERO_DECIMAL_CURRENCIES = %w[JPY VND].freeze
 
       def with_error_handling
         yield
@@ -109,6 +109,7 @@ module Timeprice
 
       def parse_compare_token(token, label:)
         raise ArgumentError, "#{label} is required" if token.nil? || token.strip.empty?
+
         parts = token.strip.split(/\s+/)
         unless parts.size == 2
           raise ArgumentError,
@@ -142,6 +143,7 @@ module Timeprice
       # answer actually used annual data — that's where users want a heads-up.
       def granularity_suffix(granularity)
         return "" if granularity == :monthly
+
         " (granularity: #{granularity})"
       end
 

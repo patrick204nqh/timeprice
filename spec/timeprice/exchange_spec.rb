@@ -36,21 +36,21 @@ RSpec.describe Timeprice::Exchange do
     it "raises DataNotFound when triangulation legs resolve to different effective dates" do
       # On 2010-06-17 EUR & JPY exist but GBP is missing (GBP last on 06-16).
       # USD->GBP falls back to 06-16, USD->JPY resolves on 06-17 → mismatch.
-      expect {
+      expect do
         described_class.convert(amount: 100, from: "GBP", to: "JPY", date: "2010-06-17")
-      }.to raise_error(Timeprice::DataNotFound, /triangulation date mismatch/)
+      end.to raise_error(Timeprice::DataNotFound, /triangulation date mismatch/)
     end
 
     it "raises DataNotFound when no rate within fallback window" do
-      expect {
+      expect do
         described_class.convert(amount: 100, from: "USD", to: "EUR", date: "2010-01-01")
-      }.to raise_error(Timeprice::DataNotFound)
+      end.to raise_error(Timeprice::DataNotFound)
     end
 
     it "rejects malformed dates" do
-      expect {
+      expect do
         described_class.convert(amount: 100, from: "USD", to: "EUR", date: "2010-06")
-      }.to raise_error(ArgumentError, /Invalid date/)
+      end.to raise_error(ArgumentError, /Invalid date/)
     end
   end
 end

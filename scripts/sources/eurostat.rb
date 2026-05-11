@@ -27,6 +27,7 @@ module Sources
         next if v.nil?
         # Skip annual aggregate-style periods, if any (Eurostat may emit "2024" too).
         next unless period.match?(/\A\d{4}-\d{2}\z/)
+
         monthly[period] = Float(v)
       end
 
@@ -34,6 +35,7 @@ module Sources
       annual = {}
       monthly.group_by { |k, _| k[0, 4] }.each do |year, pairs|
         next unless pairs.size == 12
+
         annual[year] = (pairs.sum { |_, v| v } / 12.0).round(3)
       end
 
@@ -42,8 +44,8 @@ module Sources
 
       path = File.join(Sources::DATA_ROOT, "cpi", "eu.json")
       prior = Sources.read_json_if_exists(path)
-      prior_monthly = prior && prior["monthly"] || {}
-      prior_annual  = prior && prior["annual"]  || {}
+      prior_monthly = (prior && prior["monthly"]) || {}
+      prior_annual  = (prior && prior["annual"])  || {}
 
       verdict, ratio, msg = Sources.cpi_drift_check(prior_monthly, monthly)
       Sources.log "Eurostat drift (monthly): #{msg}"
@@ -62,12 +64,12 @@ module Sources
 
       data = {
         "schema_version" => 1,
-        "country"        => "EU",
-        "base_year"      => base_year,
-        "source"         => SOURCE_LABEL,
-        "updated_at"     => Sources.today,
-        "monthly"        => merged_monthly,
-        "annual"         => merged_annual
+        "country" => "EU",
+        "base_year" => base_year,
+        "source" => SOURCE_LABEL,
+        "updated_at" => Sources.today,
+        "monthly" => merged_monthly,
+        "annual" => merged_annual,
       }
       Sources.write_json(path, data)
       Sources.log "Eurostat: #{merged_monthly.size} monthly + #{merged_annual.size} annual data points, range #{range.first}..#{range.last}, #{new_points} new since last run."
@@ -75,6 +77,4 @@ module Sources
   end
 end
 
-if __FILE__ == $PROGRAM_NAME
-  Sources::Eurostat.run
-end
+Sources::Eurostat.run if __FILE__ == $PROGRAM_NAME

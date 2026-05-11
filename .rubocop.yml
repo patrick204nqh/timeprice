@@ -1,0 +1,133 @@
+plugins:
+  - rubocop-rake
+  - rubocop-rspec
+
+AllCops:
+  TargetRubyVersion: 3.2
+  NewCops: enable
+  SuggestExtensions: false
+  Exclude:
+    - "data/**/*"
+    - "spec/fixtures/**/*"
+    - "tmp/**/*"
+    - "pkg/**/*"
+    - "vendor/**/*"
+
+# --- Layout / Style ---
+
+Layout/LineLength:
+  Max: 120
+  AllowedPatterns:
+    - "^\\s*#"
+  Exclude:
+    - "scripts/**/*"  # long log lines and URL strings
+
+Style/Documentation:
+  Enabled: false
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/StringLiteralsInInterpolation:
+  EnforcedStyle: double_quotes
+
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: comma
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always
+
+# format("%s ...", a) is fine for positional args.
+Style/FormatStringToken:
+  EnforcedStyle: unannotated
+
+# `to:` is an unavoidable keyword arg on this API. Short scope-locals (d, s, k) are fine.
+Naming/MethodParameterName:
+  AllowedNames: [d, s, k, v, e, a, b, x, y, n, to]
+  MinNameLength: 2
+
+Style/OneClassPerFile:
+  Enabled: false
+
+Gemspec/DevelopmentDependencies:
+  EnforcedStyle: gemspec
+
+# --- Metrics ---
+
+Metrics/MethodLength:
+  Max: 35
+  Exclude:
+    - "scripts/**/*"
+
+Metrics/AbcSize:
+  Max: 35
+  Exclude:
+    - "scripts/**/*"
+
+Metrics/ClassLength:
+  Max: 200
+
+Metrics/ModuleLength:
+  Max: 200
+
+Metrics/BlockLength:
+  Exclude:
+    - "spec/**/*"
+    - "*.gemspec"
+    - "Rakefile"
+    - "lib/timeprice/cli.rb"  # Thor's `no_commands do ... end` block
+
+Metrics/CyclomaticComplexity:
+  Max: 12
+  Exclude:
+    - "scripts/**/*"
+
+Metrics/PerceivedComplexity:
+  Max: 12
+  Exclude:
+    - "scripts/**/*"
+
+# --- Lint ---
+
+Lint/ConstantDefinitionInBlock:
+  Exclude:
+    - "spec/**/*"
+    - "lib/timeprice/cli.rb"
+
+Lint/NonAtomicFileOperation:
+  Exclude:
+    - "scripts/**/*"
+
+Lint/NoReturnInBeginEndBlocks:
+  Exclude:
+    - "scripts/**/*"
+
+Lint/DuplicateBranch:
+  Exclude:
+    - "lib/timeprice/cli.rb"  # Timeprice::Error and ArgumentError both surface to user the same way
+
+# --- RSpec ---
+
+RSpec/ExampleLength:
+  Max: 20
+
+RSpec/MultipleExpectations:
+  Max: 10
+
+RSpec/NestedGroups:
+  Max: 4
+
+RSpec/DescribeClass:
+  Enabled: false
+
+RSpec/LeakyConstantDeclaration:
+  Exclude:
+    - "spec/**/*"
+
+RSpec/InstanceVariable:
+  Exclude:
+    - "spec/**/*"

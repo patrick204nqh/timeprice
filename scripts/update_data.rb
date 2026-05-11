@@ -13,7 +13,7 @@ require_relative "sources/estat"
 
 results = {}
 
-run = ->(name, &blk) {
+run = lambda { |name, &blk|
   print_name = name.to_s
   begin
     blk.call
@@ -36,7 +36,7 @@ run.call("e-Stat / JP") { Sources::EStat.run }
 
 # Remove the placeholder once any real CPI lands.
 placeholder = File.join(Sources::DATA_ROOT, "cpi", "placeholder.json")
-File.delete(placeholder) if File.exist?(placeholder)
+FileUtils.rm_f(placeholder)
 
 puts ""
 puts "=== Summary ==="

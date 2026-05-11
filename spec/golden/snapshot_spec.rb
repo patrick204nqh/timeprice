@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 #
 # Golden snapshot tests against the REAL bundled data/ files (not fixtures).
 #
@@ -13,8 +14,8 @@
 RSpec.describe "golden snapshots (real bundled data)" do
   REAL_DATA_ROOT = File.expand_path("../../data", __dir__)
 
-  around(:each) do |ex|
-    prev = ENV["TIMEPRICE_DATA_ROOT"]
+  around do |ex|
+    prev = ENV.fetch("TIMEPRICE_DATA_ROOT", nil)
     ENV["TIMEPRICE_DATA_ROOT"] = REAL_DATA_ROOT
     Timeprice::DataLoader.clear_cache!
     begin
@@ -62,9 +63,9 @@ RSpec.describe "golden snapshots (real bundled data)" do
     #                  = 3_530_920.5840411717...
     # Cross-check: order-of-magnitude sanity — 100 USD in 2010 is roughly
     # 1.86M VND nominal, and Vietnam's 14-year CPI ratio is ~1.9x.
-    r = Timeprice.compare(amount: 100, from: ["USD", "2010"], to: ["VND", "2024"])
+    r = Timeprice.compare(amount: 100, from: %w[USD 2010], to: %w[VND 2024])
     expect(r.amount.round(2)).to eq(3_530_920.58)
-    expect(r.fx_rate).to eq(18612.92)
+    expect(r.fx_rate).to eq(18_612.92)
     expect(r.country).to eq("VN")
   end
 end

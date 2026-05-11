@@ -33,20 +33,21 @@ check = lambda do |path, expected|
 
   missing = expected_sorted - actual
   extra   = actual - expected_sorted
-  failures << "#{path}: top-level key mismatch\n" \
-              "  expected: #{expected_sorted.inspect}\n" \
-              "  actual:   #{actual.inspect}\n" \
-              "  missing:  #{missing.inspect}\n" \
-              "  extra:    #{extra.inspect}"
+  failures << "#{path}: top-level key mismatch\n  " \
+              "expected: #{expected_sorted.inspect}\n  " \
+              "actual:   #{actual.inspect}\n  " \
+              "missing:  #{missing.inspect}\n  " \
+              "extra:    #{extra.inspect}"
 end
 
-Dir[File.join(DATA, "cpi", "*.json")].sort.each do |p|
+Dir[File.join(DATA, "cpi", "*.json")].each do |p|
   # Skip a possible placeholder during early bootstrap.
   next if File.basename(p) == "placeholder.json"
+
   check.call(p, CPI_KEYS)
 end
 
-Dir[File.join(DATA, "fx", "usd", "*.json")].sort.each do |p|
+Dir[File.join(DATA, "fx", "usd", "*.json")].each do |p|
   check.call(p, FX_KEYS)
 end
 

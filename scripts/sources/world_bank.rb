@@ -22,9 +22,11 @@ module Sources
       url = "https://api.worldbank.org/v2/country/#{country_iso3}/indicator/#{indicator}?format=json&per_page=200"
       body = Sources.http_json(url)
       raise "World Bank: unexpected shape for #{country_iso3}/#{indicator}" unless body.is_a?(Array) && body.size >= 2
+
       (body[1] || []).each_with_object({}) do |row, h|
         val = row["value"]
         next if val.nil?
+
         h[row["date"]] = Float(val)
       end
     end
@@ -34,7 +36,7 @@ module Sources
       Sources.validate_positive_numeric!(annual, "WorldBank #{country_code} annual")
       path = File.join(Sources::DATA_ROOT, "cpi", "#{country_code}.json")
       prior = Sources.read_json_if_exists(path)
-      prior_annual = prior && prior["annual"] || {}
+      prior_annual = (prior && prior["annual"]) || {}
 
       verdict, ratio, msg = Sources.cpi_drift_check(prior_annual, annual)
       Sources.log "WorldBank #{country_code} drift: #{msg}"
@@ -51,12 +53,12 @@ module Sources
 
       data = {
         "schema_version" => 1,
-        "country"        => country_code.upcase,
-        "base_year"      => base_year,
-        "source"         => SOURCE_CPI,
-        "updated_at"     => Sources.today,
-        "monthly"        => (prior && prior["monthly"]) || {},
-        "annual"         => merged_annual
+        "country" => country_code.upcase,
+        "base_year" => base_year,
+        "source" => SOURCE_CPI,
+        "updated_at" => Sources.today,
+        "monthly" => (prior && prior["monthly"]) || {},
+        "annual" => merged_annual,
       }
       Sources.write_json(path, data)
       Sources.log "WorldBank(#{label_country}): 0 monthly + #{merged_annual.size} annual data points, range #{range.first}..#{range.last}, #{new_points} new since last run."
@@ -76,7 +78,7 @@ module Sources
     # mid-year dates must accept annual granularity. The README + source label
     # document this.
     def run_vnd_fx
-      annual = fetch_indicator("VNM", "PA.NUS.FCRF")  # VND per USD
+      annual = fetch_indicator("VNM", "PA.NUS.FCRF") # VND per USD
       Sources.validate_positive_numeric!(annual, "WorldBank VND/USD annual")
       touched = 0
       annual.each do |year, rate|
@@ -98,11 +100,12 @@ module Sources
         end
         prior["rates"]      = rates
         prior["updated_at"] = Sources.today
-        prior["source"]     = "Frankfurter (ECB) for EUR/GBP/JPY; World Bank PA.NUS.FCRF for VND (annual avg, broadcast to every day in year)"
+        prior["source"]     =
+          "Frankfurter (ECB) for EUR/GBP/JPY; World Bank PA.NUS.FCRF for VND (annual avg, broadcast to every day in year)"
         Sources.write_json(path, prior)
         touched += 1
       end
-      Sources.log "WorldBank(VND FX): #{annual.size} annual data points written across #{touched} year files, range #{annual.keys.minmax.join('..')}."
+      Sources.log "WorldBank(VND FX): #{annual.size} annual data points written across #{touched} year files, range #{annual.keys.minmax.join("..")}."
     end
   end
 end

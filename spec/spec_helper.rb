@@ -11,7 +11,7 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 
-  config.before(:each) do
+  config.before do
     Timeprice::DataLoader.clear_cache!
   end
 end

@@ -44,7 +44,7 @@ RSpec.describe Timeprice::Inflation do
         "schema_version" => 1,
         "country" => "ZZ",
         "monthly" => { "2000-01" => 100.0, "2000-07" => 110.0 },
-        "annual" => {}
+        "annual" => {},
       }
       allow(Timeprice::DataLoader).to receive(:load_cpi).with("ZZ").and_return(synthetic)
 
@@ -69,15 +69,15 @@ RSpec.describe Timeprice::Inflation do
     end
 
     it "raises DataNotFound for a wholly unknown date" do
-      expect {
+      expect do
         described_class.adjust(amount: 100, from: "1800", to: "2024", country: "US")
-      }.to raise_error(Timeprice::DataNotFound)
+      end.to raise_error(Timeprice::DataNotFound)
     end
 
     it "raises UnsupportedCountry for unknown country" do
-      expect {
+      expect do
         described_class.adjust(amount: 100, from: "2010", to: "2024", country: "XX")
-      }.to raise_error(Timeprice::UnsupportedCountry, /XX/)
+      end.to raise_error(Timeprice::UnsupportedCountry, /XX/)
     end
   end
 
