@@ -1,22 +1,18 @@
 # frozen_string_literal: true
 
 require_relative "_common"
+require_relative "country_file"
 
 module Sources
   # A single CPI data provider — one upstream API client.
   #
   # A subclass implements `fetch` and returns `[monthly_hash, annual_hash]`
-  # (either may be empty). The provider also handles, today, file output —
-  # validation, drift detection vs the prior snapshot, rebase renormalization
-  # when drift exceeds 0.5%, merging into the existing JSON file, writing the
-  # canonical `data/cpi/<code>.json` shape, and the one-line summary log.
+  # (either may be empty). File output, drift detection, and merging with
+  # the prior snapshot live in CountryFile so a future multi-provider chain
+  # can drive one file write from several providers.
   #
-  # Subclasses declare metadata via the DSL class methods (see the BLS, ONS,
-  # Eurostat, and WorldBank sources for examples).
-  #
-  # NOTE: This class will lose its file-output responsibilities in a later
-  # refactor that introduces CountryFile to orchestrate multi-provider chains.
-  # For now, single-provider behavior is unchanged.
+  # Subclasses declare metadata via the configure DSL (see BLS, ONS,
+  # Eurostat for examples).
   class Provider
     class << self
       # @!attribute [rw] country_code
@@ -56,55 +52,23 @@ module Sources
       monthly, annual = fetch
       monthly ||= {}
       annual  ||= {}
-
       Sources.validate_positive_numeric!(monthly, "#{log_label} monthly") unless monthly.empty?
       Sources.validate_positive_numeric!(annual,  "#{log_label} annual")  unless annual.empty?
-
-      path = File.join(Sources::DATA_ROOT, "cpi", "#{country_code}.json")
-      prior = Sources.read_json_if_exists(path)
-      prior_monthly = (prior && prior["monthly"]) || {}
-      prior_annual  = (prior && prior["annual"])  || {}
-      base_year = (prior && prior["base_year"]) || default_base_year
-
-      # Drift is most informative on whichever granularity has the most overlap.
-      # Prefer monthly when the new series carries any; else annual.
-      drift_prior, drift_new = monthly.any? ? [prior_monthly, monthly] : [prior_annual, annual]
-      verdict, ratio, msg = Sources.cpi_drift_check(drift_prior, drift_new)
-      Sources.log "#{log_label} drift: #{msg}"
-      if verdict == :rebase
-        Sources.log "#{log_label}: rebase — renormalizing prior by ratio #{ratio}"
-        prior_monthly = Sources.renormalize(prior_monthly, ratio)
-        prior_annual  = Sources.renormalize(prior_annual,  ratio)
-        base_year = "rebased #{Sources.today}"
-      end
-
-      merged_monthly = prior_monthly.merge(monthly)
-      merged_annual  = prior_annual.merge(annual)
-      new_points = (monthly.keys - prior_monthly.keys).size + (annual.keys - prior_annual.keys).size
-      range_source = merged_monthly.any? ? merged_monthly : merged_annual
-      range = range_source.keys.minmax
-
-      data = {
-        "schema_version" => 1,
-        "country" => country_code.upcase,
-        "base_year" => base_year,
-        "source" => source_label,
-        "updated_at" => Sources.today,
-        "monthly" => merged_monthly,
-        "annual" => merged_annual,
-      }
-      Sources.write_json(path, data)
-      Sources.log "#{log_label}(#{country_label}): #{merged_monthly.size} monthly + " \
-                  "#{merged_annual.size} annual data points, range #{range.first}..#{range.last}, " \
-                  "#{new_points} new since last run."
+      country_file.write_merged(monthly: monthly, annual: annual)
     end
 
     private
 
-    def country_code      = self.class.country_code
-    def country_label     = self.class.country_label
-    def source_label      = self.class.source_label
-    def default_base_year = self.class.default_base_year
-    def log_label         = self.class.log_label
+    def country_file
+      CountryFile.new(
+        country_code: self.class.country_code,
+        country_label: self.class.country_label,
+        source_label: self.class.source_label,
+        default_base_year: self.class.default_base_year,
+        log_label: self.class.log_label
+      )
+    end
+
+    def log_label = self.class.log_label
   end
 end
