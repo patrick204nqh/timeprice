@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require_relative "base"
+require_relative "provider"
 
 # UK CPI series D7BT (CPI all-items index, 2015=100) from ONS.
 # Note: the developer.ons.gov.uk v0 API was retired 2024-11-25. The public
 # www.ons.gov.uk timeseries data endpoint still works and returns the same
 # {years:[], months:[], quarters:[]} structure.
 module Sources
-  class ONS < Base
+  class ONS < Provider
     URL = "https://www.ons.gov.uk/economy/inflationandpriceindices/timeseries/d7bt/mm23/data"
 
     MONTH_ABBR = %w[jan feb mar apr may jun jul aug sep oct nov dec].each_with_index.to_h do |m, i|

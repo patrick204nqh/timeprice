@@ -3,21 +3,21 @@
 require_relative "_common"
 
 module Sources
-  # Base class for CPI fetchers.
+  # A single CPI data provider — one upstream API client.
   #
   # A subclass implements `fetch` and returns `[monthly_hash, annual_hash]`
-  # (either may be empty). The base class handles:
-  #
-  #   - validation
-  #   - drift detection vs the prior snapshot
-  #   - rebase renormalization when drift exceeds 0.5%
-  #   - merging into the existing JSON file
-  #   - writing the canonical `data/cpi/<code>.json` shape
-  #   - the one-line per-source summary log
+  # (either may be empty). The provider also handles, today, file output —
+  # validation, drift detection vs the prior snapshot, rebase renormalization
+  # when drift exceeds 0.5%, merging into the existing JSON file, writing the
+  # canonical `data/cpi/<code>.json` shape, and the one-line summary log.
   #
   # Subclasses declare metadata via the DSL class methods (see the BLS, ONS,
   # Eurostat, and WorldBank sources for examples).
-  class Base
+  #
+  # NOTE: This class will lose its file-output responsibilities in a later
+  # refactor that introduces CountryFile to orchestrate multi-provider chains.
+  # For now, single-provider behavior is unchanged.
+  class Provider
     class << self
       # @!attribute [rw] country_code
       #   @return [String] lowercase two-letter code used in the data filename
