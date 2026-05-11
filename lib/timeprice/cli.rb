@@ -3,12 +3,13 @@
 require "thor"
 require "json"
 require_relative "../timeprice"
-require_relative "cli/formatting"
+require_relative "cli/presenters/inflation"
+require_relative "cli/presenters/exchange"
+require_relative "cli/presenters/compare"
+require_relative "cli/presenters/sources"
 
 module Timeprice
   class CLI < Thor
-    include Formatting
-
     # Thor 1.5 ships a built-in `tree` command on every subclass. Strip it
     # from this subclass — it's an internal debugging aid that leaks into
     # our help output. all_commands inherits from the base Thor class, so
@@ -86,7 +87,7 @@ module Timeprice
           to: options[:to],
           country: options[:country]
         )
-        emit_inflation(result)
+        render Presenters::Inflation.new(result)
       end
     end
 
@@ -100,7 +101,7 @@ module Timeprice
           to: to_currency,
           date: options[:date]
         )
-        emit_exchange(result)
+        render Presenters::Exchange.new(result)
       end
     end
 
@@ -116,7 +117,7 @@ module Timeprice
           from: from_tuple,
           to: to_tuple
         )
-        emit_compare(result)
+        render Presenters::Compare.new(result)
       end
     end
 
@@ -124,14 +125,7 @@ module Timeprice
     method_option :verbose, type: :boolean, default: false, aliases: "-v",
                             desc: "Include license URLs and full attribution"
     def sources
-      list = Timeprice::Sources.list
-      if options[:json]
-        say JSON.generate(list)
-      elsif options[:verbose]
-        emit_sources_verbose(list)
-      else
-        emit_sources_table(list)
-      end
+      render Presenters::Sources.new(Timeprice::Sources.list, verbose: options[:verbose])
     end
 
     desc "version", "Print the installed timeprice version"
@@ -144,6 +138,14 @@ module Timeprice
     end
 
     no_commands do
+      def render(presenter)
+        if options[:json]
+          say JSON.generate(presenter.json_hash)
+        else
+          presenter.text_lines.each { |line| say line }
+        end
+      end
+
       def with_error_handling
         yield
       rescue Timeprice::Error, ArgumentError => e
@@ -172,120 +174,6 @@ module Timeprice
                 "#{label} must contain a 4-digit year and a 3-letter currency code, got #{token.inspect}"
         end
         [currency.upcase, year]
-      end
-
-      def emit_sources_table(list)
-        rows = list.map do |s|
-          [s[:id].to_s, short_source_name(s[:name]), s[:license].to_s, s[:coverage].to_s]
-        end
-        headers = %w[ID SOURCE LICENSE COVERAGE]
-        widths = headers.each_with_index.map do |h, i|
-          [h.length, *rows.map { |r| r[i].length }].max
-        end
-        say format("  %-#{widths[0]}s  %-#{widths[1]}s  %-#{widths[2]}s  %s", *headers)
-        rows.each do |r|
-          say format("  %-#{widths[0]}s  %-#{widths[1]}s  %-#{widths[2]}s  %s", *r)
-        end
-        say ""
-        say "Run `timeprice sources --verbose` for license URLs and full attribution."
-      end
-
-      def emit_sources_verbose(list)
-        list.each do |s|
-          say s[:name].to_s
-          say "  id:           #{s[:id]}"
-          say "  license:      #{s[:license]}"
-          say "  license_url:  #{s[:license_url]}"
-          say "  attribution:  #{s[:attribution]}"
-          say "  coverage:     #{s[:coverage]}"
-          say ""
-        end
-      end
-
-      MAX_SOURCE_NAME = 60
-
-      # Cap the source-name column width. Truncation is last resort — the full
-      # name (with series code) is preserved in `--verbose` output.
-      def short_source_name(name)
-        s = name.to_s
-        return s if s.length <= MAX_SOURCE_NAME
-
-        "#{s[0, MAX_SOURCE_NAME - 1]}…"
-      end
-
-      def emit_inflation(result)
-        ccy = result.country_currency_label
-        options[:json] ? say(JSON.generate(inflation_json(result, ccy))) : emit_inflation_text(result, ccy)
-      end
-
-      def inflation_json(result, ccy)
-        result.to_h.merge(
-          amount: round_money(result.amount, ccy),
-          original_amount: round_money(result.original_amount, ccy)
-        )
-      end
-
-      def emit_inflation_text(result, ccy)
-        say "#{fmt_money(result.amount, ccy)} #{ccy}  in #{result.to}"
-        say format("  %s %s (%s) -> %s %s (%s)",
-                   fmt_money(result.original_amount, ccy), ccy, result.from,
-                   fmt_money(result.amount, ccy), ccy, result.to)
-        say "  #{result.country} · #{result.granularity} CPI"
-      end
-
-      def emit_exchange(result)
-        options[:json] ? say(JSON.generate(exchange_json(result))) : emit_exchange_text(result)
-      end
-
-      def exchange_json(result)
-        result.to_h.merge(
-          amount: round_money(result.amount, result.to),
-          original_amount: round_money(result.original_amount, result.from),
-          rate: result.rate.to_f.round(6)
-        )
-      end
-
-      def emit_exchange_text(result)
-        say "#{fmt_money(result.amount, result.to)} #{result.to}  on #{result.date}"
-        say format("  %s %s -> %s %s",
-                   fmt_money(result.original_amount, result.from), result.from,
-                   fmt_money(result.amount, result.to), result.to)
-        say "  #{rate_line(result)}"
-      end
-
-      def rate_line(result)
-        line = "rate #{fmt_rate(result.rate)}"
-        return line unless result.effective_date && result.effective_date != result.date
-
-        "#{line} from #{result.effective_date} (fallback)"
-      end
-
-      def emit_compare(result)
-        options[:json] ? say(JSON.generate(compare_json(result))) : emit_compare_text(result)
-      end
-
-      def compare_json(result)
-        result.to_h.merge(
-          amount: round_money(result.amount, result.to_currency),
-          original_amount: round_money(result.original_amount, result.from_currency),
-          converted_amount: round_money(result.converted_amount, result.to_currency),
-          fx_rate: result.fx_rate.to_f.round(6),
-          cpi_ratio: result.cpi_ratio.to_f.round(6)
-        )
-      end
-
-      # Headline + left-to-right chain so the FX + CPI composition reads naturally.
-      def emit_compare_text(result)
-        final = "#{fmt_money(result.amount, result.to_currency)} #{result.to_currency}"
-        original = "#{fmt_money(result.original_amount, result.from_currency)} #{result.from_currency}"
-        converted = "#{fmt_money(result.converted_amount, result.to_currency)} #{result.to_currency}"
-        step1 = "fx @ #{fmt_rate(result.fx_rate)}"
-        step2 = "inflate x#{format("%.4f", result.cpi_ratio)} #{result.country}"
-        width = [step1.length, step2.length].max
-        say "#{final}  in #{result.to_date}"
-        say "  #{original} (#{result.from_date})"
-        say format("    -> %-#{width}s -> %s (%s)", step1, converted, result.from_date)
-        say format("    -> %-#{width}s -> %s (%s, %s)", step2, final, result.to_date, result.granularity)
       end
     end
   end
