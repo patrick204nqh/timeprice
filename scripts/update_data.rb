@@ -13,7 +13,6 @@ require_relative "sources/estat"
 require_relative "sources/imf"
 require_relative "sources/abs"
 require_relative "sources/statcan"
-require_relative "sources/kosis"
 require_relative "sources/manifest"
 
 results = {}
@@ -41,7 +40,6 @@ SOURCE_FILES = {
   "IMF / RU FX" => "scripts/sources/imf.rb",
   "ABS / AU" => "scripts/sources/abs.rb",
   "StatCan / CA" => "scripts/sources/statcan.rb",
-  "KOSIS / KR" => "scripts/sources/kosis.rb",
 }.freeze
 
 run = lambda { |name, &blk|
@@ -88,7 +86,8 @@ run.call("IMF / CN") { Sources::IMF.run_cn_cpi }
 run.call("IMF / RU") { Sources::IMF.run_ru_cpi }
 run.call("ABS / AU") { Sources::ABS.run }
 run.call("StatCan / CA") { Sources::StatCan.run }
-run.call("KOSIS / KR") { Sources::KOSIS.run }
+# KOSIS intentionally not wired up — KR monthly CPI is sourced from IMF
+# (KOR.CPI._T.IX.M). Re-add when KOSIS_API_KEY support lands.
 run.call("ONS") { Sources::ONS.run }
 run.call("Eurostat") { Sources::Eurostat.run }
 run.call("e-Stat / JP") { Sources::EStat.run }
