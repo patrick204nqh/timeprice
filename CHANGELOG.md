@@ -5,6 +5,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-05-11
+
 ### Changed
 - **Schema v1 → v2.** Two structural data-layer changes, bundled under a
   single bump:
