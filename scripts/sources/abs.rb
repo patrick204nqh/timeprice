@@ -19,10 +19,12 @@ require_relative "provider"
 # run sequence.
 #
 # Dataflow key: MEASURE.INDEX.TSEST.REGION.FREQ
-#   3      = Index Numbers
+#   1      = Index Numbers (was 3 before ABS reorganized CL_CPI_MEASURES in
+#            CPI v2.0.0; code 3 now means "Percentage change from previous year")
 #   10001  = All groups CPI
 #   10     = Original (not seasonally adjusted) — matches the headline number
-#   50     = Weighted average of eight capital cities
+#   50     = Australia (formerly "weighted average of eight capital cities" —
+#            same series, renamed in CL_CPI_REGION)
 #   Q      = Quarterly
 #
 # NOTE: ABS's SDMX endpoint occasionally serves XML even when JSON is
@@ -33,7 +35,7 @@ module Sources
   class ABS < Provider
     BASE_URL  = "https://data.api.abs.gov.au/rest"
     DATAFLOW  = "CPI"
-    KEY       = "3.10001.10.50.Q"
+    KEY       = "1.10001.10.50.Q"
     START     = "1948-Q3"
 
     configure(
@@ -61,8 +63,18 @@ module Sources
                         })
     end
 
+    # ABS migrated to SDMX-JSON 2.0.0, which wraps the payload in a top-level
+    # "data" object. Tolerate the legacy 1.0.0 shape too so we don't break if
+    # the mirror at api.abs.gov.au keeps serving the old format.
+    def envelope(body)
+      body["data"] || body
+    end
+
     def extract_time_periods(body)
-      values = body.dig("structure", "dimensions", "observation", 0, "values") || []
+      env = envelope(body)
+      values = env.dig("structures", 0, "dimensions", "observation", 0, "values") ||
+               env.dig("structure", "dimensions", "observation", 0, "values") ||
+               []
       values.map { |v| normalize_period(v["id"]) }
     end
 
@@ -72,7 +84,8 @@ module Sources
     end
 
     def parse_quarterly(body, time_periods)
-      series = body.dig("dataSets", 0, "series") || {}
+      env = envelope(body)
+      series = env.dig("dataSets", 0, "series") || {}
       series.values.each_with_object({}) do |ser, h|
         (ser["observations"] || {}).each do |idx_str, obs|
           period = time_periods[idx_str.to_i]

@@ -13,16 +13,19 @@ require_relative "fx_year_file"
 #     - CN (primary monthly source on top of World Bank annual baseline)
 #     - RU (primary monthly source on top of World Bank annual baseline)
 #
-#   * RUB/USD exchange rate (IFS dataflow, key M.RUS.ENDA_XDC_USD_RATE).
+#   * RUB/USD exchange rate (ER dataflow, key RUS.XDC_USD.PA_RT.M —
+#     domestic currency per USD, period average, monthly).
 #     Frankfurter dropped RUB after the ECB suspended reference rates in
-#     March 2022; we use IMF IFS period-average rates throughout for
+#     March 2022; we use IMF period-average rates throughout for
 #     consistency, written to _annual.json (annual mean of the 12 monthly
 #     observations in each complete year).
 #
 # Historical note: the original IMF SDMX service at dataservices.imf.org
 # (SDMX_JSON.svc/IFS) was decommissioned in 2025 when the new IMF Data
 # Portal launched. The CPI dataflow on the new portal replaces what was
-# previously the M.<COUNTRY>.PCPI_IX key on the IFS dataflow.
+# previously the M.<COUNTRY>.PCPI_IX key on the IFS dataflow, and the
+# exchange-rate series moved from IFS to the standalone ER dataflow with
+# reordered dimensions (COUNTRY.INDICATOR.TYPE_OF_TRANSFORMATION.FREQUENCY).
 module Sources
   module IMF
     BASE_URL = "https://api.imf.org/external/sdmx/2.1"
@@ -39,7 +42,7 @@ module Sources
     # so RUB is annual-only — consumers of the Exchange API fall back from
     # daily to annual and tag the result appropriately.
     def run_ru_fx
-      monthly = fetch_ifs_monthly("RUS", "ENDA_XDC_USD_RATE")
+      monthly = fetch_er_monthly("RUS", "XDC_USD", "PA_RT")
       annual  = derive_annual(monthly)
       Sources.validate_positive_numeric!(annual, "IMF RUB/USD annual")
 
@@ -47,7 +50,7 @@ module Sources
       Sources::FxAnnualFile.write(
         annual_by_year_currency: payload,
         provider_id: "imf",
-        source_label: "IMF IFS dataflow ENDA_XDC_USD_RATE (period-average, annual mean)"
+        source_label: "IMF ER dataflow XDC_USD/PA_RT (period-average, annual mean)"
       )
 
       Sources.log "IMF(RUB FX): #{annual.size} annual averages into _annual.json, " \
@@ -62,11 +65,13 @@ module Sources
       parse_observations(body, time_periods)
     end
 
-    # IFS exchange-rate series. INDICATOR is e.g. "ENDA_XDC_USD_RATE"
-    # (period-average, domestic currency per USD).
-    def fetch_ifs_monthly(country_iso3, indicator)
-      key  = "M.#{country_iso3}.#{indicator}"
-      url  = "#{BASE_URL}/data/IFS/#{key}?startPeriod=1990-01"
+    # ER (Exchange Rate) dataflow on the new IMF Data Portal.
+    # Dimensions: COUNTRY.INDICATOR.TYPE_OF_TRANSFORMATION.FREQUENCY
+    #   INDICATOR e.g. "XDC_USD" (domestic currency per USD)
+    #   TYPE      e.g. "PA_RT"   (period average)
+    def fetch_er_monthly(country_iso3, indicator, type_of_transformation)
+      key  = "#{country_iso3}.#{indicator}.#{type_of_transformation}.M"
+      url  = "#{BASE_URL}/data/ER/#{key}?startPeriod=1990-01"
       body = Sources.http_json(url, headers: { "Accept" => "application/json" })
       time_periods = extract_time_periods(body)
       parse_observations(body, time_periods)
