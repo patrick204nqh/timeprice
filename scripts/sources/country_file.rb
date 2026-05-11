@@ -46,8 +46,33 @@ module Sources
       File.join(Sources::DATA_ROOT, "cpi", "#{country_code}.json")
     end
 
+    # Read the on-disk v3 CPI file (if present) into MergePolicy's internal
+    # flat shape so the rest of the writer doesn't have to know about v3
+    # nesting. Returns {} on first run.
     def load_prior
-      Sources.read_json_if_exists(path) || {}
+      disk = Sources.read_json_if_exists(path) || {}
+      return {} if disk.empty?
+
+      {
+        "monthly" => disk.dig("series", "monthly") || {},
+        "annual" => disk.dig("series", "annual") || {},
+        "base_year" => deserialise_base_year(disk["index"]),
+        "provenance" => disk["provenance"],
+        "providers" => disk["providers"],
+      }
+    end
+
+    # Internal base_year is the v2 freeform string. v3 stores it structured;
+    # collapse back to the freeform form so apply_drift's rebase suffix logic
+    # remains untouched.
+    def deserialise_base_year(index)
+      return nil unless index.is_a?(Hash)
+
+      period = index["base_period"]
+      rebased = index["rebased_at"]
+      return nil if period.nil?
+
+      rebased ? "#{period}=100 (rebased #{rebased})" : "#{period}=100"
     end
 
     # Returns [base_year, prior_normalized] where prior_normalized has the
@@ -83,16 +108,26 @@ module Sources
 
     def write(base_year, merged, prior_providers, provider_id)
       Sources.write_json(path, {
-                           "schema_version" => 2,
+                           "schema_version" => 3,
                            "country" => country_code.upcase,
-                           "base_year" => base_year,
-                           "source" => source_label,
-                           "updated_at" => Sources.today,
-                           "monthly" => merged[:monthly],
-                           "annual" => merged[:annual],
+                           "index" => serialise_base_year(base_year),
+                           "series" => {
+                             "monthly" => merged[:monthly],
+                             "annual" => merged[:annual],
+                           },
                            "provenance" => Provenance.compact(merged[:provenance]),
                            "providers" => provider_entries(prior_providers, provider_id),
                          })
+    end
+
+    def serialise_base_year(str)
+      m = Sources::BASE_YEAR_RE.match(str.to_s)
+      if m
+        { "base_period" => m[:period], "rebased_at" => m[:rebased] }
+      else
+        Sources.log "WARN: unrecognised base_year #{str.inspect} — preserving as-is"
+        { "base_period" => str.to_s, "rebased_at" => nil }
+      end
     end
 
     # Maintains the file-level providers[] list: keeps prior entries for

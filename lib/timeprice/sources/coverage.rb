@@ -5,9 +5,10 @@ require_relative "../data_loader"
 
 module Timeprice
   module Sources
-    # Computes coverage strings for bundled data sources at runtime. All
-    # filesystem reads happen here so the Sources attribution registry stays
-    # a pure data table.
+    # Computes coverage strings for bundled data sources at runtime by reading
+    # the structured `provenance` blocks in v3 data files. The Sources
+    # attribution registry stays a pure data table; Coverage is the only
+    # place that touches the filesystem.
     module Coverage
       module_function
 
@@ -25,46 +26,52 @@ module Timeprice
 
       def cpi(country)
         data = DataLoader.load_cpi(country)
-        monthly = (data["monthly"] || {}).keys.sort
-        annual  = (data["annual"]  || {}).keys.sort
+        monthly = data.dig("series", "monthly") || {}
+        annual  = data.dig("series", "annual") || {}
         parts = []
-        parts << "monthly #{monthly.first}..#{monthly.last} (#{monthly.size})" unless monthly.empty?
-        parts << "annual #{annual.first}..#{annual.last} (#{annual.size})" unless annual.empty?
+        parts << "monthly #{monthly.keys.min}..#{monthly.keys.max} (#{monthly.size})" if monthly.any?
+        parts << "annual #{annual.keys.min}..#{annual.keys.max} (#{annual.size})" if annual.any?
         parts.join(", ")
       end
 
       def fx(id)
-        years = fx_years
-        return "no data" if years.empty?
-
-        id == "fx_vnd" ? vnd_summary(years) : ecb_summary(years)
+        case id
+        when "fx_ecb" then ecb_summary
+        when "fx_vnd" then vnd_summary
+        else "n/a"
+        end
       end
 
-      def fx_years
-        Dir[File.join(fx_root, "*.json")].map { |f| File.basename(f, ".json").to_i }.sort
+      # Frankfurter (ECB) → daily EUR/GBP/JPY in per-year files. Range derived
+      # from the manifest's `daily_years` list.
+      def ecb_summary
+        years = DataLoader.load_manifest.dig("fx", "daily_years") || []
+        return "no ECB data" if years.empty?
+
+        "USD↔EUR/GBP/JPY daily #{years.first}..#{years.last}"
       end
 
-      def vnd_summary(years)
-        with_vnd = years.select { |y| year_has_currency?(y, %w[VND]) }
-        return "no VND data" if with_vnd.empty?
+      # World Bank VND lives in two places: the per-year `annual` block on
+      # daily-coverage year files, and the sparse `_annual.json` for years
+      # that predate daily coverage. Walk both.
+      def vnd_summary
+        years = vnd_years
+        return "no VND data" if years.empty?
 
-        "USD↔VND #{with_vnd.first}..#{with_vnd.last}"
+        "USD↔VND #{years.first}..#{years.last}"
       end
 
-      def ecb_summary(years)
-        ecb_years = years.select { |y| year_has_currency?(y, %w[EUR GBP JPY]) }
-        return "no ECB data" if ecb_years.empty?
-
-        "USD↔EUR/GBP/JPY daily #{ecb_years.first}..#{ecb_years.last}"
-      end
-
-      def year_has_currency?(year, codes)
-        rates = JSON.parse(File.read(File.join(fx_root, "#{year}.json")))["rates"]
-        rates.any? { |_, v| v.keys.intersect?(codes) }
-      end
-
-      def fx_root
-        File.join(DataLoader.data_root, "fx", "usd")
+      def vnd_years
+        years = []
+        (DataLoader.load_manifest.dig("fx", "daily_years") || []).each do |y|
+          year_data = DataLoader.load_fx_year(y)
+          years << y if year_data.dig("annual", "VND")
+        end
+        fallback = DataLoader.load_fx_annual_fallback
+        (fallback&.dig("annual") || {}).each do |year_str, ccy_hash|
+          years << year_str.to_i if ccy_hash.key?("VND")
+        end
+        years.sort
       end
     end
   end

@@ -7,23 +7,23 @@ module Timeprice
   # to handle anything the gem can throw at you.
   class Error < StandardError; end
 
-  # Raised when a country code is not in {Supported::COUNTRIES}.
+  # Raised when a country code is not in {Supported.countries}.
   class UnsupportedCountry < Error
     attr_reader :country
 
     def initialize(country)
       @country = country
-      super("Unsupported country: #{country.inspect} (supported: #{Supported::COUNTRIES.join(", ")})")
+      super("Unsupported country: #{country.inspect} (supported: #{Supported.countries.join(", ")})")
     end
   end
 
-  # Raised when a currency code is not in {Supported::CURRENCIES}.
+  # Raised when a currency code is not in {Supported.currencies}.
   class UnsupportedCurrency < Error
     attr_reader :currency
 
     def initialize(currency)
       @currency = currency
-      super("Unsupported currency: #{currency.inspect} (supported: #{Supported::CURRENCIES.join(", ")})")
+      super("Unsupported currency: #{currency.inspect} (supported: #{Supported.currencies.join(", ")})")
     end
   end
 

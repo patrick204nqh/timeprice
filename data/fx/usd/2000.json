@@ -3,6 +3,41 @@
     "VND": 14167.75
   },
   "base": "USD",
+  "provenance": [
+    {
+      "currencies": [
+        "EUR",
+        "GBP",
+        "JPY"
+      ],
+      "from": "2000-01-03",
+      "provider": "frankfurter",
+      "series": "daily",
+      "to": "2000-12-29"
+    },
+    {
+      "currencies": [
+        "VND"
+      ],
+      "provider": "world_bank",
+      "series": "annual",
+      "year": 2000
+    }
+  ],
+  "providers": [
+    {
+      "fetched_at": "2026-05-11",
+      "id": "frankfurter",
+      "label": "Frankfurter (ECB) daily reference rates",
+      "status": "ok"
+    },
+    {
+      "fetched_at": "2026-05-11",
+      "id": "world_bank",
+      "label": "World Bank PA.NUS.FCRF",
+      "status": "ok"
+    }
+  ],
   "rates": {
     "2000-01-03": {
       "EUR": 0.99108,
@@ -1280,8 +1315,6 @@
       "JPY": 114.91
     }
   },
-  "schema_version": 2,
-  "source": "Frankfurter (ECB) for EUR/GBP/JPY (daily); World Bank PA.NUS.FCRF for VND (annual)",
-  "updated_at": "2026-05-11",
+  "schema_version": 3,
   "year": 2000
 }

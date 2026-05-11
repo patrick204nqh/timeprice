@@ -4,13 +4,37 @@ require "tmpdir"
 require "fileutils"
 
 RSpec.describe Timeprice::DataLoader do
+  # Minimal v3 manifest that lists US as supported so the loader gets past
+  # the Supported.country? check and reaches the file-parse step.
+  def write_us_manifest(dir)
+    manifest = {
+      "schema_version" => 3,
+      "generated_at" => "2026-01-01",
+      "countries" => [
+        {
+          "code" => "US",
+          "currency" => "USD",
+          "cpi_file" => "cpi/us.json",
+          "granularities" => %w[monthly annual],
+        },
+      ],
+      "fx" => {
+        "base" => "USD",
+        "currencies" => [],
+        "daily_years" => [],
+        "annual_file" => "fx/_annual.json",
+      },
+    }
+    File.write(File.join(dir, "manifest.json"), JSON.dump(manifest))
+  end
+
   it "refuses unknown schema_version" do
     Dir.mktmpdir do |dir|
       FileUtils.mkdir_p(File.join(dir, "cpi"))
-      # Use a SUPPORTED country code so the loader gets past the catalog check
-      # and actually parses the file.
+      write_us_manifest(dir)
       File.write(File.join(dir, "cpi", "us.json"),
-                 JSON.dump({ "schema_version" => 999, "country" => "US", "monthly" => {}, "annual" => {} }))
+                 JSON.dump({ "schema_version" => 999, "country" => "US",
+                             "series" => { "monthly" => {}, "annual" => {} } }))
 
       old = ENV.fetch("TIMEPRICE_DATA_ROOT", nil)
       begin
@@ -34,7 +58,7 @@ RSpec.describe Timeprice::DataLoader do
 
   it "raises DataNotFound when a supported country's data file is missing" do
     Dir.mktmpdir do |dir|
-      # Empty data root — supported country, but the file isn't there.
+      write_us_manifest(dir)
       old = ENV.fetch("TIMEPRICE_DATA_ROOT", nil)
       begin
         ENV["TIMEPRICE_DATA_ROOT"] = dir

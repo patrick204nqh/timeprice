@@ -11,6 +11,7 @@ require_relative "sources/ons"
 require_relative "sources/eurostat"
 require_relative "sources/estat"
 require_relative "sources/imf"
+require_relative "sources/manifest"
 
 results = {}
 
@@ -70,6 +71,10 @@ run.call("e-Stat / JP") { Sources::EStat.run }
 # Remove the placeholder once any real CPI lands.
 placeholder = File.join(Sources::DATA_ROOT, "cpi", "placeholder.json")
 FileUtils.rm_f(placeholder)
+
+# Regenerate the manifest from whatever the fetchers produced. Always run,
+# even if some fetchers failed — the manifest reflects on-disk truth.
+run.call("Manifest") { Sources::Manifest.write }
 
 puts ""
 puts "=== Summary ==="

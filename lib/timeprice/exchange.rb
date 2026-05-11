@@ -33,8 +33,8 @@ module Timeprice
     def convert(amount:, from:, to:, date:)
       from = from.to_s.upcase
       to   = to.to_s.upcase
-      raise UnsupportedCurrency, from unless Supported::CURRENCIES.include?(from)
-      raise UnsupportedCurrency, to   unless Supported::CURRENCIES.include?(to)
+      raise UnsupportedCurrency, from unless Supported.currency?(from)
+      raise UnsupportedCurrency, to   unless Supported.currency?(to)
 
       d = parse_date(date)
 
@@ -105,6 +105,9 @@ module Timeprice
       annual_rate = annual_fallback(currency, d.year)
       return [annual_rate, d, Granularity::ANNUAL] if annual_rate
 
+      sparse_rate = sparse_annual_fallback(currency, d.year)
+      return [sparse_rate, d, Granularity::ANNUAL] if sparse_rate
+
       raise DataNotFound, "No FX rate for USD->#{currency} on or before #{d}"
     end
 
@@ -114,6 +117,15 @@ module Timeprice
       year_data.dig("annual", currency)&.to_f
     rescue DataNotFound
       nil
+    end
+
+    # Consult data/fx/_annual.json — sparse historical annual-only coverage
+    # for years that predate daily-rate availability. Returns Float or nil.
+    def sparse_annual_fallback(currency, year)
+      fallback = DataLoader.load_fx_annual_fallback
+      return nil unless fallback
+
+      fallback.dig("annual", year.to_s, currency)&.to_f
     end
 
     def parse_date(date)

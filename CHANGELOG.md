@@ -5,6 +5,28 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-05-11
+
+### Changed
+- **Schema v2 → v3.** Breaking change to the bundled data contract. v0.4.x
+  data files will not load on v0.5.0.
+  - New top-level `data/manifest.json` — single source of truth for which
+    countries and currencies the bundle supports. `Supported.countries` /
+    `Supported.currencies` derive from it at runtime; the hardcoded Ruby
+    constants `Supported::COUNTRIES` / `CURRENCIES` are gone. Custom callers
+    that referenced those constants must switch to the method form.
+  - CPI files use nested `series: { monthly, annual }` and a structured
+    `index: { base_period, rebased_at }` block in place of the freeform
+    `base_year` string. Top-level `source` and `updated_at` removed —
+    `providers[]` is the source of truth for provenance.
+  - FX year files now carry `provenance` + `providers` blocks, symmetric
+    with CPI.
+  - Pre-1999 stub year files (1983, 1986–1998) consolidated into
+    `data/fx/_annual.json` for the sparse historical VND coverage. The
+    daily-rate per-year files only exist for years with real daily data.
+  - `Exchange.lookup_usd_base` adds a final fallback to `_annual.json`
+    after the per-year `annual` block, tagged with `Granularity::ANNUAL`.
+
 ## [0.4.0] - 2026-05-11
 
 ### Changed
