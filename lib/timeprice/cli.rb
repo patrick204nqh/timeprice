@@ -146,10 +146,7 @@ module Timeprice
     no_commands do
       def with_error_handling
         yield
-      rescue Timeprice::Error => e
-        warn "Error: #{e.message}"
-        exit 1
-      rescue ArgumentError => e
+      rescue Timeprice::Error, ArgumentError => e
         warn "Error: #{e.message}"
         exit 1
       end
