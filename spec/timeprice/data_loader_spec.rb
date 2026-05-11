@@ -7,16 +7,25 @@ RSpec.describe Timeprice::DataLoader do
   # Minimal v3 manifest that lists US as supported so the loader gets past
   # the Supported.country? check and reaches the file-parse step.
   def write_us_manifest(dir)
-    File.write(File.join(dir, "manifest.json"), JSON.dump({
+    manifest = {
       "schema_version" => 3,
       "generated_at" => "2026-01-01",
       "countries" => [
-        { "code" => "US", "currency" => "USD", "cpi_file" => "cpi/us.json",
-          "granularities" => ["monthly", "annual"] }
+        {
+          "code" => "US",
+          "currency" => "USD",
+          "cpi_file" => "cpi/us.json",
+          "granularities" => %w[monthly annual],
+        },
       ],
-      "fx" => { "base" => "USD", "currencies" => [], "daily_years" => [],
-                "annual_file" => "fx/_annual.json" }
-    }))
+      "fx" => {
+        "base" => "USD",
+        "currencies" => [],
+        "daily_years" => [],
+        "annual_file" => "fx/_annual.json",
+      },
+    }
+    File.write(File.join(dir, "manifest.json"), JSON.dump(manifest))
   end
 
   it "refuses unknown schema_version" do

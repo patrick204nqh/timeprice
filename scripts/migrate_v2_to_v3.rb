@@ -24,30 +24,22 @@
 require "json"
 require "date"
 require "fileutils"
+require_relative "sources/_common"
 
+# rubocop:disable Metrics/ModuleLength
+# Single-purpose one-shot migration; keeping it as one self-contained module
+# is more readable than splitting for the sake of a length cop.
 module MigrateV2ToV3
   DATA_ROOT = ENV["TIMEPRICE_DATA_ROOT"] ||
               File.expand_path("../data", __dir__)
 
-  # Recognised CPI base_year strings:
-  #   "1982-1984=100"                       — base period only
-  #   "2010=100"                            — base period only
-  #   "2010=100 (rebased 2026-05-11)"       — period + rebased date
-  BASE_YEAR_RE = /\A(?<period>.+?)=100(?:\s*\(rebased\s+(?<rebased>\d{4}-\d{2}-\d{2})\))?\z/
-
-  # CPI provenance is already a compact range list in v2 — kept as-is in v3.
-  # FX provenance needs to be synthesised from the data.
+  BASE_YEAR_RE = Sources::BASE_YEAR_RE
+  COUNTRY_TO_CURRENCY = Sources::COUNTRY_TO_CURRENCY
 
   CPI_FILES = "cpi/*.json"
   FX_USD_FILES = "fx/usd/*.json"
   ANNUAL_FALLBACK_FILE = "fx/_annual.json"
   MANIFEST_FILE = "manifest.json"
-
-  # Used to backfill the `currency` field on the manifest country entries.
-  COUNTRY_TO_CURRENCY = {
-    "US" => "USD", "UK" => "GBP", "EU" => "EUR",
-    "JP" => "JPY", "VN" => "VND"
-  }.freeze
 
   module_function
 
@@ -62,7 +54,7 @@ module MigrateV2ToV3
   # ---------- CPI ----------
 
   def migrate_cpi_files
-    Dir[File.join(DATA_ROOT, CPI_FILES)].sort.each do |path|
+    Dir[File.join(DATA_ROOT, CPI_FILES)].each do |path|
       data = JSON.parse(File.read(path))
       next skip(path) if data["schema_version"] == 3
 
@@ -80,10 +72,10 @@ module MigrateV2ToV3
       # Uniform shape: both granularities always present (`{}` if empty, e.g. JP monthly).
       "series" => {
         "monthly" => v2["monthly"] || {},
-        "annual" => v2["annual"] || {}
+        "annual" => v2["annual"] || {},
       },
       "provenance" => v2["provenance"] || [],
-      "providers" => v2["providers"] || []
+      "providers" => v2["providers"] || [],
     }
   end
 
@@ -102,7 +94,7 @@ module MigrateV2ToV3
   # ---------- FX ----------
 
   def migrate_fx_files
-    paths = Dir[File.join(DATA_ROOT, FX_USD_FILES)].sort
+    paths = Dir[File.join(DATA_ROOT, FX_USD_FILES)]
     stubs, real = paths.partition { |p| stub_file?(p) }
 
     consolidate_stubs_into_annual_fallback(stubs)
@@ -153,17 +145,17 @@ module MigrateV2ToV3
           "currencies" => all_currencies,
           "from" => years_sorted.first.to_s,
           "to" => years_sorted.last.to_s,
-          "provider" => "world_bank"
-        }
+          "provider" => "world_bank",
+        },
       ],
       "providers" => [
         {
           "id" => "world_bank",
           "label" => "World Bank PA.NUS.FCRF",
           "fetched_at" => today,
-          "status" => "ok"
-        }
-      ]
+          "status" => "ok",
+        },
+      ],
     }
 
     write_json(out_path, v3)
@@ -200,13 +192,13 @@ module MigrateV2ToV3
         "currencies" => daily_currencies,
         "from" => dates_sorted.first,
         "to" => dates_sorted.last,
-        "provider" => "frankfurter"
+        "provider" => "frankfurter",
       }
       providers << {
         "id" => "frankfurter",
         "label" => "Frankfurter (ECB) daily reference rates",
         "fetched_at" => today,
-        "status" => "ok"
+        "status" => "ok",
       }
     end
 
@@ -216,13 +208,13 @@ module MigrateV2ToV3
         "series" => "annual",
         "currencies" => annual.keys.sort,
         "year" => v2["year"],
-        "provider" => "world_bank"
+        "provider" => "world_bank",
       }
       providers << {
         "id" => "world_bank",
         "label" => "World Bank PA.NUS.FCRF",
         "fetched_at" => today,
-        "status" => "ok"
+        "status" => "ok",
       }
     end
 
@@ -232,7 +224,7 @@ module MigrateV2ToV3
       "year" => v2["year"],
       "rates" => rates,
       "provenance" => provenance,
-      "providers" => providers
+      "providers" => providers,
     }
     out["annual"] = annual if annual.any?
     out
@@ -241,7 +233,7 @@ module MigrateV2ToV3
   # ---------- Manifest ----------
 
   def write_manifest
-    countries = Dir[File.join(DATA_ROOT, CPI_FILES)].sort.map do |path|
+    countries = Dir[File.join(DATA_ROOT, CPI_FILES)].map do |path|
       cpi = JSON.parse(File.read(path))
       code = cpi["country"]
       grans = []
@@ -251,7 +243,7 @@ module MigrateV2ToV3
         "code" => code,
         "currency" => COUNTRY_TO_CURRENCY.fetch(code),
         "cpi_file" => "cpi/#{File.basename(path)}",
-        "granularities" => grans
+        "granularities" => grans,
       }
     end
 
@@ -269,8 +261,8 @@ module MigrateV2ToV3
         "base" => "USD",
         "currencies" => all_fx_currencies,
         "daily_years" => daily_years,
-        "annual_file" => ANNUAL_FALLBACK_FILE
-      }
+        "annual_file" => ANNUAL_FALLBACK_FILE,
+      },
     }
 
     write_json(File.join(DATA_ROOT, MANIFEST_FILE), manifest)
@@ -323,5 +315,6 @@ module MigrateV2ToV3
     log "skip: #{File.basename(path)} already at schema_version 3"
   end
 end
+# rubocop:enable Metrics/ModuleLength
 
 MigrateV2ToV3.run if __FILE__ == $PROGRAM_NAME

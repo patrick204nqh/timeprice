@@ -265,6 +265,13 @@ license — see `DATA_LICENSES.md` and `NOTICE` for the full table and license U
 If you redistribute results derived from this gem, reproduce the relevant attribution
 strings. `timeprice sources` prints them in plain text and as JSON.
 
+## Data format
+
+Bundled data lives under `data/` in schema v3 — a `manifest.json` plus
+per-country CPI files and per-year FX files. See
+[`docs/SCHEMA_V3_MIGRATION.md`](docs/SCHEMA_V3_MIGRATION.md) for the full
+contract, including the migration path from v2.
+
 ## Author
 
 Built by [Patrick](https://github.com/patrick204nqh).

@@ -52,9 +52,7 @@ end
 
 # --- manifest ---
 manifest_path = File.join(DATA, "manifest.json")
-unless File.exist?(manifest_path)
-  failures << "data/manifest.json missing — required for v3"
-end
+failures << "data/manifest.json missing — required for v3" unless File.exist?(manifest_path)
 manifest = File.exist?(manifest_path) ? load.call(manifest_path) : nil
 if manifest
   assert_schema_version.call(manifest_path, manifest)

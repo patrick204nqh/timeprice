@@ -10,11 +10,6 @@ module Sources
   # Derived from disk state, so it stays in sync with whatever the fetchers
   # actually produced. Re-running is idempotent.
   module Manifest
-    COUNTRY_TO_CURRENCY = {
-      "US" => "USD", "UK" => "GBP", "EU" => "EUR",
-      "JP" => "JPY", "VN" => "VND"
-    }.freeze
-
     module_function
 
     def write
@@ -30,8 +25,8 @@ module Sources
           "base" => "USD",
           "currencies" => currencies,
           "daily_years" => daily_years,
-          "annual_file" => "fx/_annual.json"
-        }
+          "annual_file" => "fx/_annual.json",
+        },
       }
       path = File.join(Sources::DATA_ROOT, "manifest.json")
       Sources.write_json(path, data)
@@ -39,7 +34,7 @@ module Sources
     end
 
     def cpi_countries
-      Dir[File.join(Sources::DATA_ROOT, "cpi", "*.json")].sort.map do |path|
+      Dir[File.join(Sources::DATA_ROOT, "cpi", "*.json")].map do |path|
         cpi = JSON.parse(File.read(path))
         code = cpi["country"]
         grans = []
@@ -47,9 +42,9 @@ module Sources
         grans << "annual"  if (cpi.dig("series", "annual")  || {}).any?
         {
           "code" => code,
-          "currency" => COUNTRY_TO_CURRENCY.fetch(code),
+          "currency" => Sources::COUNTRY_TO_CURRENCY.fetch(code),
           "cpi_file" => "cpi/#{File.basename(path)}",
-          "granularities" => grans
+          "granularities" => grans,
         }
       end
     end

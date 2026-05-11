@@ -11,6 +11,21 @@ module Sources
   REPO_ROOT  = File.expand_path("../..", __dir__)
   DATA_ROOT  = File.join(REPO_ROOT, "data")
 
+  # CPI `index.base_period`=`base_period` strings can take three observed
+  # forms: "1982-1984=100", "2010=100", "2010=100 (rebased 2026-05-11)".
+  BASE_YEAR_RE = /\A(?<period>.+?)=100(?:\s*\(rebased\s+(?<rebased>\d{4}-\d{2}-\d{2})\))?\z/
+
+  # Single source of truth for the country↔currency mapping used by the
+  # manifest writer and the v2→v3 migration script. Adding a country = add
+  # it here (and ship a CPI file for it).
+  COUNTRY_TO_CURRENCY = {
+    "US" => "USD",
+    "UK" => "GBP",
+    "EU" => "EUR",
+    "JP" => "JPY",
+    "VN" => "VND",
+  }.freeze
+
   module_function
 
   # Perform an HTTP GET (or POST when body given) with one retry on transient errors.

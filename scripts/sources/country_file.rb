@@ -58,7 +58,7 @@ module Sources
         "annual" => disk.dig("series", "annual") || {},
         "base_year" => deserialise_base_year(disk["index"]),
         "provenance" => disk["provenance"],
-        "providers" => disk["providers"]
+        "providers" => disk["providers"],
       }
     end
 
@@ -120,10 +120,8 @@ module Sources
                          })
     end
 
-    BASE_YEAR_RE = /\A(?<period>.+?)=100(?:\s*\(rebased\s+(?<rebased>\d{4}-\d{2}-\d{2})\))?\z/
-
     def serialise_base_year(str)
-      m = BASE_YEAR_RE.match(str.to_s)
+      m = Sources::BASE_YEAR_RE.match(str.to_s)
       if m
         { "base_period" => m[:period], "rebased_at" => m[:rebased] }
       else

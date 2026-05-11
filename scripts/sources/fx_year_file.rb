@@ -64,7 +64,7 @@ module Sources
         "year" => year,
         "rates" => rates,
         "provenance" => build_provenance(rates, annual),
-        "providers" => provider_entries(prior_providers, provider_id, source_label)
+        "providers" => provider_entries(prior_providers, provider_id, source_label),
       }
       data["annual"] = annual if annual.any?
       Sources.write_json(path, data)
@@ -80,7 +80,7 @@ module Sources
           "currencies" => daily_currencies,
           "from" => dates_sorted.first,
           "to" => dates_sorted.last,
-          "provider" => "frankfurter"
+          "provider" => "frankfurter",
         }
       end
       if annual.any?
@@ -88,7 +88,7 @@ module Sources
           "series" => "annual",
           "currencies" => annual.keys.sort,
           "year" => year,
-          "provider" => "world_bank"
+          "provider" => "world_bank",
         }
       end
       out
@@ -102,7 +102,7 @@ module Sources
         "id" => provider_id,
         "label" => source_label,
         "fetched_at" => Sources.today,
-        "status" => "ok"
+        "status" => "ok",
       }]
     end
   end
@@ -139,15 +139,15 @@ module Sources
             "currencies" => all_currencies,
             "from" => years_sorted.first.to_s,
             "to" => years_sorted.last.to_s,
-            "provider" => provider_id
-          }
+            "provider" => provider_id,
+          },
         ],
         "providers" => others + [{
           "id" => provider_id,
           "label" => source_label,
           "fetched_at" => Sources.today,
-          "status" => "ok"
-        }]
+          "status" => "ok",
+        }],
       }
       Sources.write_json(path, data)
     end
