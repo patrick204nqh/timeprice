@@ -18,7 +18,7 @@ module Sources
       currencies = fx_currencies(daily_years)
 
       data = {
-        "schema_version" => 3,
+        "schema_version" => 4,
         "generated_at" => Sources.today,
         "countries" => countries,
         "fx" => {
@@ -38,8 +38,9 @@ module Sources
         cpi = JSON.parse(File.read(path))
         code = cpi["country"]
         grans = []
-        grans << "monthly" if (cpi.dig("series", "monthly") || {}).any?
-        grans << "annual"  if (cpi.dig("series", "annual")  || {}).any?
+        grans << "monthly"   if (cpi.dig("series", "monthly")   || {}).any?
+        grans << "quarterly" if (cpi.dig("series", "quarterly") || {}).any?
+        grans << "annual"    if (cpi.dig("series", "annual")    || {}).any?
         {
           "code" => code,
           "currency" => Sources::COUNTRY_TO_CURRENCY.fetch(code),

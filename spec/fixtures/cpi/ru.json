@@ -1,0 +1,17 @@
+{
+  "country": "RU",
+  "index": {
+    "base_period": "2010",
+    "rebased_at": null
+  },
+  "provenance": [],
+  "providers": [],
+  "schema_version": 4,
+  "series": {
+    "annual": {
+      "2010": 100.0,
+      "2024": 261.8
+    },
+    "monthly": {}
+  }
+}

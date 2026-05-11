@@ -12,9 +12,12 @@ module Sources
   #
   # Extracted from Provider so a future multi-provider chain can drive a
   # single file write from multiple sources without each Provider re-opening
-  # the file. For now Providers still call us with one (monthly, annual)
-  # tuple — output is byte-identical to the prior implementation.
+  # the file. For now Providers still call us with one (monthly, quarterly,
+  # annual) tuple — output is byte-identical to the prior implementation
+  # whenever a quarterly series is absent.
   class CountryFile
+    SCHEMA_VERSION = 4
+
     def initialize(country_code:, country_label:, source_label:,
                    default_base_year:, log_label:)
       @country_code      = country_code
@@ -24,17 +27,24 @@ module Sources
       @log_label         = log_label
     end
 
-    def write_merged(monthly:, annual:, provider_id:)
+    def write_merged(monthly:, annual:, provider_id:, quarterly: {})
       prior = load_prior
-      # On-disk provenance is a compact range list (schema v2); MergePolicy
-      # works on a per-period hash, so expand on read and compact on write.
+      # On-disk provenance is a compact range list; MergePolicy works on a
+      # per-period hash, so expand on read and compact on write.
       prior_expanded = prior.merge("provenance" => Provenance.expand(prior["provenance"]))
-      base_year, prior_normalized = apply_drift(prior_expanded, monthly, annual)
-      contribution = { monthly: monthly, annual: annual, provider_id: provider_id }
+      base_year, prior_normalized = apply_drift(prior_expanded, monthly, quarterly, annual)
+      contribution = {
+        monthly: monthly, quarterly: quarterly, annual: annual,
+        provider_id: provider_id
+      }
       merged = MergePolicy.layer(prior_normalized, contribution)
       write(base_year, merged, prior_normalized["providers"], provider_id)
       log_summary(merged: merged, incoming: contribution,
-                  prior: { monthly: prior_normalized["monthly"], annual: prior_normalized["annual"] })
+                  prior: {
+                    monthly: prior_normalized["monthly"],
+                    quarterly: prior_normalized["quarterly"],
+                    annual: prior_normalized["annual"],
+                  })
     end
 
     private
@@ -46,15 +56,16 @@ module Sources
       File.join(Sources::DATA_ROOT, "cpi", "#{country_code}.json")
     end
 
-    # Read the on-disk v3 CPI file (if present) into MergePolicy's internal
-    # flat shape so the rest of the writer doesn't have to know about v3
-    # nesting. Returns {} on first run.
+    # Read the on-disk v3/v4 CPI file (if present) into MergePolicy's internal
+    # flat shape so the rest of the writer doesn't have to know about the
+    # nested layout. Returns {} on first run.
     def load_prior
       disk = Sources.read_json_if_exists(path) || {}
       return {} if disk.empty?
 
       {
         "monthly" => disk.dig("series", "monthly") || {},
+        "quarterly" => disk.dig("series", "quarterly") || {},
         "annual" => disk.dig("series", "annual") || {},
         "base_year" => deserialise_base_year(disk["index"]),
         "provenance" => disk["provenance"],
@@ -62,9 +73,6 @@ module Sources
       }
     end
 
-    # Internal base_year is the v2 freeform string. v3 stores it structured;
-    # collapse back to the freeform form so apply_drift's rebase suffix logic
-    # remains untouched.
     def deserialise_base_year(index)
       return nil unless index.is_a?(Hash)
 
@@ -76,45 +84,55 @@ module Sources
     end
 
     # Returns [base_year, prior_normalized] where prior_normalized has the
-    # same keys as prior but with monthly/annual rebased if the new series
-    # indicates a rebase (drift >0.5% on shared periods).
-    def apply_drift(prior, monthly, annual)
-      prior_monthly = prior["monthly"] || {}
-      prior_annual  = prior["annual"]  || {}
-      base_year     = prior["base_year"] || default_base_year
-      verdict, ratio = drift_check(prior_monthly, prior_annual, monthly, annual)
+    # same keys as prior but with series rebased if the new series indicates
+    # a rebase (drift >0.5% on shared periods).
+    def apply_drift(prior, monthly, quarterly, annual)
+      prior_series = {
+        monthly: prior["monthly"] || {},
+        quarterly: prior["quarterly"] || {},
+        annual: prior["annual"] || {},
+      }
+      new_series = { monthly: monthly, quarterly: quarterly, annual: annual }
+      base_year  = prior["base_year"] || default_base_year
+      verdict, ratio = drift_check(prior_series, new_series)
       return [base_year, prior] unless verdict == :rebase
 
       rebased = prior.merge(
-        "monthly" => Sources.renormalize(prior_monthly, ratio),
-        "annual" => Sources.renormalize(prior_annual, ratio)
+        "monthly" => Sources.renormalize(prior_series[:monthly], ratio),
+        "quarterly" => Sources.renormalize(prior_series[:quarterly], ratio),
+        "annual" => Sources.renormalize(prior_series[:annual], ratio)
       )
-      # Preserve the original reference period so consumers can still see what
-      # the index is normalized against; the "rebased <date>" suffix records
-      # when the most recent drift-triggered renormalization occurred.
       original_ref = base_year.to_s.sub(/\s*\(rebased [^)]+\)\s*\z/, "")
       ["#{original_ref} (rebased #{Sources.today})", rebased]
     end
 
-    # Drift is most informative on whichever granularity has the most overlap.
-    # Prefer monthly when the new series carries any; else annual.
-    def drift_check(prior_monthly, prior_annual, monthly, annual)
-      drift_prior, drift_new = monthly.any? ? [prior_monthly, monthly] : [prior_annual, annual]
-      verdict, ratio, msg = Sources.cpi_drift_check(drift_prior, drift_new)
+    # Pick the highest-granularity shared series for drift detection.
+    def drift_check(prior_series, new_series)
+      key = if new_series[:monthly].any? then :monthly
+            elsif new_series[:quarterly].any? then :quarterly
+            else :annual
+            end
+      verdict, ratio, msg = Sources.cpi_drift_check(prior_series[key], new_series[key])
       Sources.log "#{log_label} drift: #{msg}"
       Sources.log "#{log_label}: rebase — renormalizing prior by ratio #{ratio}" if verdict == :rebase
       [verdict, ratio]
     end
 
     def write(base_year, merged, prior_providers, provider_id)
+      series = {
+        "monthly" => merged[:monthly],
+        "annual" => merged[:annual],
+      }
+      # Only emit the quarterly block when there is data, so files for
+      # monthly+annual countries stay byte-identical to schema v3 layout
+      # (other than the schema_version bump).
+      series["quarterly"] = merged[:quarterly] if merged[:quarterly]&.any?
+
       Sources.write_json(path, {
-                           "schema_version" => 3,
+                           "schema_version" => SCHEMA_VERSION,
                            "country" => country_code.upcase,
                            "index" => serialise_base_year(base_year),
-                           "series" => {
-                             "monthly" => merged[:monthly],
-                             "annual" => merged[:annual],
-                           },
+                           "series" => series,
                            "provenance" => Provenance.compact(merged[:provenance]),
                            "providers" => provider_entries(prior_providers, provider_id),
                          })
@@ -130,8 +148,6 @@ module Sources
       end
     end
 
-    # Maintains the file-level providers[] list: keeps prior entries for
-    # other providers in the chain, refreshes this provider's entry.
     def provider_entries(prior_providers, provider_id)
       others = (prior_providers || []).reject { |p| p["id"] == provider_id }
       others + [{
@@ -144,11 +160,21 @@ module Sources
 
     def log_summary(merged:, incoming:, prior:)
       new_points = (incoming[:monthly].keys - prior[:monthly].keys).size +
+                   ((incoming[:quarterly] || {}).keys - (prior[:quarterly] || {}).keys).size +
                    (incoming[:annual].keys - prior[:annual].keys).size
-      range = (merged[:monthly].any? ? merged[:monthly] : merged[:annual]).keys.minmax
-      Sources.log "#{log_label}(#{country_label}): #{merged[:monthly].size} monthly + " \
-                  "#{merged[:annual].size} annual data points, range #{range.first}..#{range.last}, " \
-                  "#{new_points} new since last run."
+      pick = if merged[:monthly].any?
+               merged[:monthly]
+             elsif merged[:quarterly]&.any?
+               merged[:quarterly]
+             else
+               merged[:annual]
+             end
+      range = pick.keys.minmax
+      parts = ["#{merged[:monthly].size} monthly"]
+      parts << "#{merged[:quarterly].size} quarterly" if merged[:quarterly]&.any?
+      parts << "#{merged[:annual].size} annual"
+      Sources.log "#{log_label}(#{country_label}): #{parts.join(" + ")} data points, " \
+                  "range #{range.first}..#{range.last}, #{new_points} new since last run."
     end
   end
 end

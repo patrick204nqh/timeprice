@@ -67,6 +67,12 @@ module Sources
 
     # @param annual_by_year_currency [Hash<String, Hash<String, Float>>]
     #   e.g. { "1990" => { "VND" => 6537.6 }, ... }
+    #
+    # Multi-provider behavior: `_annual.json` is shared across all annual-FX
+    # providers (today: WB → VND, IMF → RUB). Each call merges per-year-per-
+    # currency and rewrites only its own provenance entry — other providers'
+    # provenance and `providers` entries are preserved. Per-currency-per-
+    # provider attribution lives in the provenance array (`currencies` field).
     def self.write(annual_by_year_currency:, provider_id:, source_label:)
       prior = Sources.read_json_if_exists(path) || {}
       merged = (prior["annual"] || {}).dup
@@ -74,24 +80,25 @@ module Sources
         merged[year] = (merged[year] || {}).merge(ccy_hash)
       end
 
-      years_sorted = merged.keys.map(&:to_i).sort
-      all_currencies = merged.values.flat_map(&:keys).uniq.sort
-      others = (prior["providers"] || []).reject { |p| p["id"] == provider_id }
+      own_currencies = annual_by_year_currency.values.flat_map(&:keys).uniq.sort
+      own_years_sorted = annual_by_year_currency.keys.map(&:to_i).sort
+      other_provenance = (prior["provenance"] || []).reject { |p| p["provider"] == provider_id }
+      other_providers = (prior["providers"] || []).reject { |p| p["id"] == provider_id }
 
       data = {
         "schema_version" => 3,
         "base" => "USD",
         "annual" => merged,
-        "provenance" => [
+        "provenance" => other_provenance + [
           {
             "series" => "annual",
-            "currencies" => all_currencies,
-            "from" => years_sorted.first.to_s,
-            "to" => years_sorted.last.to_s,
+            "currencies" => own_currencies,
+            "from" => own_years_sorted.first.to_s,
+            "to" => own_years_sorted.last.to_s,
             "provider" => provider_id,
           },
         ],
-        "providers" => others + [{
+        "providers" => other_providers + [{
           "id" => provider_id,
           "label" => source_label,
           "fetched_at" => Sources.today,

@@ -1,0 +1,22 @@
+{
+  "country": "KR",
+  "index": {
+    "base_period": "2020",
+    "rebased_at": null
+  },
+  "provenance": [],
+  "providers": [],
+  "schema_version": 4,
+  "series": {
+    "annual": {
+      "2010": 84.0,
+      "2024": 114.2
+    },
+    "monthly": {
+      "2010-01": 83.4,
+      "2010-12": 85.1,
+      "2024-01": 113.6,
+      "2024-12": 114.9
+    }
+  }
+}

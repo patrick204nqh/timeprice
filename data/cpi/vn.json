@@ -38,7 +38,7 @@
       "status": "ok"
     }
   ],
-  "schema_version": 3,
+  "schema_version": 4,
   "series": {
     "annual": {
       "1995": 21.083683,

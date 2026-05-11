@@ -8,7 +8,11 @@ module Timeprice
   # by setting `TIMEPRICE_DATA_ROOT` in the environment or assigning
   # {DataLoader.data_root=}.
   module DataLoader
-    SUPPORTED_SCHEMA_VERSION = 3
+    SUPPORTED_SCHEMA_VERSION = 4
+
+    # Files written by older toolchains remain readable: v3 is monthly+annual
+    # only; v4 adds an optional `series.quarterly` block.
+    SUPPORTED_SCHEMA_VERSIONS = [3, 4].freeze
 
     DEFAULT_DATA_ROOT = File.expand_path("../../data", __dir__)
 
@@ -114,7 +118,7 @@ module Timeprice
       def parse_with_schema(path)
         data = JSON.parse(File.read(path))
         version = data["schema_version"]
-        raise UnsupportedSchemaVersion.new(version, path) unless version == SUPPORTED_SCHEMA_VERSION
+        raise UnsupportedSchemaVersion.new(version, path) unless SUPPORTED_SCHEMA_VERSIONS.include?(version)
 
         data
       end

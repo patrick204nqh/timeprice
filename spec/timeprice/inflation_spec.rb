@@ -47,7 +47,7 @@ RSpec.describe Timeprice::Inflation do
       expect(result_annual.granularity).to eq(:annual)
     end
 
-    it "falls back annual → average of available months when no annual entry exists" do
+    it "falls back annual → partial-months avg when fewer than 12 months are present" do
       # Inject a synthetic dataset that has months but no annual for the requested year.
       synthetic = {
         "schema_version" => 3,
@@ -62,11 +62,11 @@ RSpec.describe Timeprice::Inflation do
       result = described_class.adjust(
         amount: 100, from: "2000", to: "2000-07", country: "ZZ"
       )
-      # from = avg(100, 110) = 105 (annual_from_monthly_avg)
+      # from = avg(100, 110) = 105 (annual_from_partial_months — biased estimate)
       # to   = 110 monthly
       expect(result.from_index).to be_within(1e-9).of(105.0)
       expect(result.to_index).to eq(110.0)
-      expect(result.granularity).to eq(:annual_from_monthly_avg)
+      expect(result.granularity).to eq(:annual_from_partial_months)
     end
 
     it "handles VN annual-only data (annual → annual)" do
@@ -77,6 +77,38 @@ RSpec.describe Timeprice::Inflation do
       expect(result.from_index).to eq(100.0)
       expect(result.to_index).to eq(205.0)
       expect(result.amount).to be_within(1e-9).of(205.0)
+    end
+
+    it "tags partial-quarter annual derivation distinctly from full-quarter avg" do
+      synthetic = {
+        "schema_version" => 4,
+        "country" => "ZZ",
+        "series" => {
+          "monthly" => {},
+          "quarterly" => { "2000-Q1" => 100.0, "2000-Q2" => 102.0 },
+          "annual" => { "1999" => 99.0 },
+        },
+      }
+      allow(Timeprice::DataLoader).to receive(:load_cpi).with("ZZ").and_return(synthetic)
+      result = described_class.adjust(amount: 100, from: "1999", to: "2000", country: "ZZ")
+      expect(result.granularity).to eq(:annual_from_partial_quarters)
+      expect(result.to_index).to be_within(1e-9).of(101.0)
+    end
+
+    it "derives a quarter from 3 monthly observations before falling back to annual" do
+      synthetic = {
+        "schema_version" => 4,
+        "country" => "ZZ",
+        "series" => {
+          "monthly" => { "2000-01" => 100.0, "2000-02" => 102.0, "2000-03" => 104.0 },
+          "quarterly" => {},
+          "annual" => { "1999" => 99.0, "2000" => 110.0 },
+        },
+      }
+      allow(Timeprice::DataLoader).to receive(:load_cpi).with("ZZ").and_return(synthetic)
+      result = described_class.adjust(amount: 100, from: "1999", to: "2000-Q1", country: "ZZ")
+      expect(result.granularity).to eq(:quarterly_from_monthly_avg)
+      expect(result.to_index).to be_within(1e-9).of(102.0)
     end
 
     it "raises DataNotFound for a wholly unknown date" do

@@ -99,11 +99,19 @@ Coverage is derived from the bundled `data/` files. Re-check with `timeprice sou
 | Eurozone (EA) | EUR | Eurostat HICP (`prc_hicp_midx`) | Monthly + annual | 1996-01 → present |
 | Japan | JPY | World Bank `FP.CPI.TOTL` (fallback) | Annual | 1960 → 2024 |
 | Vietnam | VND | IMF Data Portal CPI dataflow (monthly primary) + World Bank `FP.CPI.TOTL` (annual fallback) | Monthly + annual | 1995 → present |
+| Australia | AUD | ABS 6401.0 (quarterly) + World Bank `FP.CPI.TOTL` (annual baseline) | Quarterly + annual | 1948-Q3 → present |
+| Canada | CAD | Statistics Canada WDS (table 18-10-0004-01, vector `v41690973`) + World Bank annual baseline | Monthly + annual | 1914-01 → present |
+| Korea (Rep.) | KRW | IMF Data Portal CPI dataflow + World Bank annual baseline | Monthly + annual | 1990-01 → present |
+| China | CNY | World Bank `FP.CPI.TOTL` (annual primary) + IMF Data Portal CPI dataflow (monthly layer) | Monthly + annual | 1990-01 → present |
+| Russia | RUB | World Bank `FP.CPI.TOTL` (annual primary) + IMF Data Portal CPI dataflow (monthly layer) | Monthly + annual | 1992-01 → present |
 
-**FX (USD base):** ECB reference rates via Frankfurter for **EUR / GBP / JPY**, daily
-1999 → present. **VND** uses the World Bank annual average (`PA.NUS.FCRF`), one value
-per year, from 1983 → present. VND results are tagged `granularity: :annual` so callers
-know they got the annual fallback rather than a daily rate.
+**FX (USD base):** ECB reference rates via Frankfurter for **EUR / GBP / JPY / AUD /
+CAD / KRW / CNY**, daily 1999 → present. **VND** uses the World Bank annual average
+(`PA.NUS.FCRF`), one value per year, from 1983 → present. **RUB** uses IMF IFS
+period-average rates as annual means (`ENDA_XDC_USD_RATE`) — Frankfurter dropped RUB
+after the ECB suspended its reference rate in March 2022, so daily RUB is intentionally
+not bundled. Annual-fallback results (VND, RUB) are tagged `granularity: :annual` so
+callers know they did not get a daily rate.
 
 Triangulated cross-rates (e.g. GBP → JPY) go through USD on the same effective date.
 Weekend/holiday dates fall back up to 7 days to the nearest prior trading day.
@@ -223,7 +231,7 @@ namespace :inflation do
   desc "Print 1990→today inflation for the supported countries"
   task :report do
     today = Date.today.strftime("%Y-%m")
-    %w[US UK EU JP VN].each do |c|
+    %w[US UK EU JP VN AU CA KR CN RU].each do |c|
       r = Timeprice.inflation(amount: 100, from: "1990", to: today, country: c)
       puts "#{c}: 100 in 1990 → #{r.amount.round(2)} in #{today} (#{r.granularity})"
     end

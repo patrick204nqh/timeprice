@@ -27,11 +27,11 @@ module Timeprice
 
     # Adjust `amount` from date `from` to date `to` using country CPI.
     #
-    # Dates accept "YYYY" or "YYYY-MM".
+    # Dates accept "YYYY", "YYYY-MM", or "YYYY-Qn" (Q1..Q4).
     #
     # @param amount  [Numeric]
-    # @param from    [String] source date ("YYYY" or "YYYY-MM")
-    # @param to      [String] target date ("YYYY" or "YYYY-MM")
+    # @param from    [String] source date ("YYYY", "YYYY-MM", or "YYYY-Qn")
+    # @param to      [String] target date ("YYYY", "YYYY-MM", or "YYYY-Qn")
     # @param country [String] country code (see {Supported.countries})
     # @return [InflationResult]
     # @raise [UnsupportedCountry] if `country` is not supported

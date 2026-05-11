@@ -5,13 +5,16 @@ module Sources
   #
   #   - Internal (per-period hash), used by MergePolicy for easy point updates:
   #
-  #       { "monthly" => { "2025-01" => "imf", "2025-02" => "imf", ... },
-  #         "annual"  => { "2024" => "imf", ... } }
+  #       { "monthly"   => { "2025-01" => "imf", ... },
+  #         "quarterly" => { "2025-Q1" => "abs", ... },
+  #         "annual"    => { "2024"    => "imf", ... } }
   #
-  #   - On-disk (range list), schema_version 2, compact and human-readable:
+  #   - On-disk (range list), schema_version 4, compact and human-readable:
   #
   #       [ { "series" => "monthly", "from" => "2025-01", "to" => "2025-02",
   #           "provider" => "imf" },
+  #         { "series" => "quarterly", "from" => "2024-Q1", "to" => "2024-Q4",
+  #           "provider" => "abs" },
   #         { "series" => "annual",  "from" => "2024",    "to" => "2024",
   #           "provider" => "imf" } ]
   #
@@ -19,12 +22,14 @@ module Sources
   # the range representation, so its single-point overwrite semantics stay
   # trivial.
   module Provenance
+    SERIES = %w[monthly quarterly annual].freeze
+
     module_function
 
     # @param ranges [Array<Hash>] on-disk range list (may be nil/empty).
-    # @return [Hash] internal per-period hash with "monthly" and "annual" keys.
+    # @return [Hash] internal per-period hash keyed by series.
     def expand(ranges)
-      out = { "monthly" => {}, "annual" => {} }
+      out = SERIES.to_h { |s| [s, {}] }
       Array(ranges).each do |range|
         series   = range["series"]
         provider = range["provider"]
@@ -41,19 +46,20 @@ module Sources
     # @return [Array<Hash>] sorted range list with adjacent same-provider
     #   periods collapsed.
     def compact(per_period)
-      %w[monthly annual].flat_map do |series|
+      SERIES.flat_map do |series|
         runs(per_period[series] || {}, series).map do |from, to, provider|
           { "series" => series, "from" => from, "to" => to, "provider" => provider }
         end
       end
     end
 
-    # Iterate inclusive period range. Recognises "YYYY" (annual) and
-    # "YYYY-MM" (monthly) shapes.
+    # Iterate inclusive period range. Recognises "YYYY" (annual),
+    # "YYYY-MM" (monthly), and "YYYY-Qn" (quarterly).
     def periods_between(series, from, to)
       case series
-      when "annual"  then (Integer(from)..Integer(to)).map(&:to_s)
-      when "monthly" then enumerate_months(from, to)
+      when "annual"    then (Integer(from)..Integer(to)).map(&:to_s)
+      when "monthly"   then enumerate_months(from, to)
+      when "quarterly" then enumerate_quarters(from, to)
       else []
       end
     end
@@ -75,9 +81,33 @@ module Sources
       out
     end
 
+    def enumerate_quarters(from, to)
+      y1, q1 = parse_quarter(from)
+      y2, q2 = parse_quarter(to)
+      out = []
+      y = y1
+      q = q1
+      until y > y2 || (y == y2 && q > q2)
+        out << format("%04d-Q%d", y, q)
+        q += 1
+        if q > 4
+          q = 1
+          y += 1
+        end
+      end
+      out
+    end
+
+    def parse_quarter(s)
+      m = s.match(/\A(\d{4})-Q([1-4])\z/)
+      raise "bad quarter period: #{s.inspect}" unless m
+
+      [m[1].to_i, m[2].to_i]
+    end
+
     # Collapse a per-period hash into [[from, to, provider], ...] runs of
     # contiguous periods sharing the same provider. Sorted lexicographically,
-    # which is also chronological for "YYYY" and "YYYY-MM".
+    # which is also chronological for "YYYY", "YYYY-MM", and "YYYY-Qn".
     def runs(hash, series)
       return [] if hash.empty?
 
@@ -99,7 +129,8 @@ module Sources
 
     def next_period(series, period)
       case series
-      when "annual" then (Integer(period) + 1).to_s
+      when "annual"
+        (Integer(period) + 1).to_s
       when "monthly"
         y, m = period.split("-").map(&:to_i)
         m += 1
@@ -108,6 +139,14 @@ module Sources
           y += 1
         end
         format("%04d-%02d", y, m)
+      when "quarterly"
+        y, q = parse_quarter(period)
+        q += 1
+        if q > 4
+          q = 1
+          y += 1
+        end
+        format("%04d-Q%d", y, q)
       end
     end
   end

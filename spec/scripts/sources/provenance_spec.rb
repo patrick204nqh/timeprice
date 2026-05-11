@@ -47,18 +47,28 @@ RSpec.describe Sources::Provenance do
     it "round-trips through compact" do
       original = {
         "monthly" => { "2025-01" => "bls", "2025-02" => "bls", "2025-03" => "imf" },
+        "quarterly" => {},
         "annual" => { "2024" => "bls" },
       }
       expect(described_class.expand(described_class.compact(original))).to eq(original)
     end
 
+    it "round-trips a quarterly series" do
+      original = {
+        "monthly" => {},
+        "quarterly" => { "2024-Q1" => "abs", "2024-Q2" => "abs", "2024-Q3" => "abs", "2024-Q4" => "abs" },
+        "annual" => {},
+      }
+      expect(described_class.expand(described_class.compact(original))).to eq(original)
+    end
+
     it "handles nil input as empty" do
-      expect(described_class.expand(nil)).to eq("monthly" => {}, "annual" => {})
+      expect(described_class.expand(nil)).to eq("monthly" => {}, "quarterly" => {}, "annual" => {})
     end
 
     it "ignores unknown series" do
-      ranges = [{ "series" => "quarterly", "from" => "2025-Q1", "to" => "2025-Q2", "provider" => "x" }]
-      expect(described_class.expand(ranges)).to eq("monthly" => {}, "annual" => {})
+      ranges = [{ "series" => "weekly", "from" => "2025-W01", "to" => "2025-W02", "provider" => "x" }]
+      expect(described_class.expand(ranges)).to eq("monthly" => {}, "quarterly" => {}, "annual" => {})
     end
   end
 end

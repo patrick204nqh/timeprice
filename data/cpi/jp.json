@@ -20,7 +20,7 @@
       "status": "ok"
     }
   ],
-  "schema_version": 3,
+  "schema_version": 4,
   "series": {
     "annual": {
       "1960": 18.9725686020745,

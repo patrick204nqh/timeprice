@@ -16,6 +16,7 @@ RSpec.describe Sources::MergePolicy do
         expect(result[:annual]).to eq("2025" => 322.5)
         expect(result[:provenance]).to eq(
           "monthly" => { "2026-01" => "bls" },
+          "quarterly" => {},
           "annual" => { "2025" => "bls" }
         )
       end

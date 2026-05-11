@@ -40,6 +40,12 @@ module Sources
       JapanCPI.run
     end
 
+    def run_au_cpi_fallback = AustraliaCPI.run
+    def run_ca_cpi_fallback = CanadaCPI.run
+    def run_kr_cpi_fallback = KoreaCPI.run
+    def run_cn_cpi          = ChinaCPI.run
+    def run_ru_cpi          = RussiaCPI.run
+
     # Provider subclasses for the two CPI countries served by World Bank.
     # Both share `provider_id: "world_bank"`; the country_code disambiguates
     # which file each writes to. The VN source_label intentionally names
@@ -74,6 +80,87 @@ module Sources
       end
     end
 
+    # Australia annual CPI baseline. ABS quarterly (scripts/sources/abs.rb)
+    # layers on top via CountryFile + MergePolicy.
+    class AustraliaCPI < Provider
+      configure(
+        country_code: "au",
+        country_label: "Australia",
+        source_label: "World Bank FP.CPI.TOTL (annual, AU baseline)",
+        default_base_year: "2010=100",
+        log_label: "WorldBank",
+        provider_id: "world_bank"
+      )
+
+      def fetch
+        [{}, WorldBank.fetch_indicator("AUS", "FP.CPI.TOTL")]
+      end
+    end
+
+    # Canada annual CPI baseline. StatCan monthly layers on top.
+    class CanadaCPI < Provider
+      configure(
+        country_code: "ca",
+        country_label: "Canada",
+        source_label: "World Bank FP.CPI.TOTL (annual, CA baseline)",
+        default_base_year: "2010=100",
+        log_label: "WorldBank",
+        provider_id: "world_bank"
+      )
+
+      def fetch
+        [{}, WorldBank.fetch_indicator("CAN", "FP.CPI.TOTL")]
+      end
+    end
+
+    # Korea annual CPI baseline. KOSIS monthly layers on top.
+    class KoreaCPI < Provider
+      configure(
+        country_code: "kr",
+        country_label: "Korea, Rep.",
+        source_label: "World Bank FP.CPI.TOTL (annual, KR baseline)",
+        default_base_year: "2010=100",
+        log_label: "WorldBank",
+        provider_id: "world_bank"
+      )
+
+      def fetch
+        [{}, WorldBank.fetch_indicator("KOR", "FP.CPI.TOTL")]
+      end
+    end
+
+    # China — primary source for v1 (NBS scraper deferred). Annual only.
+    class ChinaCPI < Provider
+      configure(
+        country_code: "cn",
+        country_label: "China",
+        source_label: "World Bank FP.CPI.TOTL (annual)",
+        default_base_year: "2010=100",
+        log_label: "WorldBank",
+        provider_id: "world_bank"
+      )
+
+      def fetch
+        [{}, WorldBank.fetch_indicator("CHN", "FP.CPI.TOTL")]
+      end
+    end
+
+    # Russia — primary source for v1. Annual only.
+    class RussiaCPI < Provider
+      configure(
+        country_code: "ru",
+        country_label: "Russia",
+        source_label: "World Bank FP.CPI.TOTL (annual)",
+        default_base_year: "2010=100",
+        log_label: "WorldBank",
+        provider_id: "world_bank"
+      )
+
+      def fetch
+        [{}, WorldBank.fetch_indicator("RUS", "FP.CPI.TOTL")]
+      end
+    end
+
     # VND per USD, annual averages. All years land in the single
     # data/fx/usd/_annual.json — the canonical home for annual FX rates.
     SOURCE_LABEL_VND = "World Bank PA.NUS.FCRF"
@@ -98,4 +185,9 @@ end
 if __FILE__ == $PROGRAM_NAME
   Sources::WorldBank.run_vn_cpi
   Sources::WorldBank.run_vnd_fx
+  Sources::WorldBank.run_au_cpi_fallback
+  Sources::WorldBank.run_ca_cpi_fallback
+  Sources::WorldBank.run_kr_cpi_fallback
+  Sources::WorldBank.run_cn_cpi
+  Sources::WorldBank.run_ru_cpi
 end
