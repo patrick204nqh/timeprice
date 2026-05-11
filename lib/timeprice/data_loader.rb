@@ -41,10 +41,9 @@ module Timeprice
       # @raise [DataNotFound]       if the file is missing
       # @raise [UnsupportedSchemaVersion] if the file uses a future schema
       def load_cpi(country)
-        @cpi_cache ||= {}
         key = country.to_s.downcase
         code = country.to_s.upcase
-        @cpi_cache[[data_root, key]] ||= begin
+        cpi_cache[[data_root, key]] ||= begin
           raise UnsupportedCountry, code unless Supported::COUNTRIES.include?(code)
 
           path = File.join(data_root, "cpi", "#{key}.json")
@@ -62,9 +61,8 @@ module Timeprice
       # @return [Hash] parsed JSON with a "rates" map of date → currency → Float
       # @raise [DataNotFound] if the per-year file is missing
       def load_fx_year(year)
-        @fx_cache ||= {}
         key = year.to_i
-        @fx_cache[[data_root, key]] ||= begin
+        fx_cache[[data_root, key]] ||= begin
           path = File.join(data_root, "fx", "usd", "#{key}.json")
           raise DataNotFound, "No FX data for year #{key}" unless File.exist?(path)
 
@@ -73,6 +71,14 @@ module Timeprice
       end
 
       private
+
+      def cpi_cache
+        @cpi_cache ||= {}
+      end
+
+      def fx_cache
+        @fx_cache ||= {}
+      end
 
       def parse_with_schema(path)
         data = JSON.parse(File.read(path))
