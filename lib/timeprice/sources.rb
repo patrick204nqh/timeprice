@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "data_loader"
+require_relative "sources/coverage"
 
 module Timeprice
   # Enumerate bundled data sources with license/attribution and the actual
@@ -79,54 +79,7 @@ module Timeprice
     # :attribution, :coverage (string like "1990-01 to 2026-03 (monthly+annual)").
     # @return [Array<Hash>]
     def list
-      ATTRIBUTIONS.map { |s| s.merge(coverage: coverage_for(s)) }
-    end
-
-    def coverage_for(src)
-      case src[:kind]
-      when "cpi" then cpi_coverage(src[:country])
-      when "fx"  then fx_coverage(src[:id])
-      else "n/a"
-      end
-    rescue StandardError => e
-      "(coverage unavailable: #{e.message})"
-    end
-
-    def cpi_coverage(country)
-      data = DataLoader.load_cpi(country)
-      monthly = (data["monthly"] || {}).keys.sort
-      annual  = (data["annual"]  || {}).keys.sort
-      parts = []
-      parts << "monthly #{monthly.first}..#{monthly.last} (#{monthly.size})" unless monthly.empty?
-      parts << "annual #{annual.first}..#{annual.last} (#{annual.size})" unless annual.empty?
-      parts.join(", ")
-    end
-
-    def fx_coverage(id)
-      root = File.join(DataLoader.data_root, "fx", "usd")
-      years = Dir[File.join(root, "*.json")].map { |f| File.basename(f, ".json").to_i }.sort
-      return "no data" if years.empty?
-
-      case id
-      when "fx_vnd"
-        # VND broadcast-from-annual covers earlier years too.
-        with_vnd = years.select do |y|
-          d = JSON.parse(File.read(File.join(root, "#{y}.json")))
-          d["rates"].any? { |_, v| v.key?("VND") }
-        end
-        return "no VND data" if with_vnd.empty?
-
-        "USD↔VND #{with_vnd.first}..#{with_vnd.last}"
-      else
-        # ECB pairs (EUR/GBP/JPY) start 1999
-        ecb_years = years.select do |y|
-          d = JSON.parse(File.read(File.join(root, "#{y}.json")))
-          d["rates"].any? { |_, v| v.keys.intersect?(%w[EUR GBP JPY]) }
-        end
-        return "no ECB data" if ecb_years.empty?
-
-        "USD↔EUR/GBP/JPY daily #{ecb_years.first}..#{ecb_years.last}"
-      end
+      ATTRIBUTIONS.map { |s| s.merge(coverage: Coverage.for(s)) }
     end
   end
 end
