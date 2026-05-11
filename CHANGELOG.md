@@ -6,9 +6,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
-- Multi-source CPI chain for Vietnam: IMF International Financial Statistics
-  (IFS) `PCPI_IX` is now the monthly primary, with World Bank `FP.CPI.TOTL`
-  remaining as the annual fallback. The on-disk `data/cpi/vn.json` gains two
+- Multi-source CPI chain for Vietnam: IMF Data Portal CPI dataflow
+  (`api.imf.org`, SDMX 2.1) is the monthly primary; World Bank `FP.CPI.TOTL`
+  remains as the annual fallback. The on-disk `data/cpi/vn.json` gains two
   additive fields — `provenance` (per-period source id) and `providers`
   (per-source status array) — so consumers can see which upstream supplied
   each datapoint. Schema version is unchanged; old readers ignore the new
