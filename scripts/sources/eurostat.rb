@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "base"
+require_relative "provider"
 
 # Eurozone HICP from Eurostat dataset prc_hicp_midx.
 #
@@ -8,7 +8,7 @@ require_relative "base"
 # and `dimension.time.category.index` maps period strings ("YYYY-MM") to
 # those same indexes. We invert that mapping to recover the monthly series.
 module Sources
-  class Eurostat < Base
+  class Eurostat < Provider
     URL = "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/" \
           "prc_hicp_midx?geo=EA&coicop=CP00&unit=I15&format=JSON"
 

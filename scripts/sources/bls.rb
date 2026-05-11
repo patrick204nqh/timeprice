@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require_relative "base"
+require_relative "provider"
 
 # US CPI-U series CUUR0000SA0 from the BLS Public API v2.
 # No API key required for low volume. Pulls 10 years at a time (V2 limit
 # without key is 10 years).
 module Sources
-  class BLS < Base
+  class BLS < Provider
     SERIES_ID  = "CUUR0000SA0"
     START_YEAR = 1990
 
