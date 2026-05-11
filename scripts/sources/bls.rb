@@ -15,7 +15,8 @@ module Sources
       country_label: "United States",
       source_label: "BLS CUUR0000SA0 (CPI-U, U.S. city average, all items)",
       default_base_year: "1982-1984=100",
-      log_label: "BLS"
+      log_label: "BLS",
+      provider_id: "bls"
     )
 
     def fetch_chunk(start_year, end_year)
