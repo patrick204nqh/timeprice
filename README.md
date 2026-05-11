@@ -101,8 +101,9 @@ Coverage is derived from the bundled `data/` files. Re-check with `timeprice sou
 | Vietnam | VND | IMF Data Portal CPI dataflow (monthly primary) + World Bank `FP.CPI.TOTL` (annual fallback) | Monthly + annual | 1995 → present |
 
 **FX (USD base):** ECB reference rates via Frankfurter for **EUR / GBP / JPY**, daily
-1999 → present. **VND** uses the World Bank annual average (`PA.NUS.FCRF`) broadcast to
-every day in the year, from 1983 → present.
+1999 → present. **VND** uses the World Bank annual average (`PA.NUS.FCRF`), one value
+per year, from 1983 → present. VND results are tagged `granularity: :annual` so callers
+know they got the annual fallback rather than a daily rate.
 
 Triangulated cross-rates (e.g. GBP → JPY) go through USD on the same effective date.
 Weekend/holiday dates fall back up to 7 days to the nearest prior trading day.
