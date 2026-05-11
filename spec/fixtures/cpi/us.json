@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "country": "US",
   "base_year": "1982-1984=100",
   "source": "BLS CUUR0000SA0 (fixture, hand-picked)",
@@ -18,6 +18,6 @@
     "1990": 130.7,
     "2010": 218.056,
     "2024": 313.689,
-    "2025": 318.500
+    "2025": 318.5
   }
 }

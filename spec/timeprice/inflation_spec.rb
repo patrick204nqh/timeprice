@@ -50,7 +50,7 @@ RSpec.describe Timeprice::Inflation do
     it "falls back annual → average of available months when no annual entry exists" do
       # Inject a synthetic dataset that has months but no annual for the requested year.
       synthetic = {
-        "schema_version" => 1,
+        "schema_version" => 2,
         "country" => "ZZ",
         "monthly" => { "2000-01" => 100.0, "2000-07" => 110.0 },
         "annual" => {},

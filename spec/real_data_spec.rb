@@ -48,9 +48,10 @@ RSpec.describe "Real data smoke tests", :real_data do
     expect(r.rate).to be_within(2).of(91)
   end
 
-  it "FX: USD→VND on 2020-06-15 is roughly 23000 (annual avg broadcast)" do
+  it "FX: USD→VND on 2020-06-15 is roughly 23000 (annual fallback)" do
     r = Timeprice.exchange(amount: 1, from: "USD", to: "VND", date: "2020-06-15")
     expect(r.rate).to be_within(500).of(23_200)
+    expect(r.granularity).to eq(:annual)
   end
 
   it "Compare: 100 USD@2010 → VND@2020 yields a sane positive number" do

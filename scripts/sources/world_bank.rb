@@ -6,9 +6,10 @@ require_relative "provider"
 # World Bank fetchers.
 #
 #   * Vietnam CPI (annual only) via FP.CPI.TOTL  -> data/cpi/vn.json
-#   * Vietnam VND/USD official annual avg via PA.NUS.FCRF — written as a
-#     single anchor rate per year into data/fx/usd/<year>.json under "01-02".
-#     Frankfurter doesn't carry VND; this fills the gap at annual resolution.
+#   * Vietnam VND/USD official annual avg via PA.NUS.FCRF — written as an
+#     `annual` block on data/fx/usd/<year>.json. Frankfurter doesn't carry
+#     VND; this fills the gap honestly at annual resolution. The Exchange
+#     lookup falls back from daily to annual and tags the result accordingly.
 #
 # Also exposes a fetch_cpi(country_iso3) helper so the e-Stat fallback for
 # Japan can reuse it.
@@ -71,11 +72,12 @@ module Sources
       end
     end
 
-    # Write VND/USD annual averages into the per-year FX files as a single
-    # anchor at YYYY-01-02. The library's nearest-date fallback (±7 days) will
-    # NOT bridge a full year — by design, callers asking for VND on arbitrary
-    # mid-year dates must accept annual granularity. The README + source label
-    # document this.
+    # Write VND/USD annual averages into the per-year FX files under a
+    # top-level `annual` block (one entry per currency). Daily rates are
+    # left untouched — Frankfurter populates EUR/GBP/JPY there. The library's
+    # Exchange lookup falls back from daily to annual when daily is missing
+    # and tags the resolved rate with Granularity::ANNUAL so the caller knows
+    # the precision they actually got.
     def run_vnd_fx
       annual = fetch_indicator("VNM", "PA.NUS.FCRF") # VND per USD
       Sources.validate_positive_numeric!(annual, "WorldBank VND/USD annual")
@@ -83,24 +85,16 @@ module Sources
       annual.each do |year, rate|
         path = File.join(Sources::DATA_ROOT, "fx", "usd", "#{year}.json")
         prior = Sources.read_json_if_exists(path) || {
-          "schema_version" => 1, "base" => "USD", "year" => year.to_i,
+          "schema_version" => 2, "base" => "USD", "year" => year.to_i,
           "source" => "Frankfurter (ECB) + World Bank VND annual",
           "rates" => {}
         }
-        rates = prior["rates"] || {}
-        anchor = "#{year}-01-02"
-        rates[anchor] ||= {}
-        rates[anchor]["VND"] = rate.round(2)
-        # Mark VND anchor on every existing date in that year for the entire
-        # year, so daily lookups for any date return the annual VND figure.
-        # This is intentional: VND data is annual; we replicate it across days.
-        rates.each_key do |date_str|
-          rates[date_str]["VND"] ||= rate.round(2)
-        end
-        prior["rates"]      = rates
+        annual_block = prior["annual"] || {}
+        annual_block["VND"] = rate.round(2)
+        prior["annual"]     = annual_block
         prior["updated_at"] = Sources.today
         prior["source"]     =
-          "Frankfurter (ECB) for EUR/GBP/JPY; World Bank PA.NUS.FCRF for VND (annual avg, broadcast to every day in year)"
+          "Frankfurter (ECB) for EUR/GBP/JPY (daily); World Bank PA.NUS.FCRF for VND (annual)"
         Sources.write_json(path, prior)
         touched += 1
       end

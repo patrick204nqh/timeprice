@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "country": "VN",
   "base_year": "2010=100",
   "source": "World Bank FP.CPI.TOTL (fixture, hand-picked)",

@@ -1,12 +1,11 @@
 {
+  "schema_version": 2,
   "base": "USD",
-  "rates": {
-    "1983-01-02": {
-      "VND": 1.0
-    }
-  },
-  "schema_version": 1,
-  "source": "Frankfurter (ECB) for EUR/GBP/JPY; World Bank PA.NUS.FCRF for VND (annual avg, broadcast to every day in year)",
+  "year": 1983,
+  "source": "Frankfurter (ECB) for EUR/GBP/JPY (daily); World Bank PA.NUS.FCRF for VND (annual)",
   "updated_at": "2026-05-11",
-  "year": 1983
+  "rates": {},
+  "annual": {
+    "VND": 1.0
+  }
 }

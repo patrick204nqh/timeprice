@@ -2,6 +2,7 @@
 
 require_relative "_common"
 require_relative "merge_policy"
+require_relative "provenance"
 
 module Sources
   # Owns one data/cpi/<code>.json file. Given the freshly-fetched series
@@ -25,7 +26,10 @@ module Sources
 
     def write_merged(monthly:, annual:, provider_id:)
       prior = load_prior
-      base_year, prior_normalized = apply_drift(prior, monthly, annual)
+      # On-disk provenance is a compact range list (schema v2); MergePolicy
+      # works on a per-period hash, so expand on read and compact on write.
+      prior_expanded = prior.merge("provenance" => Provenance.expand(prior["provenance"]))
+      base_year, prior_normalized = apply_drift(prior_expanded, monthly, annual)
       contribution = { monthly: monthly, annual: annual, provider_id: provider_id }
       merged = MergePolicy.layer(prior_normalized, contribution)
       write(base_year, merged, prior_normalized["providers"], provider_id)
@@ -60,7 +64,11 @@ module Sources
         "monthly" => Sources.renormalize(prior_monthly, ratio),
         "annual" => Sources.renormalize(prior_annual, ratio)
       )
-      ["rebased #{Sources.today}", rebased]
+      # Preserve the original reference period so consumers can still see what
+      # the index is normalized against; the "rebased <date>" suffix records
+      # when the most recent drift-triggered renormalization occurred.
+      original_ref = base_year.to_s.sub(/\s*\(rebased [^)]+\)\s*\z/, "")
+      ["#{original_ref} (rebased #{Sources.today})", rebased]
     end
 
     # Drift is most informative on whichever granularity has the most overlap.
@@ -75,14 +83,14 @@ module Sources
 
     def write(base_year, merged, prior_providers, provider_id)
       Sources.write_json(path, {
-                           "schema_version" => 1,
+                           "schema_version" => 2,
                            "country" => country_code.upcase,
                            "base_year" => base_year,
                            "source" => source_label,
                            "updated_at" => Sources.today,
                            "monthly" => merged[:monthly],
                            "annual" => merged[:annual],
-                           "provenance" => merged[:provenance],
+                           "provenance" => Provenance.compact(merged[:provenance]),
                            "providers" => provider_entries(prior_providers, provider_id),
                          })
     end

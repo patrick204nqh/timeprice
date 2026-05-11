@@ -66,7 +66,7 @@ module Timeprice
         id: "fx_vnd",
         kind: "fx",
         country: "VN",
-        name: "World Bank — PA.NUS.FCRF (VND annual average, broadcast daily)",
+        name: "World Bank — PA.NUS.FCRF (VND annual average, annual-granularity fallback)",
         license: "CC BY 4.0",
         license_url: "https://datacatalog.worldbank.org/public-licenses#cc-by",
         attribution: "VND FX: World Bank, PA.NUS.FCRF",
