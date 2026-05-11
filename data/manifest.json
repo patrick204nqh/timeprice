@@ -46,7 +46,7 @@
     }
   ],
   "fx": {
-    "annual_file": "fx/_annual.json",
+    "annual_file": "fx/usd/_annual.json",
     "base": "USD",
     "currencies": [
       "EUR",

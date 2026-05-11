@@ -18,7 +18,6 @@ EXPECTED_VERSION = 3
 
 CPI_KEYS = %w[country index provenance providers schema_version series].freeze
 FX_YEAR_REQUIRED_KEYS = %w[base provenance providers rates schema_version year].freeze
-FX_YEAR_OPTIONAL_KEYS = %w[annual].freeze
 FX_ANNUAL_KEYS = %w[annual base provenance providers schema_version].freeze
 MANIFEST_KEYS = %w[countries fx generated_at schema_version].freeze
 
@@ -76,11 +75,13 @@ Dir[File.join(DATA, "fx", "usd", "*.json")].each do |p|
   next unless parsed
 
   assert_schema_version.call(p, parsed)
-  check_keys.call(p, parsed, FX_YEAR_REQUIRED_KEYS, FX_YEAR_OPTIONAL_KEYS)
+  next if File.basename(p) == "_annual.json"
+
+  check_keys.call(p, parsed, FX_YEAR_REQUIRED_KEYS)
 end
 
 # --- fx annual fallback ---
-annual_path = File.join(DATA, "fx", "_annual.json")
+annual_path = File.join(DATA, "fx", "usd", "_annual.json")
 if File.exist?(annual_path)
   parsed = load.call(annual_path)
   if parsed
@@ -103,6 +104,7 @@ if manifest
 
   declared_years = (manifest.dig("fx", "daily_years") || []).sort
   on_disk_years  = Dir[File.join(DATA, "fx", "usd", "*.json")]
+                   .reject { |p| File.basename(p) == "_annual.json" }
                    .map { |p| File.basename(p, ".json").to_i }
                    .sort
   if declared_years != on_disk_years

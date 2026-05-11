@@ -93,7 +93,7 @@ module Timeprice
         return @annual_fallback_cache[data_root] if @annual_fallback_cache&.key?(data_root)
 
         @annual_fallback_cache ||= {}
-        path = File.join(data_root, "fx", "_annual.json")
+        path = File.join(data_root, "fx", "usd", "_annual.json")
         @annual_fallback_cache[data_root] = File.exist?(path) ? parse_with_schema(path) : nil
       end
 

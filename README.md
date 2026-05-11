@@ -272,10 +272,11 @@ Bundled data lives under `data/` in schema v3 and is self-describing:
 - `data/manifest.json` — the supported set (countries, currencies, FX years).
 - `data/cpi/<country>.json` — CPI for one country: `series.{monthly,annual}`,
   structured `index` block, `provenance` ranges, `providers` attribution.
-- `data/fx/usd/<year>.json` — daily USD-base FX for one year, plus an optional
-  `annual` block for currencies sourced at annual resolution (VND).
-- `data/fx/_annual.json` — sparse historical annual-only FX for years that
-  predate daily coverage.
+- `data/fx/usd/<year>.json` — daily USD-base FX rates for one year (one file
+  per year, EUR/GBP/JPY).
+- `data/fx/usd/_annual.json` — annual USD-base FX rates across all years for
+  currencies sourced at annual resolution (today only VND). Used as the
+  fallback tier when no daily rate covers the requested date.
 
 `scripts/check_schema_stability.rb` enforces the shape in CI.
 

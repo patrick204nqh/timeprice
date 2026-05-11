@@ -1,7 +1,4 @@
 {
-  "annual": {
-    "VND": 22602.05
-  },
   "base": "USD",
   "provenance": [
     {
@@ -14,14 +11,6 @@
       "provider": "frankfurter",
       "series": "daily",
       "to": "2018-12-31"
-    },
-    {
-      "currencies": [
-        "VND"
-      ],
-      "provider": "world_bank",
-      "series": "annual",
-      "year": 2018
     }
   ],
   "providers": [
@@ -29,12 +18,6 @@
       "fetched_at": "2026-05-11",
       "id": "frankfurter",
       "label": "Frankfurter (ECB) daily reference rates",
-      "status": "ok"
-    },
-    {
-      "fetched_at": "2026-05-11",
-      "id": "world_bank",
-      "label": "World Bank PA.NUS.FCRF",
       "status": "ok"
     }
   ],

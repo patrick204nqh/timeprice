@@ -82,7 +82,7 @@ module Timeprice
     end
 
     # Walk back up to MAX_FALLBACK_DAYS to find a daily rate; if none, fall
-    # back to the year file's top-level `annual` block.
+    # back to data/fx/usd/_annual.json (the single source of annual FX truth).
     # Returns [rate, effective_date, granularity].
     def lookup_usd_base(currency, d)
       (0..MAX_FALLBACK_DAYS).each do |offset|
@@ -105,23 +105,11 @@ module Timeprice
       annual_rate = annual_fallback(currency, d.year)
       return [annual_rate, d, Granularity::ANNUAL] if annual_rate
 
-      sparse_rate = sparse_annual_fallback(currency, d.year)
-      return [sparse_rate, d, Granularity::ANNUAL] if sparse_rate
-
       raise DataNotFound, "No FX rate for USD->#{currency} on or before #{d}"
     end
 
-    # Consult the year file's top-level `annual` block. Returns Float or nil.
+    # Consult data/fx/usd/_annual.json. Returns Float or nil.
     def annual_fallback(currency, year)
-      year_data = DataLoader.load_fx_year(year)
-      year_data.dig("annual", currency)&.to_f
-    rescue DataNotFound
-      nil
-    end
-
-    # Consult data/fx/_annual.json — sparse historical annual-only coverage
-    # for years that predate daily-rate availability. Returns Float or nil.
-    def sparse_annual_fallback(currency, year)
       fallback = DataLoader.load_fx_annual_fallback
       return nil unless fallback
 

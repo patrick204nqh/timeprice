@@ -74,53 +74,23 @@ module Sources
       end
     end
 
-    # Write VND/USD annual averages into the per-year FX files under a
-    # top-level `annual` block (one entry per currency). Daily rates are
-    # left untouched — Frankfurter populates EUR/GBP/JPY there. The library's
-    # Exchange lookup falls back from daily to annual when daily is missing
-    # and tags the resolved rate with Granularity::ANNUAL so the caller knows
-    # the precision they actually got.
-    # VND per USD, annual averages. Routes each year to one of two homes:
-    #   - years with a daily-coverage file (1999+) → annual block on that file
-    #   - years without (pre-1999)                → data/fx/_annual.json
+    # VND per USD, annual averages. All years land in the single
+    # data/fx/usd/_annual.json — the canonical home for annual FX rates.
     SOURCE_LABEL_VND = "World Bank PA.NUS.FCRF"
 
     def run_vnd_fx
       annual = fetch_indicator("VNM", "PA.NUS.FCRF")
       Sources.validate_positive_numeric!(annual, "WorldBank VND/USD annual")
 
-      per_year_touched = 0
-      sparse_payload = {}
+      payload = annual.to_h { |year, rate| [year.to_s, { "VND" => rate.round(2) }] }
+      Sources::FxAnnualFile.write(
+        annual_by_year_currency: payload,
+        provider_id: "world_bank",
+        source_label: SOURCE_LABEL_VND
+      )
 
-      annual.each do |year, rate|
-        rate_r = rate.round(2)
-        if daily_year_exists?(year)
-          Sources::FxYearFile.new(year).write_annual(
-            annual_by_currency: { "VND" => rate_r },
-            provider_id: "world_bank",
-            source_label: SOURCE_LABEL_VND
-          )
-          per_year_touched += 1
-        else
-          sparse_payload[year.to_s] = { "VND" => rate_r }
-        end
-      end
-
-      if sparse_payload.any?
-        Sources::FxAnnualFile.write(
-          annual_by_year_currency: sparse_payload,
-          provider_id: "world_bank",
-          source_label: SOURCE_LABEL_VND
-        )
-      end
-
-      Sources.log "WorldBank(VND FX): #{annual.size} annual data points " \
-                  "(#{per_year_touched} into per-year files, #{sparse_payload.size} into _annual.json), " \
+      Sources.log "WorldBank(VND FX): #{annual.size} annual data points into _annual.json, " \
                   "range #{annual.keys.minmax.join("..")}."
-    end
-
-    def daily_year_exists?(year)
-      File.exist?(File.join(Sources::DATA_ROOT, "fx", "usd", "#{year}.json"))
     end
   end
 end
