@@ -5,6 +5,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- **Schema v1 → v2.** Two structural data-layer changes, bundled under a
+  single bump:
+  - FX year files gain an optional top-level `annual` block. World Bank's
+    annual VND/USD average is stored there exactly once per year instead of
+    being broadcast across every daily date key. `Exchange.lookup_usd_base`
+    falls back from daily to annual when no daily entry exists within ±7
+    days and tags the result with `Granularity::ANNUAL`. `Compare` merges
+    FX granularity with CPI granularity (worst-precision wins).
+  - CPI provenance moves from a per-period map (`{"2025-01": "bls", ...}`)
+    to a compact range list (`[{series, from, to, provider}, ...]`). Single
+    -provider files (US/UK/EU/JP) collapse to 1–2 ranges; VN keeps the
+    WB→IMF transition explicit. ~42 kb saved across the 5 CPI files; one
+    real US data gap at 2025-10 is now visible instead of buried.
+- `country_file.rb` rebase label now preserves the original base reference
+  alongside the rebase date (e.g. `"2010=100 (rebased 2026-05-11)"`).
+
 ### Added
 - Multi-source CPI chain for Vietnam: IMF Data Portal CPI dataflow
   (`api.imf.org`, SDMX 2.1) is the monthly primary; World Bank `FP.CPI.TOTL`
