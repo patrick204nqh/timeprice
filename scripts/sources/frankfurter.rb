@@ -60,13 +60,16 @@ module Sources
           total_points += year_rates.size
 
           data = {
-            "schema_version" => 1,
+            "schema_version" => 2,
             "base" => BASE,
             "year" => year,
             "source" => SOURCE_LABEL,
             "updated_at" => Sources.today,
             "rates" => merged,
           }
+          # Preserve any prior `annual` block (e.g. World Bank's VND annual
+          # fallback) so a Frankfurter refresh doesn't clobber it.
+          data["annual"] = prior["annual"] if prior["annual"]
           Sources.write_json(path, data)
           years_touched << year unless years_touched.include?(year)
         end

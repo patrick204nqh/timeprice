@@ -9,7 +9,7 @@ module Timeprice
   # by setting `TIMEPRICE_DATA_ROOT` in the environment or assigning
   # {DataLoader.data_root=}.
   module DataLoader
-    SUPPORTED_SCHEMA_VERSION = 1
+    SUPPORTED_SCHEMA_VERSION = 2
 
     DEFAULT_DATA_ROOT = File.expand_path("../../data", __dir__)
 

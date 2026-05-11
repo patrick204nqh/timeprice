@@ -15,11 +15,14 @@ ROOT = File.expand_path("..", __dir__)
 DATA = File.join(ROOT, "data")
 
 CPI_KEYS = %w[annual base_year country monthly provenance providers schema_version source updated_at].freeze
-FX_KEYS  = %w[base rates schema_version source updated_at year].freeze
+# FX `annual` is optional — present only for currencies sourced at annual
+# resolution (World Bank VND); pure-daily files (e.g. 2025) won't carry it.
+FX_REQUIRED_KEYS = %w[base rates schema_version source updated_at year].freeze
+FX_OPTIONAL_KEYS = %w[annual].freeze
 
 failures = []
 
-check = lambda do |path, expected|
+check = lambda do |path, required, optional = []|
   begin
     parsed = JSON.parse(File.read(path))
   rescue JSON::ParserError => e
@@ -27,15 +30,15 @@ check = lambda do |path, expected|
     return
   end
 
-  actual = parsed.keys.sort
-  expected_sorted = expected.sort
-  next if actual == expected_sorted
+  actual = parsed.keys
+  missing = required - actual
+  extra   = actual - required - optional
+  next if missing.empty? && extra.empty?
 
-  missing = expected_sorted - actual
-  extra   = actual - expected_sorted
   failures << "#{path}: top-level key mismatch\n  " \
-              "expected: #{expected_sorted.inspect}\n  " \
-              "actual:   #{actual.inspect}\n  " \
+              "required: #{required.sort.inspect}\n  " \
+              "optional: #{optional.sort.inspect}\n  " \
+              "actual:   #{actual.sort.inspect}\n  " \
               "missing:  #{missing.inspect}\n  " \
               "extra:    #{extra.inspect}"
 end
@@ -48,7 +51,7 @@ Dir[File.join(DATA, "cpi", "*.json")].each do |p|
 end
 
 Dir[File.join(DATA, "fx", "usd", "*.json")].each do |p|
-  check.call(p, FX_KEYS)
+  check.call(p, FX_REQUIRED_KEYS, FX_OPTIONAL_KEYS)
 end
 
 if failures.empty?

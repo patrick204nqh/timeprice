@@ -4,10 +4,11 @@ require "date"
 require_relative "errors"
 require_relative "data_loader"
 require_relative "supported"
+require_relative "granularity"
 
 module Timeprice
   ExchangeResult = Data.define(
-    :amount, :original_amount, :from, :to, :date, :effective_date, :rate
+    :amount, :original_amount, :from, :to, :date, :effective_date, :rate, :granularity
   )
 
   # Historical FX conversion using bundled per-year USD-base rate files.
@@ -37,7 +38,7 @@ module Timeprice
 
       d = parse_date(date)
 
-      rate, eff_date = resolve_rate(from, to, d)
+      rate, eff_date, granularity = resolve_rate(from, to, d)
       ExchangeResult.new(
         amount: amount.to_f * rate,
         original_amount: amount.to_f,
@@ -45,40 +46,44 @@ module Timeprice
         to: to,
         date: d.to_s,
         effective_date: eff_date.to_s,
-        rate: rate
+        rate: rate,
+        granularity: granularity
       )
     end
 
-    # Returns [rate (Float), effective_date (Date)].
+    # Returns [rate (Float), effective_date (Date), granularity (Symbol)].
+    # Granularity is :daily when the rate came from a per-date entry, :annual
+    # when it came from the per-year `annual` fallback block. Triangulation
+    # merges both legs via Granularity.merge (worst-precision-wins).
     # Handles:
     #   - identity (from == to)
     #   - direct lookup of USD-base rate
     #   - inverse (foreign → USD)
     #   - triangulation through USD (both legs must resolve to SAME effective date)
     def resolve_rate(from, to, d)
-      return [1.0, d] if from == to
+      return [1.0, d, Granularity::DAILY] if from == to
 
       if from == BASE
-        rate, eff = lookup_usd_base(to, d)
-        [rate, eff]
+        lookup_usd_base(to, d)
       elsif to == BASE
-        rate, eff = lookup_usd_base(from, d)
-        [1.0 / rate, eff]
+        rate, eff, gran = lookup_usd_base(from, d)
+        [1.0 / rate, eff, gran]
       else
         # Triangulation: from → USD → to, both legs at the same effective date.
-        usd_to_from, eff_a = lookup_usd_base(from, d)
-        usd_to_to,   eff_b = lookup_usd_base(to,   d)
+        usd_to_from, eff_a, gran_a = lookup_usd_base(from, d)
+        usd_to_to,   eff_b, gran_b = lookup_usd_base(to,   d)
         if eff_a != eff_b
           raise DataNotFound,
                 "FX triangulation date mismatch for #{from}->#{to} on #{d}: " \
                 "USD->#{from} resolved #{eff_a}, USD->#{to} resolved #{eff_b}"
         end
-        [usd_to_to / usd_to_from, eff_a]
+        [usd_to_to / usd_to_from, eff_a, Granularity.merge(gran_a, gran_b)]
       end
     end
 
-    # Walk back up to MAX_FALLBACK_DAYS to find a rate.
-    # Returns [rate, effective_date].
+    # Walk back up to MAX_FALLBACK_DAYS to find a daily rate; if none, fall
+    # back to the year file's top-level `annual` block.
+    # Returns [rate, effective_date, granularity].
     def lookup_usd_base(currency, d)
       (0..MAX_FALLBACK_DAYS).each do |offset|
         candidate = d - offset
@@ -94,9 +99,25 @@ module Timeprice
         rate = rates_for_day[currency]
         next unless rate
 
-        return [rate.to_f, candidate]
+        return [rate.to_f, candidate, Granularity::DAILY]
       end
+
+      annual_rate = annual_fallback(currency, d.year)
+      return [annual_rate, d, Granularity::ANNUAL] if annual_rate
+
       raise DataNotFound, "No FX rate for USD->#{currency} on or before #{d}"
+    end
+
+    # Consult the year file's top-level `annual` block. Returns Float or nil.
+    def annual_fallback(currency, year)
+      year_data =
+        begin
+          DataLoader.load_fx_year(year)
+        rescue DataNotFound
+          return nil
+        end
+      rate = year_data.dig("annual", currency)
+      rate&.to_f
     end
 
     def parse_date(date)

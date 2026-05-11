@@ -5,6 +5,7 @@ require_relative "supported"
 require_relative "point"
 require_relative "inflation"
 require_relative "exchange"
+require_relative "granularity"
 
 module Timeprice
   CompareResult = Data.define(
@@ -70,7 +71,7 @@ module Timeprice
         fx_rate: fx_result.rate,
         cpi_ratio: infl.to_index.to_f / infl.from_index,
         converted_amount: converted,
-        granularity: infl.granularity
+        granularity: Granularity.merge(fx_result.granularity, infl.granularity)
       )
     end
 
