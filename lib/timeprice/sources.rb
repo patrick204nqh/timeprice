@@ -48,10 +48,10 @@ module Timeprice
         id: "vn_cpi",
         kind: "cpi",
         country: "VN",
-        name: "IMF IFS PCPI_IX (monthly primary) + World Bank FP.CPI.TOTL (annual fallback)",
+        name: "IMF Data Portal CPI dataflow (monthly primary) + World Bank FP.CPI.TOTL (annual fallback)",
         license: "IMF: free reuse with attribution; World Bank: CC BY 4.0",
         license_url: "https://www.imf.org/external/terms.htm",
-        attribution: "Sources: IMF International Financial Statistics PCPI_IX; World Bank FP.CPI.TOTL",
+        attribution: "Sources: IMF Data Portal CPI dataflow; World Bank FP.CPI.TOTL",
       },
       {
         id: "fx_ecb",
