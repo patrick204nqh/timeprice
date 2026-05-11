@@ -59,9 +59,4 @@ module Timeprice
       COUNTRY_TO_CURRENCY[country.to_s.upcase]
     end
   end
-
-  # Back-compat aliases — keep the old top-level constants pointing at the
-  # canonical lists so existing requires of "errors" keep working.
-  SUPPORTED_COUNTRIES  = Supported::COUNTRIES
-  SUPPORTED_CURRENCIES = Supported::CURRENCIES
 end

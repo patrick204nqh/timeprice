@@ -28,10 +28,6 @@ module Timeprice
   # If a future refactor flips the order, the regression test in
   # spec/timeprice/compare_spec.rb will fail.
   module Compare
-    # Map ISO currency → CPI country code. Kept as a back-compat alias;
-    # the canonical map lives in {Supported::CURRENCY_TO_COUNTRY}.
-    CURRENCY_TO_COUNTRY = Supported::CURRENCY_TO_COUNTRY
-
     module_function
 
     # Compare an amount across two (currency, date) points.

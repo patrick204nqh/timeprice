@@ -2,6 +2,7 @@
 
 require "json"
 require_relative "errors"
+require_relative "supported"
 
 module Timeprice
   # Loads and caches the bundled JSON data files. Override the search root
@@ -44,7 +45,7 @@ module Timeprice
         key = country.to_s.downcase
         code = country.to_s.upcase
         @cpi_cache[[data_root, key]] ||= begin
-          raise UnsupportedCountry, code unless SUPPORTED_COUNTRIES.include?(code)
+          raise UnsupportedCountry, code unless Supported::COUNTRIES.include?(code)
 
           path = File.join(data_root, "cpi", "#{key}.json")
           unless File.exist?(path)

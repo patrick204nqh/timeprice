@@ -5,6 +5,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Removed
+- Undocumented back-compat constants: `Timeprice::SUPPORTED_COUNTRIES`,
+  `Timeprice::SUPPORTED_CURRENCIES`, and `Timeprice::Compare::CURRENCY_TO_COUNTRY`.
+  Use `Supported::COUNTRIES`, `Supported::CURRENCIES`, and
+  `Supported::CURRENCY_TO_COUNTRY` directly.
+
 ### Changed
 - CLI output redesigned for readability: every `inflation`, `fx`, and `compare`
   command now leads with the answer on line 1 (e.g. `3,530,921 VND  in 2024`),
