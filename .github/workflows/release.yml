@@ -1,19 +1,12 @@
 name: Release
 
-# STUB — Phase 5 of PLAN.md (§9.3) will complete this.
+# Triggered on `v*` tag push. Maintainer's release ritual:
+#   bump VERSION → update CHANGELOG → commit → `git tag vX.Y.Z` → push --tags
 #
-# TODO (Phase 5):
-#   1. Run the full RSpec suite on Ruby 3.2 / 3.3 / 3.4 against the tagged ref.
-#   2. `gem build timeprice.gemspec` — assert .gem is < ~5MB.
-#   3. Push to RubyGems via OIDC **trusted publishing** (no long-lived
-#      API tokens). See https://guides.rubygems.org/trusted-publishing/.
-#   4. Create a GitHub Release using the matching CHANGELOG section
-#      as the release body (extract by version tag).
-#
-# Triggered on `v*` tag push so a maintainer's release ritual is just:
-#   bump VERSION → update CHANGELOG → commit → `git tag vX.Y.Z` → push --tags.
-#
-# Until Phase 5 lands this workflow intentionally does nothing on tag push.
+# Publishes to RubyGems via a long-lived API key stored in
+# secrets.RUBYGEMS_API_KEY. Trusted publishing (OIDC) is the longer-term
+# direction (see https://guides.rubygems.org/trusted-publishing/) but the
+# API-key path is fine for v0.1.x.
 
 on:
   push:
@@ -23,16 +16,13 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-    # Stub guard: never runs until a maintainer enables it for Phase 5.
-    if: false
     permissions:
       contents: write
-      id-token: write # required for RubyGems OIDC trusted publishing
     steps:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.3"
+          ruby-version: "3.4"
           bundler-cache: true
 
       - name: Test
@@ -41,11 +31,30 @@ jobs:
       - name: Build gem
         run: gem build timeprice.gemspec
 
-      # - name: Push to RubyGems (OIDC trusted publishing)
-      #   uses: rubygems/release-gem@v1
+      - name: Assert gem size <5MB
+        run: |
+          size=$(stat -c%s timeprice-*.gem)
+          echo "gem size: ${size} bytes"
+          test "$size" -lt 5242880
 
-      # - name: Create GitHub Release
-      #   uses: softprops/action-gh-release@v2
-      #   with:
-      #     generate_release_notes: false
-      #     body_path: .github/release_notes.md
+      - name: Push to RubyGems
+        env:
+          GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
+        run: gem push timeprice-*.gem
+
+      - name: Extract CHANGELOG section for this tag
+        id: notes
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          awk -v ver="$VERSION" '
+            $0 ~ "^## \\[" ver "\\]" { flag=1; next }
+            flag && /^## \[/ { exit }
+            flag { print }
+          ' CHANGELOG.md > /tmp/release_notes.md
+          test -s /tmp/release_notes.md || echo "Release ${GITHUB_REF_NAME}" > /tmp/release_notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: /tmp/release_notes.md
+          files: timeprice-*.gem
