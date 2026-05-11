@@ -15,12 +15,21 @@ RSpec.describe Timeprice::Inflation do
     end
 
     it "falls back from missing monthly to annual (US has annual 2010 but no 2010-03)" do
-      # 2010-03 is not in monthly fixture; should fall back to 2010 annual.
+      # 2010-03 is not in monthly fixture; should fall back to 2010 annual and
+      # the result is tagged so callers know they didn't get month-specific data.
       result = described_class.adjust(
         amount: 100, from: "2010-03", to: "2024-01", country: "US"
       )
-      expect(result.granularity).to eq(:annual)
+      expect(result.granularity).to eq(:monthly_from_annual_fallback)
       expect(result.from_index).to eq(218.056) # 2010 annual
+    end
+
+    it "tags VN YYYY-MM queries that fall back to annual" do
+      # VN has only annual data, so any monthly request degrades to the year index.
+      result = described_class.adjust(
+        amount: 100, from: "2010-06", to: "2024-03", country: "VN"
+      )
+      expect(result.granularity).to eq(:monthly_from_annual_fallback)
     end
 
     it "averages 12 months when annual is requested but only monthly exists (US 2010)" do

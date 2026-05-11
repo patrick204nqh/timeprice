@@ -3,15 +3,11 @@
 require_relative "errors"
 require_relative "data_loader"
 require_relative "cpi_lookup"
+require_relative "granularity"
 
 module Timeprice
-  # Value object returned by Inflation.adjust.
-  #
-  # granularity is one of:
-  #   :monthly                  — both ends resolved on monthly data
-  #   :annual                   — at least one end resolved on annual data
-  #   :annual_from_monthly_avg  — at least one end was an annual request resolved
-  #                               by averaging 12 months of monthly data
+  # Value object returned by Inflation.adjust. See {Granularity} for the set
+  # of possible `granularity` values and the worst-precision-wins merge rule.
   InflationResult = Data.define(
     :amount, :original_amount, :from, :to, :country,
     :from_index, :to_index, :granularity
@@ -54,7 +50,7 @@ module Timeprice
         country: country.to_s.upcase,
         from_index: from_point.value,
         to_index: to_point.value,
-        granularity: merge_granularity(from_point.granularity, to_point.granularity)
+        granularity: Granularity.merge(from_point.granularity, to_point.granularity)
       )
     end
 
@@ -67,15 +63,6 @@ module Timeprice
     def rate(from:, to:, country:)
       result = adjust(amount: 1.0, from: from, to: to, country: country)
       result.amount - 1.0
-    end
-
-    # If either end fell back to annual_from_monthly_avg, propagate that label;
-    # else if either is annual, propagate :annual; else :monthly.
-    def merge_granularity(a, b)
-      return :annual_from_monthly_avg if a == :annual_from_monthly_avg || b == :annual_from_monthly_avg
-      return :annual if a == :annual || b == :annual
-
-      :monthly
     end
   end
 end

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "../formatting"
+require_relative "../../granularity"
 
 module Timeprice
   class CLI < Thor
@@ -27,7 +28,7 @@ module Timeprice
             format("  %s %s (%s) -> %s %s (%s)",
                    fmt_money(@result.original_amount, @ccy), @ccy, @result.from,
                    fmt_money(@result.amount, @ccy), @ccy, @result.to),
-            "  #{@result.country} · #{@result.granularity} CPI",
+            "  #{@result.country} · #{Granularity.humanize(@result.granularity)} CPI",
           ]
         end
       end

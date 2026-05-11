@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "../formatting"
+require_relative "../../granularity"
 
 module Timeprice
   class CLI < Thor
@@ -35,7 +36,8 @@ module Timeprice
             "#{final}  in #{@result.to_date}",
             "  #{original} (#{@result.from_date})",
             format("    -> %-#{width}s -> %s (%s)", step1, converted, @result.from_date),
-            format("    -> %-#{width}s -> %s (%s, %s)", step2, final, @result.to_date, @result.granularity),
+            format("    -> %-#{width}s -> %s (%s, %s)", step2, final, @result.to_date,
+                   Granularity.humanize(@result.granularity)),
           ]
         end
       end

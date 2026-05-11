@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 require_relative "errors"
+require_relative "granularity"
 
 module Timeprice
   # CpiPoint pairs a CPI index value with the granularity of how it was
-  # resolved (monthly, annual, or annual derived by averaging 12 months).
+  # resolved. See {Granularity} for the full set of possible tags.
   CpiPoint = Data.define(:value, :granularity)
 
   # Resolves CPI keys ("YYYY" or "YYYY-MM") to a CpiPoint against a single
@@ -33,21 +34,22 @@ module Timeprice
     private
 
     def monthly_or_annual_fallback(month_key)
-      return CpiPoint.new(value: @monthly[month_key], granularity: :monthly) if @monthly.key?(month_key)
+      return CpiPoint.new(value: @monthly[month_key], granularity: Granularity::MONTHLY) if @monthly.key?(month_key)
 
       year = month_key[0, 4]
       raise DataNotFound, missing_message(month_key) unless @annual.key?(year)
 
-      CpiPoint.new(value: @annual[year], granularity: :annual)
+      CpiPoint.new(value: @annual[year], granularity: Granularity::MONTHLY_FROM_ANNUAL_FALLBACK)
     end
 
     def annual_or_monthly_average(year)
-      return CpiPoint.new(value: @annual[year], granularity: :annual) if @annual.key?(year)
+      return CpiPoint.new(value: @annual[year], granularity: Granularity::ANNUAL) if @annual.key?(year)
 
       months = @monthly.select { |k, _| k.start_with?("#{year}-") }
       raise DataNotFound, missing_message(year) if months.empty?
 
-      CpiPoint.new(value: months.values.sum.to_f / months.size, granularity: :annual_from_monthly_avg)
+      avg = months.values.sum.to_f / months.size
+      CpiPoint.new(value: avg, granularity: Granularity::ANNUAL_FROM_MONTHLY_AVG)
     end
 
     def missing_message(key)
