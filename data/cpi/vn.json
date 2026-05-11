@@ -2,10 +2,10 @@
   "annual": {
     "1995": 21.083683,
     "1996": 22.280182,
-    "1997": 22.995271,
+    "1997": 22.99527,
     "1998": 24.666152,
     "1999": 25.681683,
-    "2000": 25.24244,
+    "2000": 25.242439,
     "2001": 25.133507,
     "2002": 26.096,
     "2003": 26.94,
@@ -330,22 +330,22 @@
   },
   "provenance": [
     {
-      "series": "monthly",
       "from": "2001-12",
-      "to": "2026-03",
-      "provider": "imf"
+      "provider": "imf",
+      "series": "monthly",
+      "to": "2026-03"
     },
     {
-      "series": "annual",
       "from": "1995",
-      "to": "2001",
-      "provider": "world_bank"
+      "provider": "world_bank",
+      "series": "annual",
+      "to": "2001"
     },
     {
-      "series": "annual",
       "from": "2002",
-      "to": "2025",
-      "provider": "imf"
+      "provider": "imf",
+      "series": "annual",
+      "to": "2025"
     }
   ],
   "providers": [

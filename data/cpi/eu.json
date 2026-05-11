@@ -397,16 +397,16 @@
   },
   "provenance": [
     {
-      "series": "monthly",
       "from": "1996-01",
-      "to": "2025-12",
-      "provider": "eurostat"
+      "provider": "eurostat",
+      "series": "monthly",
+      "to": "2025-12"
     },
     {
-      "series": "annual",
       "from": "1996",
-      "to": "2025",
-      "provider": "eurostat"
+      "provider": "eurostat",
+      "series": "annual",
+      "to": "2025"
     }
   ],
   "providers": [

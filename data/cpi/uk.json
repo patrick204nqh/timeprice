@@ -504,16 +504,16 @@
   },
   "provenance": [
     {
-      "series": "monthly",
       "from": "1988-01",
-      "to": "2026-03",
-      "provider": "ons"
+      "provider": "ons",
+      "series": "monthly",
+      "to": "2026-03"
     },
     {
-      "series": "annual",
       "from": "1988",
-      "to": "2025",
-      "provider": "ons"
+      "provider": "ons",
+      "series": "annual",
+      "to": "2025"
     }
   ],
   "providers": [
