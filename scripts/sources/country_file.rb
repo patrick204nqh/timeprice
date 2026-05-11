@@ -58,11 +58,11 @@ module Sources
 
     # Read the on-disk v3/v4 CPI file (if present) into MergePolicy's internal
     # flat shape so the rest of the writer doesn't have to know about the
-    # nested layout. Returns {} on first run.
+    # nested layout. On first run (no file yet) every series key is an empty
+    # hash — downstream code can rely on `prior["monthly"]` etc. being
+    # iterable without nil guards.
     def load_prior
       disk = Sources.read_json_if_exists(path) || {}
-      return {} if disk.empty?
-
       {
         "monthly" => disk.dig("series", "monthly") || {},
         "quarterly" => disk.dig("series", "quarterly") || {},
