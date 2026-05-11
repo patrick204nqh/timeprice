@@ -13,6 +13,8 @@ require_relative "provider"
 #
 # Also exposes a fetch_cpi(country_iso3) helper so the e-Stat fallback for
 # Japan can reuse it.
+require_relative "fx_year_file"
+
 module Sources
   module WorldBank
     module_function
@@ -78,27 +80,47 @@ module Sources
     # Exchange lookup falls back from daily to annual when daily is missing
     # and tags the resolved rate with Granularity::ANNUAL so the caller knows
     # the precision they actually got.
+    # VND per USD, annual averages. Routes each year to one of two homes:
+    #   - years with a daily-coverage file (1999+) → annual block on that file
+    #   - years without (pre-1999)                → data/fx/_annual.json
+    SOURCE_LABEL_VND = "World Bank PA.NUS.FCRF"
+
     def run_vnd_fx
-      annual = fetch_indicator("VNM", "PA.NUS.FCRF") # VND per USD
+      annual = fetch_indicator("VNM", "PA.NUS.FCRF")
       Sources.validate_positive_numeric!(annual, "WorldBank VND/USD annual")
-      touched = 0
+
+      per_year_touched = 0
+      sparse_payload = {}
+
       annual.each do |year, rate|
-        path = File.join(Sources::DATA_ROOT, "fx", "usd", "#{year}.json")
-        prior = Sources.read_json_if_exists(path) || {
-          "schema_version" => 2, "base" => "USD", "year" => year.to_i,
-          "source" => "Frankfurter (ECB) + World Bank VND annual",
-          "rates" => {}
-        }
-        annual_block = prior["annual"] || {}
-        annual_block["VND"] = rate.round(2)
-        prior["annual"]     = annual_block
-        prior["updated_at"] = Sources.today
-        prior["source"]     =
-          "Frankfurter (ECB) for EUR/GBP/JPY (daily); World Bank PA.NUS.FCRF for VND (annual)"
-        Sources.write_json(path, prior)
-        touched += 1
+        rate_r = rate.round(2)
+        if daily_year_exists?(year)
+          Sources::FxYearFile.new(year).write_annual(
+            annual_by_currency: { "VND" => rate_r },
+            provider_id: "world_bank",
+            source_label: SOURCE_LABEL_VND
+          )
+          per_year_touched += 1
+        else
+          sparse_payload[year.to_s] = { "VND" => rate_r }
+        end
       end
-      Sources.log "WorldBank(VND FX): #{annual.size} annual data points written across #{touched} year files, range #{annual.keys.minmax.join("..")}."
+
+      if sparse_payload.any?
+        Sources::FxAnnualFile.write(
+          annual_by_year_currency: sparse_payload,
+          provider_id: "world_bank",
+          source_label: SOURCE_LABEL_VND
+        )
+      end
+
+      Sources.log "WorldBank(VND FX): #{annual.size} annual data points " \
+                  "(#{per_year_touched} into per-year files, #{sparse_payload.size} into _annual.json), " \
+                  "range #{annual.keys.minmax.join("..")}."
+    end
+
+    def daily_year_exists?(year)
+      File.exist?(File.join(Sources::DATA_ROOT, "fx", "usd", "#{year}.json"))
     end
   end
 end

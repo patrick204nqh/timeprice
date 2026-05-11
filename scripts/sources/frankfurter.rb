@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "_common"
+require_relative "fx_year_file"
 
 # Fetches USD-based FX rates from Frankfurter (ECB).
 # Splits output by year into data/fx/usd/<year>.json.
@@ -50,27 +51,16 @@ module Sources
         end
         by_year.each do |year, year_rates|
           path = File.join(Sources::DATA_ROOT, "fx", "usd", "#{year}.json")
-          prior = Sources.read_json_if_exists(path) || {}
-          existing_rates = prior["rates"] || {}
-          merged = existing_rates.merge(year_rates) do |_date, old_v, new_v|
-            old_v.merge(new_v)
-          end
+          existing_rates = (Sources.read_json_if_exists(path) || {})["rates"] || {}
           new_count = year_rates.keys.count { |d| !existing_rates.key?(d) }
           total_new += new_count
           total_points += year_rates.size
 
-          data = {
-            "schema_version" => 2,
-            "base" => BASE,
-            "year" => year,
-            "source" => SOURCE_LABEL,
-            "updated_at" => Sources.today,
-            "rates" => merged,
-          }
-          # Preserve any prior `annual` block (e.g. World Bank's VND annual
-          # fallback) so a Frankfurter refresh doesn't clobber it.
-          data["annual"] = prior["annual"] if prior["annual"]
-          Sources.write_json(path, data)
+          Sources::FxYearFile.new(year).write_daily(
+            rates_by_date: year_rates,
+            provider_id: "frankfurter",
+            source_label: SOURCE_LABEL
+          )
           years_touched << year unless years_touched.include?(year)
         end
         cursor = Date.new(cursor.year + 1, 1, 1)
