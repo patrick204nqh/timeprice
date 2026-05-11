@@ -14,7 +14,7 @@ require "json"
 ROOT = File.expand_path("..", __dir__)
 DATA = File.join(ROOT, "data")
 
-CPI_KEYS = %w[annual base_year country monthly schema_version source updated_at].freeze
+CPI_KEYS = %w[annual base_year country monthly provenance providers schema_version source updated_at].freeze
 FX_KEYS  = %w[base rates schema_version source updated_at year].freeze
 
 failures = []
