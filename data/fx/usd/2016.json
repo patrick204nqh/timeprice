@@ -1,9 +1,8 @@
 {
-  "schema_version": 2,
+  "annual": {
+    "VND": 21935.0
+  },
   "base": "USD",
-  "year": 2016,
-  "source": "Frankfurter (ECB) for EUR/GBP/JPY (daily); World Bank PA.NUS.FCRF for VND (annual)",
-  "updated_at": "2026-05-11",
   "rates": {
     "2016-01-04": {
       "EUR": 0.9176,
@@ -1291,7 +1290,8 @@
       "JPY": 117.07
     }
   },
-  "annual": {
-    "VND": 21935.0
-  }
+  "schema_version": 2,
+  "source": "Frankfurter (ECB) for EUR/GBP/JPY (daily); World Bank PA.NUS.FCRF for VND (annual)",
+  "updated_at": "2026-05-11",
+  "year": 2016
 }

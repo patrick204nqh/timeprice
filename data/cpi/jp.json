@@ -71,10 +71,10 @@
   "monthly": {},
   "provenance": [
     {
-      "series": "annual",
       "from": "1960",
-      "to": "2024",
-      "provider": "world_bank"
+      "provider": "world_bank",
+      "series": "annual",
+      "to": "2024"
     }
   ],
   "providers": [
