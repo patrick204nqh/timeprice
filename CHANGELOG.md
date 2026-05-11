@@ -5,6 +5,37 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-05-11
+
+### Changed
+- **Schema v2 → v3.** Breaking change to the bundled data contract. v0.4.x
+  data files will not load on v0.5.0 and vice versa.
+  - New top-level `data/manifest.json` — single source of truth for which
+    countries and currencies the bundle supports. `Supported.countries` /
+    `Supported.currencies` derive from it at runtime; the hardcoded Ruby
+    constants `Supported::COUNTRIES` / `CURRENCIES` are gone.
+  - CPI files use nested `series: { monthly, annual }` and a structured
+    `index: { base_period, rebased_at }` block in place of the freeform
+    `base_year` string. Top-level `source` and `updated_at` removed —
+    `providers[]` is the source of truth for provenance.
+  - FX year files now carry `provenance` + `providers` blocks, symmetric
+    with CPI.
+  - Pre-1999 stub year files (1983, 1986–1998) consolidated into
+    `data/fx/_annual.json` for the sparse historical VND coverage. The
+    daily-rate per-year files only exist for years with real daily data.
+  - `Exchange.lookup_usd_base` adds a final fallback to `_annual.json`
+    after the per-year `annual` block, tagged with `Granularity::ANNUAL`.
+
+### Migration
+- The bundled data ships in v3 — `gem install timeprice` is enough for
+  most users.
+- If you set `TIMEPRICE_DATA_ROOT` to a custom data tree, run
+  `ruby scripts/migrate_v2_to_v3.rb` against it once. The script is
+  idempotent and asserts every (year, currency) round-trips before
+  deleting stub files.
+- Custom callers that referenced `Supported::COUNTRIES` / `CURRENCIES`
+  directly must switch to `Supported.countries` / `Supported.currencies`.
+
 ## [0.4.0] - 2026-05-11
 
 ### Changed
