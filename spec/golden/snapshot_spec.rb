@@ -45,26 +45,27 @@ RSpec.describe "golden snapshots (real bundled data)" do
     expect(r.granularity).to eq(:annual)
   end
 
-  it "VN: CPI ratio 2010 → 2020 (World Bank FP.CPI.TOTL)" do
-    # Bundled annual: 2010 = 100.0, 2020 ≈ 168.7837214833...
-    # rate = 168.7837214833 / 100 - 1 ≈ 0.687837...
-    # Cross-check: World Bank's published series for Vietnam shows CPI roughly
-    # 1.69× over 2010-2020 — high-inflation decade with reform-era pricing.
+  it "VN: CPI ratio 2010 → 2020 (IMF Data Portal CPI dataflow)" do
+    # Bundled annual (IMF-derived from monthly): 2010 ≈ 52.492, 2020 ≈ 88.597
+    # rate = 88.597 / 52.492 - 1 ≈ 0.687819
+    # Cross-check: World Bank's annual series shows ratio ≈ 1.688 over the same
+    # window — IMF's monthly-derived figures match to ~0.001% (different rebase
+    # cycle of the index, identical underlying inflation).
     rate = Timeprice::Inflation.rate(from: "2010", to: "2020", country: "VN")
-    expect(rate.round(6)).to eq(0.687837)
+    expect(rate.round(6)).to eq(0.687819)
   end
 
   it "Compare: 100 USD @ 2010 → VND @ 2024" do
     # Bundled values used by the library:
     #   FX USD→VND on 2010-06-30 (year-anchor) = 18612.92
-    #   VN CPI 2010 = 100.0, 2024 ≈ 189.702668041402
+    #   VN CPI 2010 ≈ 52.492, 2024 ≈ 99.578 (IMF Data Portal; ratio ≈ 1.8970)
     #   converted_2010 = 100 * 18612.92 = 1_861_292.0 VND
-    #   inflated       = 1_861_292.0 * (189.702668041402 / 100.0)
-    #                  = 3_530_920.5840411717...
+    #   inflated       = 1_861_292.0 * (99.578 / 52.492)
+    #                  ≈ 3_530_894.89
     # Cross-check: order-of-magnitude sanity — 100 USD in 2010 is roughly
     # 1.86M VND nominal, and Vietnam's 14-year CPI ratio is ~1.9x.
     r = Timeprice.compare(amount: 100, from: %w[USD 2010], to: %w[VND 2024])
-    expect(r.amount.round(2)).to eq(3_530_920.58)
+    expect(r.amount.round(2)).to eq(3_530_894.89)
     expect(r.fx_rate).to eq(18_612.92)
     expect(r.country).to eq("VN")
   end
