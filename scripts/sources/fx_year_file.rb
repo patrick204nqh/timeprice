@@ -21,7 +21,7 @@ module Sources
       daily_currencies = merged_rates.values.flat_map(&:keys).uniq.sort
 
       data = {
-        "schema_version" => 3,
+        "schema_version" => 4,
         "base" => "USD",
         "year" => year,
         "rates" => merged_rates,
@@ -86,7 +86,7 @@ module Sources
       other_providers = (prior["providers"] || []).reject { |p| p["id"] == provider_id }
 
       data = {
-        "schema_version" => 3,
+        "schema_version" => 4,
         "base" => "USD",
         "annual" => merged,
         "provenance" => other_provenance + [
