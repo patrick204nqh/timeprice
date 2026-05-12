@@ -3,6 +3,7 @@ import { $, setText } from "./dom.js";
 import { state } from "./state.js";
 import { calculate } from "./calculate.js";
 import { runFx } from "./fx.js";
+import { runCompare } from "./compare.js";
 import { renderError } from "./result.js";
 
 export function setVmState(state_, label, dotClass) {
@@ -27,6 +28,7 @@ export async function bootRuby() {
     setVmState("ready", "Live · running in your browser", "bg-emerald-500");
     calculate();
     runFx();
+    runCompare();
   } catch (e) {
     console.error(e);
     setVmState("error", "Ruby VM failed to load — see console", "bg-rose-500");

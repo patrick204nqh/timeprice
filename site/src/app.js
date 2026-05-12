@@ -4,8 +4,9 @@ import { readForm, applyRangeForCountry } from "./form.js";
 import { renderEmpty } from "./result.js";
 import { renderSnippet } from "./snippet.js";
 import { readUrl } from "./url.js";
-import { bindCopyButtons, bindForm, bindFxForm } from "./events.js";
+import { bindCopyButtons, bindForm, bindFxForm, bindCompareForm } from "./events.js";
 import { readFxForm } from "./fx.js";
+import { readCompareForm } from "./compare.js";
 import { bootRuby } from "./vm.js";
 
 // Default form state matches what's hardcoded in index.html's result card.
@@ -26,7 +27,9 @@ readForm();
 if (!isDefaultForm(state.form)) renderEmpty("Warming up Ruby VM…");
 renderSnippet();
 readFxForm();
+readCompareForm();
 bindCopyButtons();
 bindForm();
 bindFxForm();
+bindCompareForm();
 bootRuby();
