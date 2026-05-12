@@ -14,11 +14,13 @@ export function readCompareForm() {
 }
 
 function renderCompareResult(r) {
-  const decimals = ZERO_DECIMAL.has(r.to_currency) ? 0 : 2;
-  setText("#cmp-amount-out", `${fmtNumber(r.amount, decimals)} ${r.to_currency}`);
-  const fx = r.fx_rate ? `FX ${fmtNumber(r.fx_rate, 4)}` : "FX identity";
-  const cpi = r.cpi_ratio ? `× CPI ${fmtNumber(r.cpi_ratio, 3)}` : "";
-  setText("#cmp-meta", `${fx} ${cpi} · ${r.country} · ${r.granularity}`.trim());
+  const toDec = ZERO_DECIMAL.has(r.to_currency) ? 0 : 2;
+  const fromDec = ZERO_DECIMAL.has(r.from_currency) ? 0 : 2;
+  setText("#cmp-amount-out", `${fmtNumber(r.amount, toDec)} ${r.to_currency}`);
+  setText(
+    "#cmp-meta",
+    `${fmtNumber(r.original_amount, fromDec)} ${r.from_currency} (${r.from_date}) → ${fmtNumber(r.amount, toDec)} ${r.to_currency} (${r.to_date})`,
+  );
 }
 
 function renderCompareError(msg) {

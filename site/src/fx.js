@@ -3,6 +3,13 @@ import { state } from "./state.js";
 
 const ZERO_DECIMAL = new Set(["JPY", "KRW", "VND"]);
 
+function humanDate(iso) {
+  if (!iso) return "";
+  return new Intl.DateTimeFormat("en", {
+    month: "short", day: "numeric", year: "numeric", timeZone: "UTC",
+  }).format(new Date(iso));
+}
+
 export function readFxForm() {
   state.fx = {
     amount: parseFloat($("#fx-amount").value) || 0,
@@ -16,8 +23,8 @@ function renderFxResult(r) {
   const decimals = ZERO_DECIMAL.has(r.to) ? 0 : 2;
   setText("#fx-amount-out", `${fmtNumber(r.amount, decimals)} ${r.to}`);
   const note = r.effective_date && r.effective_date !== r.date
-    ? `rate on ${r.effective_date} (fallback from ${r.date}) · ${r.granularity}`
-    : `rate on ${r.effective_date || r.date} · ${r.granularity}`;
+    ? `rate on ${humanDate(r.effective_date)} (nearest trading day to ${humanDate(r.date)})`
+    : `rate on ${humanDate(r.effective_date || r.date)}`;
   setText("#fx-meta", note);
 }
 

@@ -24,11 +24,19 @@ export function renderHero(result) {
   }
 }
 
+const SOURCE_LABEL = {
+  US: "US CPI",
+  UK: "UK CPI",
+  EU: "EU HICP",
+  JP: "JP CPI",
+  VN: "VN CPI",
+};
+
 export function renderResult(result, country) {
   const cur = currencyFor(country);
   setText("#inf-amount-out", `${fmtNumber(result.amount)} ${cur}`);
   setText("#inf-detail", `${fmtNumber(result.original_amount)} ${cur} (${result.from}) → ${fmtNumber(result.amount)} ${cur} (${result.to})`);
-  setText("#inf-meta", `CPI ${result.from_index} → ${result.to_index} · ${result.country} · ${result.granularity}`);
+  setText("#inf-meta", `Source: ${SOURCE_LABEL[result.country] || result.country + " CPI"}`);
   renderHero(result);
 }
 
