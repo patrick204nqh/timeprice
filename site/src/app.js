@@ -222,9 +222,9 @@ function bindCopyButtons() {
     if (!btn) return;
     const text = btn.dataset.copy || $("#snippet").textContent;
     try { await navigator.clipboard.writeText(text); } catch {}
-    const orig = btn.textContent;
+    if (!btn.dataset.origText) btn.dataset.origText = btn.textContent;
     btn.textContent = "copied";
-    setTimeout(() => { btn.textContent = orig; }, 1200);
+    setTimeout(() => { btn.textContent = btn.dataset.origText; }, 1200);
   });
 }
 

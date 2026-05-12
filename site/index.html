@@ -26,7 +26,7 @@
   <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
     <div class="flex items-baseline gap-3">
       <span class="font-semibold text-lg mono">timeprice</span>
-      <span class="hidden sm:inline text-sm text-stone-500">offline historical inflation & FX for Ruby</span>
+      <span class="text-sm text-stone-500">offline inflation & FX for Ruby</span>
     </div>
     <nav class="flex gap-4 text-sm">
       <a href="https://github.com/patrick204nqh/timeprice" class="hover:underline">GitHub</a>
@@ -52,11 +52,12 @@
 
   <section class="rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 overflow-hidden">
 
+    <h2 class="sr-only">Calculator</h2>
     <div class="px-4 py-2.5 border-b border-stone-200 dark:border-stone-800 flex items-center justify-between text-xs">
-      <div class="flex gap-1" role="tablist">
-        <button data-tab="inflation" class="tab px-3 py-1.5 rounded-md font-medium" aria-selected="true">Inflation</button>
-        <button data-tab="fx"        class="tab px-3 py-1.5 rounded-md text-stone-400 cursor-not-allowed" aria-selected="false" aria-disabled="true" tabindex="-1" title="Coming next">FX <span class="text-stone-400">(soon)</span></button>
-        <button data-tab="compare"   class="tab px-3 py-1.5 rounded-md text-stone-400 cursor-not-allowed" aria-selected="false" aria-disabled="true" tabindex="-1" title="Coming next">Compare <span class="text-stone-400">(soon)</span></button>
+      <div class="flex gap-1" role="tablist" aria-label="Calculator mode">
+        <button role="tab" id="tab-inflation" aria-controls="panel-inflation" data-tab="inflation" class="tab px-3 py-1.5 rounded-md font-medium" aria-selected="true">Inflation</button>
+        <button role="tab" id="tab-fx" aria-controls="panel-fx" data-tab="fx" class="tab px-3 py-1.5 rounded-md text-stone-400 cursor-not-allowed" aria-selected="false" aria-disabled="true" tabindex="-1" title="Coming next">FX <span class="text-stone-400">(soon)</span></button>
+        <button role="tab" id="tab-compare" aria-controls="panel-compare" data-tab="compare" class="tab px-3 py-1.5 rounded-md text-stone-400 cursor-not-allowed" aria-selected="false" aria-disabled="true" tabindex="-1" title="Coming next">Compare <span class="text-stone-400">(soon)</span></button>
       </div>
       <div id="vm-pill" class="flex items-center gap-1.5 text-stone-500">
         <span id="vm-dot" class="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
@@ -64,29 +65,29 @@
       </div>
     </div>
 
-    <div data-panel="inflation" class="panel p-4 sm:p-6">
+    <div role="tabpanel" id="panel-inflation" aria-labelledby="tab-inflation" data-panel="inflation" class="panel p-4 sm:p-6">
       <div class="grid sm:grid-cols-2 gap-4 sm:gap-6">
 
         <form id="inf-form" class="space-y-3">
           <div>
-            <label class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">Amount</label>
+            <label for="inf-amount" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">Amount</label>
             <input id="inf-amount" type="number" step="any" value="100"
                    class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">From</label>
+              <label for="inf-from" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">From</label>
               <input id="inf-from" type="month" value="1990-01"
                      class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
             </div>
             <div>
-              <label class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">To</label>
+              <label for="inf-to" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">To</label>
               <input id="inf-to" type="month" value="2024-01"
                      class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
             </div>
           </div>
           <div>
-            <label class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">Country</label>
+            <label for="inf-country" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">Country</label>
             <select id="inf-country" class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
               <option value="US">US — United States (USD)</option>
               <option value="UK">UK — United Kingdom (GBP)</option>
@@ -103,7 +104,8 @@
           </button>
         </form>
 
-        <div id="inf-result" class="rounded-md bg-stone-100 dark:bg-stone-800/50 p-4 flex flex-col justify-center">
+        <div id="inf-result" class="rounded-md bg-stone-100 dark:bg-stone-800/50 p-4 flex flex-col justify-center"
+             role="status" aria-live="polite" aria-atomic="true">
           <div class="text-xs text-stone-500 mb-1">Result</div>
           <div class="tabular text-2xl font-semibold" id="inf-amount-out">—</div>
           <div class="tabular text-sm text-stone-600 dark:text-stone-400" id="inf-detail">Warming up Ruby VM…</div>
@@ -128,12 +130,12 @@
 
     </div>
 
-    <div data-panel="fx" class="panel p-4 sm:p-6 hidden">
+    <div role="tabpanel" id="panel-fx" aria-labelledby="tab-fx" data-panel="fx" class="panel p-4 sm:p-6 hidden">
       <div class="text-sm text-stone-500">FX calculator — coming next. The gem already supports it; the UI panel lands in the next iteration.</div>
       <pre class="mt-3 rounded-md bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto"><code class="mono">Timeprice.exchange(amount: 100, from: "USD", to: "JPY", date: "2010-06-15")</code></pre>
     </div>
 
-    <div data-panel="compare" class="panel p-4 sm:p-6 hidden">
+    <div role="tabpanel" id="panel-compare" aria-labelledby="tab-compare" data-panel="compare" class="panel p-4 sm:p-6 hidden">
       <div class="text-sm text-stone-500">Compare across years and currencies — coming next.</div>
       <pre class="mt-3 rounded-md bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto"><code class="mono">Timeprice.compare(amount: 100, from: "2010 USD", to: "2024 VND")</code></pre>
     </div>
