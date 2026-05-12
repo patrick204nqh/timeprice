@@ -320,12 +320,34 @@ end</code></pre>
   <section>
     <h2 class="text-sm font-semibold uppercase tracking-wider text-stone-500 mb-3">Data sources</h2>
     <div class="rounded-xl border border-stone-200 dark:border-stone-800 divide-y divide-stone-200 dark:divide-stone-800 text-sm">
+      <div class="grid grid-cols-12 gap-3 px-4 py-2.5 mono text-[0.7rem] uppercase tracking-wider text-stone-500"><span class="col-span-2">Region</span><span class="col-span-5">Series</span><span class="col-span-3">Coverage</span><span class="col-span-2 text-right">Licence</span></div>
       <div class="grid grid-cols-12 gap-3 px-4 py-3 mono"><span class="col-span-2 font-semibold">US</span><span class="col-span-5 text-stone-600 dark:text-stone-400">CPI-U, US BLS</span><span class="col-span-3 text-stone-500">1913–present</span><span class="col-span-2 text-stone-500 text-right">CC0</span></div>
       <div class="grid grid-cols-12 gap-3 px-4 py-3 mono"><span class="col-span-2 font-semibold">UK</span><span class="col-span-5 text-stone-600 dark:text-stone-400">CPI, ONS</span><span class="col-span-3 text-stone-500">1988–present</span><span class="col-span-2 text-stone-500 text-right">OGL-UK</span></div>
       <div class="grid grid-cols-12 gap-3 px-4 py-3 mono"><span class="col-span-2 font-semibold">EU</span><span class="col-span-5 text-stone-600 dark:text-stone-400">HICP, Eurostat</span><span class="col-span-3 text-stone-500">1996–present</span><span class="col-span-2 text-stone-500 text-right">Eurostat</span></div>
       <div class="grid grid-cols-12 gap-3 px-4 py-3 mono"><span class="col-span-2 font-semibold">JP</span><span class="col-span-5 text-stone-600 dark:text-stone-400">CPI, IMF/Statistics Bureau</span><span class="col-span-3 text-stone-500">1970–present</span><span class="col-span-2 text-stone-500 text-right">IMF</span></div>
       <div class="grid grid-cols-12 gap-3 px-4 py-3 mono"><span class="col-span-2 font-semibold">VN</span><span class="col-span-5 text-stone-600 dark:text-stone-400">CPI, GSO/IMF</span><span class="col-span-3 text-stone-500">1996–present</span><span class="col-span-2 text-stone-500 text-right">IMF</span></div>
       <div class="grid grid-cols-12 gap-3 px-4 py-3 mono"><span class="col-span-2 font-semibold">FX</span><span class="col-span-5 text-stone-600 dark:text-stone-400">Daily rates, ECB / IMF</span><span class="col-span-3 text-stone-500">1999–present</span><span class="col-span-2 text-stone-500 text-right">ECB/IMF</span></div>
+    </div>
+    <p class="mt-3 text-xs text-stone-500">All series refreshed on <span class="mono">2026-05-12</span>. Full provenance in <a href="https://github.com/patrick204nqh/timeprice/blob/main/data/manifest.json" class="underline">data/manifest.json</a>.</p>
+  </section>
+
+  <section>
+    <h2 class="text-sm font-semibold uppercase tracking-wider text-stone-500 mb-3">Methodology &amp; accuracy</h2>
+    <div class="rounded-xl border border-stone-200 dark:border-stone-800 p-4 sm:p-6 space-y-3 text-sm">
+      <p>
+        <span class="font-semibold">Cross-check:</span> our default answer of
+        <span class="mono">$242.09</span> for $100 USD inflation-adjusted from 1990-01 to 2024-01 matches the
+        <a href="https://www.bls.gov/data/inflation_calculator.htm" class="underline">official BLS calculator's $242.10</a>
+        to within one cent of rounding.
+      </p>
+      <p class="text-stone-600 dark:text-stone-400">
+        <span class="font-semibold text-stone-700 dark:text-stone-300">How it works.</span>
+        Inflation = <span class="mono">amount × (CPI[to] / CPI[from])</span>, using the monthly index when both dates have one and falling back to annual otherwise. FX uses daily mid-rates (ECB-style); weekend and holiday lookups walk back up to 7 days to the previous trading day. Compare runs FX at the source date first, then inflates in the destination currency — see the <a href="https://github.com/patrick204nqh/timeprice#compare-semantics" class="underline">"Compare semantics" note</a> for why that order matters.
+      </p>
+      <p class="text-stone-600 dark:text-stone-400">
+        <span class="font-semibold text-stone-700 dark:text-stone-300">Rounding.</span>
+        Intermediate ratios are kept at full Float precision; only the final amount is rounded by the caller. Zero-decimal currencies (JPY, KRW, VND) display without decimals.
+      </p>
     </div>
   </section>
 
