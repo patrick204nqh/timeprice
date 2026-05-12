@@ -4,11 +4,18 @@ import { renderSnippet } from "./snippet.js";
 import { renderHero } from "./result.js";
 import { writeUrl } from "./url.js";
 import { calculate } from "./calculate.js";
+import { runFx } from "./fx.js";
 
 let calcTimer = null;
 function scheduleCalc() {
   clearTimeout(calcTimer);
   calcTimer = setTimeout(calculate, 200);
+}
+
+let fxTimer = null;
+function scheduleFx() {
+  clearTimeout(fxTimer);
+  fxTimer = setTimeout(runFx, 200);
 }
 
 export function bindCopyButtons() {
@@ -46,5 +53,17 @@ export function bindForm() {
     e.preventDefault();
     clearTimeout(calcTimer);
     calculate();
+  });
+}
+
+export function bindFxForm() {
+  for (const sel of ["#fx-amount", "#fx-from", "#fx-to", "#fx-date"]) {
+    $(sel).addEventListener("input", scheduleFx);
+    $(sel).addEventListener("change", scheduleFx);
+  }
+  $("#fx-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    clearTimeout(fxTimer);
+    runFx();
   });
 }
