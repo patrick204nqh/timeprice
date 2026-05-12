@@ -10,6 +10,10 @@
 <meta property="og:description" content="Ships data inside the gem. Try the calculator — it runs the actual gem in your browser.">
 <meta property="og:type" content="website">
 
+<link rel="icon" type="image/svg+xml" href="./public/favicon.svg">
+<link rel="apple-touch-icon" href="./public/favicon.svg">
+<meta name="theme-color" content="#1c1917">
+
 <link rel="preload" href="./public/timeprice.wasm.gz" as="fetch" crossorigin>
 
 <!-- Set the .dark class BEFORE Tailwind paints so there's no theme flash. -->
@@ -47,7 +51,7 @@
               title="Toggle theme (Light / Dark / System)"
               aria-label="Toggle theme"
               class="inline-flex items-center justify-center w-8 h-8 rounded-md border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-600 dark:text-stone-300">
-        <span id="theme-icon" aria-hidden="true">☀︎</span>
+        <span id="theme-icon" aria-hidden="true" class="inline-flex w-4 h-4"></span>
       </button>
     </nav>
   </div>
