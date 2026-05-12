@@ -6,6 +6,8 @@ Offline historical inflation & FX for Ruby — bundled data, no API keys, monthl
 [![Gem Version](https://img.shields.io/gem/v/timeprice.svg)](https://rubygems.org/gems/timeprice)
 [![Ruby](https://img.shields.io/badge/ruby-%3E%3D%203.2-ruby.svg)](https://www.ruby-lang.org/)
 
+**Try it in your browser:** [patrick204nqh.github.io/timeprice](https://patrick204nqh.github.io/timeprice/) — the calculator runs the actual gem via ruby.wasm, no backend.
+
 ## Why this exists
 
 Every other "historical inflation / FX" library wants you to wire up an API key, eat a rate
@@ -88,6 +90,33 @@ r.cpi_ratio  # => 1.897026680414...
 All result objects are `Data.define` value objects — they support `.to_h`, `==`, and
 pattern matching, so you can hand them to JSON, RSpec, or `case/in` without ceremony.
 
+### Introspection: `Timeprice.metadata`
+
+`Timeprice.metadata` returns a frozen, JSON-serialisable snapshot of the bundled
+dataset — version, refresh date, country list with per-granularity CPI ranges, currency
+list, and FX daily coverage. Use it to populate dropdowns or validate date inputs
+without hardcoding what the gem already knows.
+
+```ruby
+Timeprice.metadata
+# => {
+#   version: "0.6.0",
+#   generated_at: "2026-05-12",
+#   countries: [
+#     { code: "US", name: "United States", currency: "USD",
+#       granularities: ["monthly", "annual"],
+#       cpi: { monthly: { min: "1990-01", max: "2026-03" },
+#              annual:  { min: "1990",    max: "2024"    } } },
+#     ...
+#   ],
+#   currencies: [{ code: "USD", name: "US dollar" }, ...],
+#   fx: { base: "USD", daily_min: "1999-01-04", daily_max: "2026-05-11" }
+# }
+```
+
+The browser calculator linked at the top of this README is the canonical consumer —
+it reads metadata at boot so the UI never disagrees with the dataset.
+
 ## Supported countries, currencies, and data ranges
 
 Coverage is derived from the bundled `data/` files. Re-check with `timeprice sources`.
@@ -102,7 +131,7 @@ Coverage is derived from the bundled `data/` files. Re-check with `timeprice sou
 | Australia | AUD | ABS 6401.0 (quarterly) + World Bank `FP.CPI.TOTL` (annual baseline) | Quarterly + annual | 1948-Q3 → present |
 | Canada | CAD | Statistics Canada WDS (table 18-10-0004-01, vector `v41690973`) + World Bank annual baseline | Monthly + annual | 1914-01 → present |
 | Korea (Rep.) | KRW | IMF Data Portal CPI dataflow + World Bank annual baseline | Monthly + annual | 1990-01 → present |
-| China | CNY | World Bank `FP.CPI.TOTL` (annual primary) + IMF Data Portal CPI dataflow (monthly layer) | Monthly + annual | 1990-01 → present |
+| China | CNY | World Bank `FP.CPI.TOTL` (annual primary) + IMF Data Portal CPI dataflow (monthly layer) | Monthly + annual | 1993-01 → present |
 | Russia | RUB | World Bank `FP.CPI.TOTL` (annual primary) + IMF Data Portal CPI dataflow (monthly layer) | Monthly + annual | 1992-01 → present |
 
 **FX (USD base):** ECB reference rates via Frankfurter for **EUR / GBP / JPY / AUD /
