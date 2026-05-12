@@ -12,4 +12,9 @@ bundle exec rbwasm build \
   --target wasm32-unknown-wasip1 \
   -o public/timeprice.wasm
 
-ls -lh public/timeprice.wasm
+# GitHub Pages does not auto-compress .wasm responses, so we ship pre-gzipped
+# and decompress in the browser via DecompressionStream. Cuts the over-the-wire
+# size from ~52MB to ~17MB.
+gzip -kf -9 public/timeprice.wasm
+
+ls -lh public/timeprice.wasm public/timeprice.wasm.gz

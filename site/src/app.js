@@ -1,4 +1,4 @@
-const WASM_URL = "./public/timeprice.wasm";
+const WASM_URL = "./public/timeprice.wasm.gz";
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -189,8 +189,10 @@ async function bootRuby() {
     const { DefaultRubyVM } = await import("https://cdn.jsdelivr.net/npm/@ruby/wasm-wasi@2/dist/browser/+esm");
     const response = await fetch(WASM_URL);
     if (!response.ok) throw new Error(`HTTP ${response.status} fetching wasm`);
-    const buffer = await response.arrayBuffer();
-    const module = await WebAssembly.compile(buffer);
+    const decompressed = response.body.pipeThrough(new DecompressionStream("gzip"));
+    const module = await WebAssembly.compileStreaming(new Response(decompressed, {
+      headers: { "Content-Type": "application/wasm" },
+    }));
     const { vm } = await DefaultRubyVM(module);
     vm.eval(`require "/bundle/setup"`);
     state.vm = vm;

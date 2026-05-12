@@ -4,3 +4,4 @@ build/
 rubies/
 Gemfile.lock
 public/timeprice.wasm
+public/timeprice.wasm.gz
