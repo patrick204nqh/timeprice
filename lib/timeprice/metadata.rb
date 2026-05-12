@@ -52,7 +52,7 @@ module Timeprice
         generated_at: manifest["generated_at"],
         countries: countries,
         currencies: currencies,
-        fx: fx_entry(manifest),
+        fx: fx_entry(manifest)
       )
     end
 
