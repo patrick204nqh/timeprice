@@ -9,6 +9,7 @@ require_relative "timeprice/inflation"
 require_relative "timeprice/exchange"
 require_relative "timeprice/compare"
 require_relative "timeprice/sources"
+require_relative "timeprice/metadata"
 
 # Offline historical inflation & FX for Ruby.
 #
@@ -61,5 +62,15 @@ module Timeprice
   # @return [CompareResult]
   def compare(amount:, from:, to:)
     Compare.run(amount: amount, from: from, to: to)
+  end
+
+  # Snapshot describing the bundled dataset: version, refresh date, country
+  # list with CPI ranges, currency list with display names, and FX coverage.
+  # Intended as the single source of truth for downstream UIs (the website
+  # in particular) so dropdowns and date pickers never drift from the data.
+  #
+  # @return [Hash] frozen, JSON-serialisable
+  def metadata
+    Metadata.build
   end
 end
