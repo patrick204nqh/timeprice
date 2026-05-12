@@ -61,12 +61,17 @@ function countryFor(currency) {
       || currency;
 }
 
+function countryNameFor(currency) {
+  const meta = state.metadata?.countries?.find((c) => c.currency === currency);
+  return meta?.name || countryFor(currency);
+}
+
 function modeLabel(mode, f) {
   switch (mode) {
-    case "inflation": return `Inflation — ${countryFor(f.toCurrency)} CPI`;
+    case "inflation": return `Inflation — ${countryNameFor(f.toCurrency)}`;
     case "fx":        return "Exchange rate";
-    case "compare":   return "FX + Inflation";
-    default:          return "Same currency, same date";
+    case "compare":   return "Currency + inflation";
+    default:          return "Same currency, same year";
   }
 }
 
@@ -83,15 +88,26 @@ function metaLine(mode, r, f) {
   }
 }
 
+// Disambiguate the source side in the hero whenever the two sides aren't
+// the same currency — "$" alone reads as USD/AUD/CAD ambiguously, "$100 USD"
+// doesn't. When source and dest dates match (FX mode), drop the trailing
+// "in YYYY" on the right so the sentence doesn't double up.
 export function renderHero(out) {
   const f = state.form;
   const sym = symbolFor(f.fromCurrency);
-  setText("#hero-from", `${sym}${fmtNumber(f.amount, decimalsFor(f.fromCurrency))} in ${humanDate(fromGemDate(f))}`);
+  const fromDateStr = humanDate(fromGemDate(f));
+  const showFromCode = f.fromCurrency !== f.toCurrency;
+  const fromCode = showFromCode ? ` ${f.fromCurrency}` : "";
+  setText("#hero-from", `${sym}${fmtNumber(f.amount, decimalsFor(f.fromCurrency))}${fromCode} in ${fromDateStr}`);
   if (out) {
     const toSym = symbolFor(out.to_currency || f.toCurrency);
-    setText("#hero-to", `${toSym}${fmtNumber(out.amount, decimalsFor(out.to_currency))} in ${humanDate(out.to_date)}`);
+    const toCode = showFromCode ? ` ${out.to_currency}` : "";
+    const sameDate = out.from_date === out.to_date;
+    const tail = sameDate ? "" : ` in ${humanDate(out.to_date)}`;
+    setText("#hero-to", `${toSym}${fmtNumber(out.amount, decimalsFor(out.to_currency))}${toCode}${tail}`);
   } else {
-    setText("#hero-to", `… in ${humanDate(toGemDate(f))}`);
+    const sameDate = fromGemDate(f) === toGemDate(f);
+    setText("#hero-to", sameDate ? "…" : `… in ${humanDate(toGemDate(f))}`);
   }
 }
 
@@ -196,11 +212,12 @@ function validateForm(f, mode) {
     if (widest) {
       const min = Number(widest.min.slice(0, 4));
       const max = Number(widest.max.slice(0, 4));
+      const cName = countryNameFor(f.toCurrency);
       if (toYear < min || fromYear < min) {
-        return `${country} CPI data starts ${min}. Pick a year from ${min} on.`;
+        return `${cName} inflation data starts ${min}. Pick a year from ${min} on.`;
       }
       if (toYear > max || fromYear > max) {
-        return `${country} CPI data ends ${max}. Pick a year up to ${max}.`;
+        return `${cName} inflation data ends ${max}. Pick a year up to ${max}.`;
       }
     }
   }
@@ -263,6 +280,36 @@ export function compute() {
   }
 }
 
+// Day pickers in the "Use specific dates" disclosure must reflect whatever
+// the active mode allows. FX/compare are limited by daily FX coverage;
+// inflation is limited by the destination country's CPI window (which may
+// extend before FX coverage starts).
+export function refreshDateBounds() {
+  const f = state.form;
+  const mode = deriveMode(f);
+  const fromEl = $("#from-date");
+  const toEl = $("#to-date");
+  if (!fromEl || !toEl) return;
+
+  if (mode === "inflation" || mode === "identity") {
+    const c = state.metadata?.countries?.find((x) => x.currency === f.toCurrency);
+    const widest = c && (c.cpi.monthly || c.cpi.quarterly || c.cpi.annual);
+    if (widest) {
+      // Monthly grain is "YYYY-MM"; promote to a YYYY-MM-DD bound.
+      const min = widest.min.length === 7 ? `${widest.min}-01` : widest.min;
+      const max = widest.max.length === 7 ? `${widest.max}-28` : widest.max;
+      fromEl.min = toEl.min = min;
+      fromEl.max = toEl.max = max;
+      return;
+    }
+  }
+  const fx = state.metadata?.fx;
+  if (fx?.daily_min && fx?.daily_max) {
+    fromEl.min = toEl.min = fx.daily_min;
+    fromEl.max = toEl.max = fx.daily_max;
+  }
+}
+
 // Range hint reflects the destination country's CPI window (the binding
 // constraint when inflation is in play). Currency-only mode (same date) is
 // FX-limited and gets its hint from FX coverage.
@@ -278,11 +325,10 @@ export function refreshRangeHint() {
     }
     return;
   }
-  const country = countryFor(f.toCurrency);
-  const c = state.metadata?.countries?.find((x) => x.code === country);
+  const c = state.metadata?.countries?.find((x) => x.currency === f.toCurrency);
   if (!c) { setText("#calc-range-hint", ""); return; }
   const cpi = c.cpi || {};
   const widest = cpi.monthly || cpi.quarterly || cpi.annual;
   if (!widest) { setText("#calc-range-hint", ""); return; }
-  setText("#calc-range-hint", `${country} CPI coverage: ${widest.min.slice(0, 4)} – ${widest.max.slice(0, 4)}`);
+  setText("#calc-range-hint", `${c.name} inflation data: ${widest.min.slice(0, 4)} – ${widest.max.slice(0, 4)}`);
 }

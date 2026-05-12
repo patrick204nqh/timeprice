@@ -1,6 +1,6 @@
 import { $ } from "./dom.js";
 import { state } from "./state.js";
-import { readForm, renderSnippet, renderHero, compute, refreshRangeHint } from "./compute.js";
+import { readForm, renderSnippet, renderHero, renderEmpty, compute, refreshRangeHint, refreshDateBounds } from "./compute.js";
 import { writeUrl } from "./url.js";
 
 let calcTimer = null;
@@ -18,8 +18,13 @@ const INPUT_SELECTORS = [
 function onInput() {
   readForm();
   renderSnippet();
-  renderHero(null);
+  // Clear the static result markup as soon as the user edits anything — the
+  // pre-rendered "$242.09 USD" only matches the page defaults, and watching
+  // it contradict a fresh "From" choice is the worst kind of stale.
+  if (!state.vm) renderEmpty("Warming up Ruby VM…");
+  else renderHero(null);
   refreshRangeHint();
+  refreshDateBounds();
   writeUrl();
   scheduleCalc();
 }
@@ -49,7 +54,10 @@ export function bindCalcForm() {
   if (toggle && wrap) {
     toggle.addEventListener("click", () => {
       wrap.hidden = !wrap.hidden;
-      toggle.textContent = wrap.hidden ? "Use specific dates" : "Use year only";
+      const label = $("#precise-toggle-label");
+      const icon = $("#precise-toggle-icon");
+      if (label) label.textContent = wrap.hidden ? "Use specific dates" : "Use year only";
+      if (icon) icon.textContent = wrap.hidden ? "▸" : "▾";
       // Seed the day pickers with mid-year of the current year inputs when
       // the user opens the disclosure for the first time. Keeps the result
       // stable across the toggle.
@@ -88,12 +96,14 @@ export function bindExampleChips() {
     $("#to-year").value = toDate;
     // Reset to year-only when a chip is clicked — chips are the simple path.
     const wrap = $("#precise-wrap");
-    const toggle = $("#precise-toggle");
     if (wrap && !wrap.hidden) {
       wrap.hidden = true;
       $("#from-date").value = "";
       $("#to-date").value = "";
-      if (toggle) toggle.textContent = "Use specific dates";
+      const label = $("#precise-toggle-label");
+      const icon = $("#precise-toggle-icon");
+      if (label) label.textContent = "Use specific dates";
+      if (icon) icon.textContent = "▸";
     }
     onInput();
   });

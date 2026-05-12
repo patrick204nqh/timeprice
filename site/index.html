@@ -44,7 +44,7 @@
       <span class="tabular text-emerald-700 dark:text-emerald-400" id="hero-to">$242.09 in 2024</span><span class="text-stone-500">.</span>
     </h1>
     <p class="mt-4 text-stone-600 dark:text-stone-400 max-w-2xl">
-      Drop in any amount, year, and country to ask a different question. Inflation and exchange-rate data ship inside a Ruby gem — covering <span id="meta-country-count">10</span> countries — so nothing here calls out to an API.
+      Drop in any amount, currency, and year to ask a different question. Inflation and exchange-rate data ship inside a Ruby gem — covering <span id="meta-country-count">10</span> countries — so nothing here calls out to an API.
     </p>
   </section>
 
@@ -111,8 +111,9 @@
 
         <div>
           <button id="precise-toggle" type="button"
-                  class="text-xs text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 underline-offset-2 hover:underline">
-            Use specific dates
+                  class="text-xs text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 underline underline-offset-4 decoration-dotted">
+            <span id="precise-toggle-icon" class="inline-block w-3 text-center">▸</span>
+            <span id="precise-toggle-label">Use specific dates</span>
           </button>
           <div id="precise-wrap" hidden class="mt-2 grid grid-cols-2 gap-3">
             <div>

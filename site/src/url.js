@@ -41,9 +41,11 @@ function needsPrecise(spec) {
 
 function openPrecise() {
   const wrap = $("#precise-wrap");
-  const toggle = $("#precise-toggle");
   if (wrap) wrap.hidden = false;
-  if (toggle) toggle.textContent = "Use year only";
+  const label = $("#precise-toggle-label");
+  const icon = $("#precise-toggle-icon");
+  if (label) label.textContent = "Use year only";
+  if (icon) icon.textContent = "▾";
 }
 
 export function writeUrl() {

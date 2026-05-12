@@ -36,14 +36,6 @@ export function applyMetadata() {
   fillCurrencySelect("#from-currency", calcCurrencies);
   fillCurrencySelect("#to-currency", calcCurrencies);
 
-  // Date picker bounds.
-  if (fx?.daily_min && fx?.daily_max) {
-    for (const sel of ["#from-date", "#to-date"]) {
-      const el = $(sel);
-      if (el) { el.min = fx.daily_min; el.max = fx.daily_max; }
-    }
-  }
-
   // Year inputs span the widest available CPI window so users can ask
   // century-old questions where data exists.
   const cpiMinYear = countries.reduce((acc, c) => {
