@@ -115,7 +115,8 @@ async function calculate() {
 
 function bindTabs() {
   for (const t of document.querySelectorAll(".tab")) {
-    t.addEventListener("click", () => {
+    t.addEventListener("click", (e) => {
+      if (t.getAttribute("aria-disabled") === "true") { e.preventDefault(); return; }
       const name = t.dataset.tab;
       state.tab = name;
       document.querySelectorAll(".tab").forEach(el => {
@@ -123,7 +124,9 @@ function bindTabs() {
         el.setAttribute("aria-selected", sel);
         el.classList.toggle("bg-stone-200", sel);
         el.classList.toggle("dark:bg-stone-800", sel);
-        el.classList.toggle("text-stone-500", !sel);
+        if (el.getAttribute("aria-disabled") !== "true") {
+          el.classList.toggle("text-stone-500", !sel);
+        }
       });
       document.querySelectorAll(".panel").forEach(p => {
         p.classList.toggle("hidden", p.dataset.panel !== name);
