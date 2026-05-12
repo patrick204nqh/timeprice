@@ -154,9 +154,68 @@ export function renderSnippet() {
   setText("#snippet", `require "timeprice"\n\n${body}`);
 }
 
-function cleanError(e) {
-  const raw = (e && e.message) ? String(e.message) : String(e);
-  return raw.split("\n")[0].replace(/^Error:\s*/, "").trim() || "Calculation failed.";
+// Translate gem error messages into something a civilian can act on. The
+// gem's defaults are technically accurate but full of jargon — "Date "1850"
+// out of supported range" tells the user what's wrong without telling them
+// what to do about it.
+function humaniseError(raw) {
+  const first = raw.split("\n")[0].replace(/^Error:\s*/, "").trim();
+
+  // Date "1850" out of supported range "1990-01".."2026-03"
+  const oor = first.match(/Date\s+"([^"]+)"\s+out of supported range\s+"([^"]+)"\.\."([^"]+)"/i);
+  if (oor) {
+    const minYear = oor[2].slice(0, 4);
+    const maxYear = oor[3].slice(0, 4);
+    return `That date is outside our data range. Try a year between ${minYear} and ${maxYear}.`;
+  }
+
+  if (/Unsupported currency/i.test(first)) {
+    return "That currency isn't in our dataset — pick one from the dropdown.";
+  }
+  if (/Unsupported country/i.test(first)) {
+    return "That country isn't in our dataset — pick one from the dropdown.";
+  }
+  if (/Data not found|No FX data/i.test(first)) {
+    return "No data point for that combination. Try a nearby year.";
+  }
+  return first || "Calculation failed.";
+}
+
+// Pre-VM validation. Catches the obvious "wrong year" mistakes without
+// round-tripping through the VM — and lets us reference the destination
+// country by name when explaining the bound.
+function validateForm(f, mode) {
+  const fromYear = Number((f.fromDate || f.fromYear).slice(0, 4));
+  const toYear   = Number((f.toDate   || f.toYear).slice(0, 4));
+  if (!fromYear || !toYear) return null;
+
+  if (mode === "inflation" || mode === "compare") {
+    const country = countryFor(f.toCurrency);
+    const c = state.metadata?.countries?.find((x) => x.code === country);
+    const widest = c && (c.cpi.monthly || c.cpi.quarterly || c.cpi.annual);
+    if (widest) {
+      const min = Number(widest.min.slice(0, 4));
+      const max = Number(widest.max.slice(0, 4));
+      if (toYear < min || fromYear < min) {
+        return `${country} CPI data starts ${min}. Pick a year from ${min} on.`;
+      }
+      if (toYear > max || fromYear > max) {
+        return `${country} CPI data ends ${max}. Pick a year up to ${max}.`;
+      }
+    }
+  }
+
+  if (mode === "fx" || mode === "compare") {
+    const fx = state.metadata?.fx;
+    if (fx?.daily_min && fx?.daily_max) {
+      const min = Number(fx.daily_min.slice(0, 4));
+      const max = Number(fx.daily_max.slice(0, 4));
+      const yearToCheck = mode === "fx" ? fromYear : fromYear;
+      if (yearToCheck < min) return `FX rates start ${min}. Pick a year from ${min} on.`;
+      if (yearToCheck > max) return `FX rates end ${max}. Pick a year up to ${max}.`;
+    }
+  }
+  return null;
 }
 
 export function compute() {
@@ -177,6 +236,12 @@ export function compute() {
     return;
   }
 
+  const validation = validateForm(f, mode);
+  if (validation) {
+    renderError(validation);
+    return;
+  }
+
   try {
     // Always go through Timeprice.compare. Inflation = same currency on both
     // sides (Compare's FX leg is a no-op rate of 1). FX = same date on both
@@ -193,7 +258,8 @@ export function compute() {
     renderResult(JSON.parse(rb.toString()), mode);
   } catch (e) {
     console.error(e);
-    renderError(cleanError(e));
+    const raw = (e && e.message) ? String(e.message) : String(e);
+    renderError(humaniseError(raw));
   }
 }
 

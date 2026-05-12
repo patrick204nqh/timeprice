@@ -176,12 +176,35 @@
       <details class="rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden group" open>
         <summary class="px-4 py-2.5 border-b border-stone-200 dark:border-stone-800 cursor-pointer flex items-center justify-between hover:bg-stone-50 dark:hover:bg-stone-900/50">
           <div>
+            <div class="text-sm font-semibold">One call that handles any "X then in currency A, how much now in currency B?"</div>
+            <div class="text-xs text-stone-500 mt-0.5">The calculator above is this method, wrapped in a form. Same currency on both sides = inflation. Same year = FX. Different = both.</div>
+          </div>
+          <span class="text-stone-400 text-lg leading-none group-open:rotate-45 transition-transform">+</span>
+        </summary>
+<pre class="bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto"><code class="mono">require "timeprice"
+
+# Pure inflation — same currency, two years
+Timeprice.compare(amount: 100, from: ["USD", "1990"], to: ["USD", "2024"]).amount
+# =&gt; 240.08
+
+# Pure FX — same year, two currencies
+Timeprice.compare(amount: 100, from: ["USD", "2010"], to: ["JPY", "2010"]).amount
+# =&gt; 8866.0
+
+# Cross-cross — FX at the source date, then inflate in the destination economy
+Timeprice.compare(amount: 100, from: ["USD", "2010"], to: ["VND", "2024"]).amount
+# =&gt; 2_932_417.0</code></pre>
+      </details>
+
+      <details class="rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden group">
+        <summary class="px-4 py-2.5 cursor-pointer flex items-center justify-between hover:bg-stone-50 dark:hover:bg-stone-900/50">
+          <div>
             <div class="text-sm font-semibold">Rails view helper for "today's money"</div>
             <div class="text-xs text-stone-500 mt-0.5">Drop into <span class="mono">app/helpers/</span> and call from any view.</div>
           </div>
           <span class="text-stone-400 text-lg leading-none group-open:rotate-45 transition-transform">+</span>
         </summary>
-<pre class="bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto"><code class="mono"># app/helpers/price_helper.rb
+<pre class="bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto border-t border-stone-200 dark:border-stone-800"><code class="mono"># app/helpers/price_helper.rb
 module PriceHelper
   def in_todays_money(amount, year:, country: "US")
     today  = Date.today.strftime("%Y-%m")
@@ -229,27 +252,6 @@ fun_fact(100, 1990)
 # =&gt; "$100 in 1990 is $242.09 today (US)"</code></pre>
       </details>
 
-      <details class="rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden group">
-        <summary class="px-4 py-2.5 cursor-pointer flex items-center justify-between hover:bg-stone-50 dark:hover:bg-stone-900/50">
-          <div>
-            <div class="text-sm font-semibold">Cross-currency, cross-decade compare</div>
-            <div class="text-xs text-stone-500 mt-0.5">"What is \$100 of 2010 USD worth as 2024 VND?" — FX and inflation in one call.</div>
-          </div>
-          <span class="text-stone-400 text-lg leading-none group-open:rotate-45 transition-transform">+</span>
-        </summary>
-<pre class="bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto border-t border-stone-200 dark:border-stone-800"><code class="mono">pairs = [
-  [%w[USD 2010], %w[VND 2024]],
-  [%w[JPY 2010], %w[USD 2024]],
-  [%w[EUR 2010], %w[GBP 2024]],
-]
-
-pairs.each do |from, to|
-  r = Timeprice.compare(amount: 100, from: from, to: to)
-  printf("%s %s → %s %s: %12.2f %s\n",
-         from[0], from[1], to[0], to[1], r.amount, r.to_currency)
-end</code></pre>
-      </details>
-
     </div>
   </section>
 
@@ -271,10 +273,9 @@ end</code></pre>
     <h2 class="text-sm font-semibold uppercase tracking-wider text-stone-500 mb-3">Methodology &amp; accuracy</h2>
     <div class="rounded-xl border border-stone-200 dark:border-stone-800 p-4 sm:p-6 space-y-3 text-sm">
       <p>
-        <span class="font-semibold">Cross-check:</span> our default answer of
-        <span class="mono">$242.09</span> for $100 USD inflation-adjusted from 1990-01 to 2024-01 matches the
-        <a href="https://www.bls.gov/data/inflation_calculator.htm" class="underline">official BLS calculator's $242.10</a>
-        to within one cent of rounding.
+        <span class="font-semibold">Cross-check:</span> for $100 USD from 1990 to 2024, the
+        <a href="https://www.bls.gov/data/inflation_calculator.htm" class="underline">official BLS calculator</a>
+        agrees with us to within a cent of rounding. Pick a specific date (Jun 15 etc.) and we'll match the BLS monthly answer just as closely.
       </p>
       <p class="text-stone-600 dark:text-stone-400">
         <span class="font-semibold text-stone-700 dark:text-stone-300">How it works.</span>
