@@ -1,0 +1,6 @@
+# CODEOWNERS — see https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Catch-all: anything that doesn't match a more specific rule below.
+# Solo repo today, but the file is in place so future contributors get the
+# right review request automatically.
+*                       @patrick204nqh
