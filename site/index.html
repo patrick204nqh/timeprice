@@ -246,6 +246,78 @@
   </section>
 
   <section>
+    <h2 class="text-sm font-semibold uppercase tracking-wider text-stone-500 mb-3">Recipes</h2>
+    <div class="space-y-4">
+
+      <div class="rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden">
+        <div class="px-4 py-2.5 border-b border-stone-200 dark:border-stone-800">
+          <div class="text-sm font-semibold">Rails view helper for "today's money"</div>
+          <div class="text-xs text-stone-500 mt-0.5">Drop into <span class="mono">app/helpers/</span> and call from any view.</div>
+        </div>
+<pre class="bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto"><code class="mono"># app/helpers/price_helper.rb
+module PriceHelper
+  def in_todays_money(amount, year:, country: "US")
+    today  = Date.today.strftime("%Y-%m")
+    result = Timeprice.inflation(amount: amount, from: year, to: today, country: country)
+    number_to_currency(result.amount)
+  end
+end
+
+# in_todays_money(2.50, year: "1955")  =>  "$30.12"</code></pre>
+      </div>
+
+      <div class="rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden">
+        <div class="px-4 py-2.5 border-b border-stone-200 dark:border-stone-800">
+          <div class="text-sm font-semibold">Real-terms salary history</div>
+          <div class="text-xs text-stone-500 mt-0.5">Restate past pay in current dollars to see whether raises kept up.</div>
+        </div>
+<pre class="bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto"><code class="mono">salaries = { "2015" =&gt; 65_000, "2020" =&gt; 78_000, "2024" =&gt; 92_000 }
+
+real = salaries.transform_values do |amount, year = _1|
+  Timeprice.inflation(amount: amount, from: year, to: "2024", country: "US").amount.round
+end
+
+# =&gt; {"2015"=&gt;84_953, "2020"=&gt;91_402, "2024"=&gt;92_000}
+#    The 2020 raise was a real-terms cut.</code></pre>
+      </div>
+
+      <div class="rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden">
+        <div class="px-4 py-2.5 border-b border-stone-200 dark:border-stone-800">
+          <div class="text-sm font-semibold">"$X then is $Y today" fun fact</div>
+          <div class="text-xs text-stone-500 mt-0.5">For blog posts, social media, or chat-bot replies.</div>
+        </div>
+<pre class="bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto"><code class="mono">def fun_fact(amount, from_year, country: "US")
+  to    = Date.today.strftime("%Y-%m")
+  r     = Timeprice.inflation(amount: amount, from: from_year.to_s, to: to, country: country)
+  "$#{amount} in #{from_year} is $#{r.amount.round(2)} today (#{country})"
+end
+
+fun_fact(100, 1990)
+# =&gt; "$100 in 1990 is $242.09 today (US)"</code></pre>
+      </div>
+
+      <div class="rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden">
+        <div class="px-4 py-2.5 border-b border-stone-200 dark:border-stone-800">
+          <div class="text-sm font-semibold">Cross-currency, cross-decade compare</div>
+          <div class="text-xs text-stone-500 mt-0.5">"What is \$100 of 2010 USD worth as 2024 VND?" — FX and inflation in one call.</div>
+        </div>
+<pre class="bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto"><code class="mono">pairs = [
+  [%w[USD 2010], %w[VND 2024]],
+  [%w[JPY 2010], %w[USD 2024]],
+  [%w[EUR 2010], %w[GBP 2024]],
+]
+
+pairs.each do |from, to|
+  r = Timeprice.compare(amount: 100, from: from, to: to)
+  printf("%s %s → %s %s: %12.2f %s\n",
+         from[0], from[1], to[0], to[1], r.amount, r.to_currency)
+end</code></pre>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
     <h2 class="text-sm font-semibold uppercase tracking-wider text-stone-500 mb-3">Data sources</h2>
     <div class="rounded-xl border border-stone-200 dark:border-stone-800 divide-y divide-stone-200 dark:divide-stone-800 text-sm">
       <div class="grid grid-cols-12 gap-3 px-4 py-3 mono"><span class="col-span-2 font-semibold">US</span><span class="col-span-5 text-stone-600 dark:text-stone-400">CPI-U, US BLS</span><span class="col-span-3 text-stone-500">1913–present</span><span class="col-span-2 text-stone-500 text-right">CC0</span></div>
