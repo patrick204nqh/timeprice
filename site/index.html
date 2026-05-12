@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en" class="h-full">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>timeprice · offline historical inflation & FX for Ruby</title>
+<meta name="description" content="A Ruby gem that ships historical inflation and FX data inside the gem. No API keys, no rate limits, no network. Try the calculator — it runs the actual gem in your browser.">
+
+<meta property="og:title" content="timeprice — offline historical inflation & FX for Ruby">
+<meta property="og:description" content="Ships data inside the gem. Try the calculator — it runs the actual gem in your browser.">
+<meta property="og:type" content="website">
+
+<link rel="preload" href="./public/timeprice.wasm" as="fetch" type="application/wasm" crossorigin>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  code, pre, .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
+  .tabular { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+
+<body class="min-h-full bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100">
+
+<header class="border-b border-stone-200 dark:border-stone-800">
+  <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+    <div class="flex items-baseline gap-3">
+      <span class="font-semibold text-lg mono">timeprice</span>
+      <span class="hidden sm:inline text-sm text-stone-500">offline historical inflation & FX for Ruby</span>
+    </div>
+    <nav class="flex gap-4 text-sm">
+      <a href="https://github.com/patrick204nqh/timeprice" class="hover:underline">GitHub</a>
+      <a href="https://rubygems.org/gems/timeprice" class="hover:underline">RubyGems</a>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-4xl mx-auto px-4 py-8 space-y-8">
+
+  <section>
+    <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">What was $100 in 1990 worth today?</h1>
+    <p class="mt-3 text-stone-600 dark:text-stone-400 max-w-2xl">
+      <span class="mono">timeprice</span> ships every byte of historical CPI and FX data inside the gem.
+      No API keys, no rate limits, no network. Try it below — the calculator runs the actual gem in your browser.
+    </p>
+
+    <div class="mt-5 flex items-center gap-2">
+      <pre class="flex-1 px-4 py-2.5 rounded-md bg-stone-900 text-stone-100 text-sm overflow-x-auto"><code>gem install timeprice</code></pre>
+      <button data-copy="gem install timeprice" class="px-3 py-2.5 text-sm rounded-md border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-900">copy</button>
+    </div>
+  </section>
+
+  <section class="rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 overflow-hidden">
+
+    <div class="px-4 py-2.5 border-b border-stone-200 dark:border-stone-800 flex items-center justify-between text-xs">
+      <div class="flex gap-1" role="tablist">
+        <button data-tab="inflation" class="tab px-3 py-1.5 rounded-md font-medium" aria-selected="true">Inflation</button>
+        <button data-tab="fx"        class="tab px-3 py-1.5 rounded-md text-stone-500" aria-selected="false">FX</button>
+        <button data-tab="compare"   class="tab px-3 py-1.5 rounded-md text-stone-500" aria-selected="false">Compare</button>
+      </div>
+      <div id="vm-pill" class="flex items-center gap-1.5 text-stone-500">
+        <span id="vm-dot" class="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+        <span id="vm-label">Ruby VM warming…</span>
+      </div>
+    </div>
+
+    <div data-panel="inflation" class="panel p-4 sm:p-6">
+      <div class="grid sm:grid-cols-2 gap-4 sm:gap-6">
+
+        <form id="inf-form" class="space-y-3">
+          <div>
+            <label class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">Amount</label>
+            <input id="inf-amount" type="number" step="any" value="100"
+                   class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">From</label>
+              <input id="inf-from" type="month" value="1990-01"
+                     class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">To</label>
+              <input id="inf-to" type="month" value="2024-01"
+                     class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">Country</label>
+            <select id="inf-country" class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
+              <option value="US">US — United States (USD)</option>
+              <option value="UK">UK — United Kingdom (GBP)</option>
+              <option value="EU">EU — Eurozone (EUR)</option>
+              <option value="JP">JP — Japan (JPY)</option>
+              <option value="VN">VN — Vietnam (VND)</option>
+            </select>
+          </div>
+          <button id="inf-calc" type="submit"
+                  class="w-full px-4 py-2.5 rounded-md bg-stone-900 dark:bg-stone-100 text-stone-100 dark:text-stone-900 font-medium hover:opacity-90 disabled:opacity-50"
+                  disabled>
+            Calculate
+          </button>
+        </form>
+
+        <div id="inf-result" class="rounded-md bg-stone-100 dark:bg-stone-800/50 p-4 flex flex-col justify-center">
+          <div class="text-xs text-stone-500 mb-1">Result</div>
+          <div class="tabular text-2xl font-semibold" id="inf-amount-out">242.09 USD</div>
+          <div class="text-sm text-stone-600 dark:text-stone-400" id="inf-detail">100 USD (1990-01) → 242.09 USD (2024-01)</div>
+          <div class="mt-3 text-xs text-stone-500 mono" id="inf-meta">CPI 127.4 → 308.4 · US · monthly</div>
+        </div>
+
+      </div>
+
+      <div class="mt-6">
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-xs font-medium text-stone-600 dark:text-stone-400">Equivalent code</div>
+          <div class="flex gap-1 text-xs">
+            <button data-snippet="ruby" class="snip-toggle px-2.5 py-1 rounded mono font-medium" aria-selected="true">timeprice</button>
+            <button data-snippet="api"  class="snip-toggle px-2.5 py-1 rounded mono text-stone-500" aria-selected="false">with API</button>
+          </div>
+        </div>
+        <div class="relative">
+          <pre class="rounded-md bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto"><code id="snippet" class="mono"></code></pre>
+          <button id="snip-copy" class="absolute top-2 right-2 px-2 py-1 text-xs rounded bg-stone-700 hover:bg-stone-600 text-stone-100">copy</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div data-panel="fx" class="panel p-4 sm:p-6 hidden">
+      <div class="text-sm text-stone-500">FX calculator — coming next. The gem already supports it; the UI panel lands in the next iteration.</div>
+      <pre class="mt-3 rounded-md bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto"><code class="mono">Timeprice.exchange(amount: 100, from: "USD", to: "JPY", date: "2010-06-15")</code></pre>
+    </div>
+
+    <div data-panel="compare" class="panel p-4 sm:p-6 hidden">
+      <div class="text-sm text-stone-500">Compare across years and currencies — coming next.</div>
+      <pre class="mt-3 rounded-md bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto"><code class="mono">Timeprice.compare(amount: 100, from: "2010 USD", to: "2024 VND")</code></pre>
+    </div>
+
+  </section>
+
+  <section>
+    <h2 class="text-sm font-semibold uppercase tracking-wider text-stone-500 mb-3">Data sources</h2>
+    <div class="rounded-xl border border-stone-200 dark:border-stone-800 divide-y divide-stone-200 dark:divide-stone-800 text-sm">
+      <div class="grid grid-cols-12 gap-3 px-4 py-3 mono"><span class="col-span-2 font-semibold">US</span><span class="col-span-5 text-stone-600 dark:text-stone-400">CPI-U, US BLS</span><span class="col-span-3 text-stone-500">1913–present</span><span class="col-span-2 text-stone-500 text-right">CC0</span></div>
+      <div class="grid grid-cols-12 gap-3 px-4 py-3 mono"><span class="col-span-2 font-semibold">UK</span><span class="col-span-5 text-stone-600 dark:text-stone-400">CPI, ONS</span><span class="col-span-3 text-stone-500">1988–present</span><span class="col-span-2 text-stone-500 text-right">OGL-UK</span></div>
+      <div class="grid grid-cols-12 gap-3 px-4 py-3 mono"><span class="col-span-2 font-semibold">EU</span><span class="col-span-5 text-stone-600 dark:text-stone-400">HICP, Eurostat</span><span class="col-span-3 text-stone-500">1996–present</span><span class="col-span-2 text-stone-500 text-right">Eurostat</span></div>
+      <div class="grid grid-cols-12 gap-3 px-4 py-3 mono"><span class="col-span-2 font-semibold">JP</span><span class="col-span-5 text-stone-600 dark:text-stone-400">CPI, IMF/Statistics Bureau</span><span class="col-span-3 text-stone-500">1970–present</span><span class="col-span-2 text-stone-500 text-right">IMF</span></div>
+      <div class="grid grid-cols-12 gap-3 px-4 py-3 mono"><span class="col-span-2 font-semibold">VN</span><span class="col-span-5 text-stone-600 dark:text-stone-400">CPI, GSO/IMF</span><span class="col-span-3 text-stone-500">1996–present</span><span class="col-span-2 text-stone-500 text-right">IMF</span></div>
+      <div class="grid grid-cols-12 gap-3 px-4 py-3 mono"><span class="col-span-2 font-semibold">FX</span><span class="col-span-5 text-stone-600 dark:text-stone-400">Daily rates, ECB / IMF</span><span class="col-span-3 text-stone-500">1999–present</span><span class="col-span-2 text-stone-500 text-right">ECB/IMF</span></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="border-t border-stone-200 dark:border-stone-800 mt-12">
+  <div class="max-w-4xl mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-stone-500">
+    <div>MIT licensed · data licenses vary, see <a href="https://github.com/patrick204nqh/timeprice/blob/main/DATA_LICENSES.md" class="underline">DATA_LICENSES.md</a></div>
+    <div class="mono">timeprice runs in your browser via <a href="https://github.com/ruby/ruby.wasm" class="underline">ruby.wasm</a></div>
+  </div>
+</footer>
+
+<script type="module" src="./src/app.js"></script>
+
+</body>
+</html>

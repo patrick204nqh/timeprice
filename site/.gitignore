@@ -1,0 +1,6 @@
+vendor/
+.bundle/
+build/
+rubies/
+Gemfile.lock
+public/timeprice.wasm

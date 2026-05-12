@@ -1,0 +1,60 @@
+name: Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "lib/**"
+      - "data/**"
+      - "site/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: false
+
+      - name: Cache rbwasm CRuby build
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/rbwasm
+          key: rbwasm-${{ runner.os }}-ruby3.3-${{ hashFiles('site/Gemfile') }}
+
+      - name: Build timeprice.wasm
+        working-directory: site
+        run: ./build.sh
+
+      - name: Stage site
+        run: |
+          mkdir -p dist
+          cp -r site/index.html site/src site/public dist/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
