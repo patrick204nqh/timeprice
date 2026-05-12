@@ -2,6 +2,7 @@ import { $ } from "./dom.js";
 import { state } from "./state.js";
 import { readForm, applyRangeForCountry } from "./form.js";
 import { renderSnippet } from "./snippet.js";
+import { renderHero } from "./result.js";
 import { writeUrl } from "./url.js";
 import { calculate } from "./calculate.js";
 
@@ -71,6 +72,7 @@ export function bindForm() {
     $(sel).addEventListener("input", () => {
       readForm();
       renderSnippet();
+      renderHero(null);
       writeUrl();
       scheduleCalc();
     });
@@ -79,6 +81,7 @@ export function bindForm() {
     applyRangeForCountry($("#inf-country").value);
     readForm();
     renderSnippet();
+    renderHero(null);
     writeUrl();
     scheduleCalc();
   });

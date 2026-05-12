@@ -38,16 +38,14 @@
 <main class="max-w-4xl mx-auto px-4 py-8 space-y-8">
 
   <section>
-    <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">What was $100 in 1990 worth today?</h1>
-    <p class="mt-3 text-stone-600 dark:text-stone-400 max-w-2xl">
-      <span class="mono">timeprice</span> ships every byte of historical CPI and FX data inside the gem.
-      No API keys, no rate limits, no network. Try it below — the calculator runs the actual gem in your browser.
+    <h1 class="text-3xl sm:text-5xl font-bold tracking-tight leading-tight">
+      <span class="tabular" id="hero-from">$100 in 1990</span>
+      <span class="text-stone-500"> is worth </span>
+      <span class="tabular text-emerald-700 dark:text-emerald-400" id="hero-to">$242.09 in 2024</span><span class="text-stone-500">.</span>
+    </h1>
+    <p class="mt-4 text-stone-600 dark:text-stone-400 max-w-2xl">
+      Change any field below to ask a different question. Numbers come from BLS, ONS, Eurostat, and GSO/IMF — all packed into a Ruby gem that needs no API and no network.
     </p>
-
-    <div class="mt-5 flex items-center gap-2">
-      <pre class="flex-1 px-4 py-2.5 rounded-md bg-stone-900 text-stone-100 text-sm overflow-x-auto"><code>gem install timeprice</code></pre>
-      <button data-copy="gem install timeprice" class="px-3 py-2.5 text-sm rounded-md border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-900">copy</button>
-    </div>
   </section>
 
   <section class="rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 overflow-hidden">
@@ -135,6 +133,14 @@
       <pre class="mt-3 rounded-md bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto"><code class="mono">Timeprice.compare(amount: 100, from: "2010 USD", to: "2024 VND")</code></pre>
     </div>
 
+  </section>
+
+  <section>
+    <h2 class="text-sm font-semibold uppercase tracking-wider text-stone-500 mb-3">Use it in Ruby</h2>
+    <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+      <pre class="flex-1 px-4 py-2.5 rounded-md bg-stone-900 text-stone-100 text-sm overflow-x-auto"><code>gem install timeprice</code></pre>
+      <button data-copy="gem install timeprice" class="px-3 py-2.5 text-sm rounded-md border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-900">copy</button>
+    </div>
   </section>
 
   <section>
