@@ -19,3 +19,7 @@ export const RANGE_LABELS = {
   JP: "Jan 1971 – Dec 2024",
   VN: "Dec 2001 – Mar 2026",
 };
+
+export function currencyFor(country) {
+  return CURRENCIES[country] || "USD";
+}
