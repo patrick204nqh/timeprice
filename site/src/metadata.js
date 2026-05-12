@@ -79,10 +79,11 @@ export function applyMetadata() {
     fxDate.max = fx.daily_max;
   }
 
-  // Compare year inputs span FX coverage (broadest sensible default).
+  // Year inputs span FX coverage (broadest sensible default for FX year-only
+  // and compare year-only).
   const fxMinYear = fx.daily_min?.slice(0, 4);
   const fxMaxYear = fx.daily_max?.slice(0, 4);
-  for (const sel of ["#cmp-from-year", "#cmp-to-year"]) {
+  for (const sel of ["#fx-year", "#cmp-from-year", "#cmp-to-year"]) {
     const el = $(sel);
     if (el && fxMinYear && fxMaxYear) {
       el.min = fxMinYear;

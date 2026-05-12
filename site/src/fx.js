@@ -10,12 +10,24 @@ function humanDate(iso) {
   }).format(new Date(iso));
 }
 
+// Resolve the FX date input. If the user expanded "Use specific date" and
+// filled it in, that wins. Otherwise the year input is mapped to mid-year
+// (June 15) — the gem walks backward to the nearest trading day, so
+// mid-year is a safe, neutral default.
+function resolveDate() {
+  const dateEl = $("#fx-date");
+  const wrap = $("#fx-date-wrap");
+  if (wrap && !wrap.hidden && dateEl && dateEl.value) return dateEl.value;
+  const year = $("#fx-year").value;
+  return year ? `${year}-06-15` : "";
+}
+
 export function readFxForm() {
   state.fx = {
     amount: parseFloat($("#fx-amount").value) || 0,
     from: $("#fx-from").value,
     to: $("#fx-to").value,
-    date: $("#fx-date").value,
+    date: resolveDate(),
   };
 }
 

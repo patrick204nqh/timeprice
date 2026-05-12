@@ -172,9 +172,18 @@
             </select>
           </div>
           <div class="col-span-2">
-            <label for="fx-date" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">On date</label>
-            <input id="fx-date" type="date" value="2010-06-15" min="1999-01-04" max="2026-05-12"
+            <label for="fx-year" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">In year</label>
+            <input id="fx-year" type="number" value="2010" min="1999" max="2026" step="1"
                    class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
+            <button id="fx-date-toggle" type="button"
+                    class="mt-1 text-xs text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 underline-offset-2 hover:underline">
+              Use a specific date
+            </button>
+            <div id="fx-date-wrap" hidden class="mt-2">
+              <label for="fx-date" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">On date</label>
+              <input id="fx-date" type="date" min="1999-01-04" max="2026-05-12"
+                     class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
+            </div>
           </div>
         </form>
 

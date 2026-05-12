@@ -64,9 +64,25 @@ export function bindForm() {
 }
 
 export function bindFxForm() {
-  for (const sel of ["#fx-amount", "#fx-from", "#fx-to", "#fx-date"]) {
-    $(sel).addEventListener("input", scheduleFx);
-    $(sel).addEventListener("change", scheduleFx);
+  for (const sel of ["#fx-amount", "#fx-from", "#fx-to", "#fx-year", "#fx-date"]) {
+    const el = $(sel);
+    if (!el) continue;
+    el.addEventListener("input", scheduleFx);
+    el.addEventListener("change", scheduleFx);
+  }
+  const toggle = $("#fx-date-toggle");
+  const wrap = $("#fx-date-wrap");
+  const dateEl = $("#fx-date");
+  if (toggle && wrap && dateEl) {
+    toggle.addEventListener("click", () => {
+      wrap.hidden = !wrap.hidden;
+      toggle.textContent = wrap.hidden ? "Use a specific date" : "Use year only";
+      if (!wrap.hidden && !dateEl.value) {
+        const year = $("#fx-year").value || "2010";
+        dateEl.value = `${year}-06-15`;
+      }
+      scheduleFx();
+    });
   }
   $("#fx-form").addEventListener("submit", (e) => {
     e.preventDefault();
