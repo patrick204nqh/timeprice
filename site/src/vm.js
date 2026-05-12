@@ -5,6 +5,8 @@ import { calculate } from "./calculate.js";
 import { runFx } from "./fx.js";
 import { runCompare } from "./compare.js";
 import { renderError } from "./result.js";
+import { loadMetadata, applyMetadata } from "./metadata.js";
+import { applyRangeForCountry } from "./form.js";
 
 export function setVmState(state_, label, dotClass) {
   setText("#vm-label", label);
@@ -25,6 +27,10 @@ export async function bootRuby() {
     const { vm } = await DefaultRubyVM(module);
     vm.eval(`require "/bundle/setup"`);
     state.vm = vm;
+    if (loadMetadata()) {
+      applyMetadata();
+      applyRangeForCountry($("#inf-country").value);
+    }
     setVmState("ready", "Live · running in your browser", "bg-emerald-500");
     calculate();
     runFx();

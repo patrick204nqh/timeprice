@@ -1,25 +1,17 @@
 export const WASM_URL = "./public/timeprice.wasm.gz";
 
-export const CURRENCIES = { US: "USD", UK: "GBP", EU: "EUR", JP: "JPY", VN: "VND" };
+// Display symbols for currencies used in the hero. Pure presentation data
+// (not in the gem's domain), so it stays here.
+export const CURRENCY_SYMBOLS = { USD: "$", GBP: "£", EUR: "€", JPY: "¥", VND: "₫", AUD: "A$", CAD: "C$", CNY: "¥", KRW: "₩", RUB: "₽" };
 
-// Supported CPI ranges per country (monthly granularity; annual fallback may
-// extend earlier, but the <input type="month"> picker only takes months).
-export const RANGES = {
-  US: { min: "1990-01", max: "2026-03" },
-  UK: { min: "1988-01", max: "2026-03" },
-  EU: { min: "1996-01", max: "2025-12" },
-  JP: { min: "1971-01", max: "2024-12" },
-  VN: { min: "2001-12", max: "2026-03" },
-};
+// Pre-VM fallback used until Timeprice.metadata loads. The site needs *something*
+// to show in the first ~1 second before the wasm boots. Once metadata arrives,
+// these values are replaced — they're a courtesy, not the source of truth.
+export const FALLBACK_COUNTRY_CURRENCY = { US: "USD", UK: "GBP", EU: "EUR", JP: "JPY", VN: "VND" };
 
-export const RANGE_LABELS = {
-  US: "Jan 1990 – Mar 2026",
-  UK: "Jan 1988 – Mar 2026",
-  EU: "Jan 1996 – Dec 2025",
-  JP: "Jan 1971 – Dec 2024",
-  VN: "Dec 2001 – Mar 2026",
-};
+import { state } from "./state.js";
 
 export function currencyFor(country) {
-  return CURRENCIES[country] || "USD";
+  const fromMeta = state.metadata?.countries?.find((c) => c.code === country)?.currency;
+  return fromMeta || FALLBACK_COUNTRY_CURRENCY[country] || "USD";
 }

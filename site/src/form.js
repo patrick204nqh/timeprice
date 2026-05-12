@@ -1,6 +1,20 @@
-import { RANGES, RANGE_LABELS } from "./data.js";
 import { $, setText } from "./dom.js";
 import { state } from "./state.js";
+import { cpiMonthRange, rangeLabel } from "./metadata.js";
+
+// Pre-VM fallback for the five countries listed in index.html. Replaced by
+// metadata-derived ranges once the VM boots and Timeprice.metadata loads.
+const FALLBACK_RANGES = {
+  US: { min: "1990-01", max: "2026-03" },
+  UK: { min: "1988-01", max: "2026-03" },
+  EU: { min: "1996-01", max: "2025-12" },
+  JP: { min: "1971-01", max: "2024-12" },
+  VN: { min: "2001-12", max: "2026-03" },
+};
+
+function rangeFor(country) {
+  return cpiMonthRange(country) || FALLBACK_RANGES[country] || null;
+}
 
 export function readForm() {
   state.form = {
@@ -12,7 +26,7 @@ export function readForm() {
 }
 
 function clampMonth(value, country) {
-  const r = RANGES[country];
+  const r = rangeFor(country);
   if (!r || !value) return value;
   if (value < r.min) return r.min;
   if (value > r.max) return r.max;
@@ -20,7 +34,7 @@ function clampMonth(value, country) {
 }
 
 export function applyRangeForCountry(country) {
-  const r = RANGES[country];
+  const r = rangeFor(country);
   if (!r) return;
   for (const sel of ["#inf-from", "#inf-to"]) {
     const el = $(sel);
@@ -29,13 +43,14 @@ export function applyRangeForCountry(country) {
     const clamped = clampMonth(el.value, country);
     if (clamped !== el.value) el.value = clamped;
   }
-  setText("#inf-range-hint", `Data available: ${RANGE_LABELS[country]}`);
+  setText("#inf-range-hint", `Data available: ${rangeLabel(country) || `${r.min} – ${r.max}`}`);
 }
 
 export function validateRange(from, to, country) {
-  const r = RANGES[country];
+  const r = rangeFor(country);
   if (!r) return null;
-  const [minLabel, maxLabel] = RANGE_LABELS[country].split(" – ");
+  const label = rangeLabel(country) || `${r.min} – ${r.max}`;
+  const [minLabel, maxLabel] = label.split(" – ");
   if (from < r.min || to < r.min) return `${country} CPI data starts ${minLabel}.`;
   if (from > r.max || to > r.max) return `${country} CPI data ends ${maxLabel}.`;
   return null;
