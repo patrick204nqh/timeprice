@@ -64,6 +64,12 @@ function renderResult(result, country) {
   setText("#inf-meta", `CPI ${result.from_index} → ${result.to_index} · ${result.country} · ${result.granularity}`);
 }
 
+function renderEmpty(message = "Press Calculate once the Ruby VM is ready.") {
+  setText("#inf-amount-out", "—");
+  setText("#inf-detail", message);
+  setText("#inf-meta", "");
+}
+
 function renderError(message) {
   setText("#inf-amount-out", "—");
   setText("#inf-detail", message);
@@ -211,13 +217,16 @@ async function bootRuby() {
     state.vm = vm;
     setVmState("ready", "Live · running in your browser", "bg-emerald-500");
     $("#inf-calc").disabled = false;
+    calculate();
   } catch (e) {
     console.error(e);
     setVmState("error", "Ruby VM failed to load — see console", "bg-rose-500");
+    renderError("Ruby VM failed to load. Check your browser console.");
   }
 }
 
 readUrl();
+renderEmpty("Warming up Ruby VM…");
 renderSnippet();
 bindTabs();
 bindSnippetToggle();
