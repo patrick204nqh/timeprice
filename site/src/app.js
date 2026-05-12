@@ -1,6 +1,9 @@
 const WASM_URL = "./public/timeprice.wasm.gz";
 
+const CURRENCIES = { US: "USD", UK: "GBP", EU: "EUR", JP: "JPY", VN: "VND" };
+
 const $ = (sel) => document.querySelector(sel);
+const setText = (sel, text) => { const el = $(sel); if (el) el.textContent = text; };
 
 const state = {
   vm: null,
@@ -19,7 +22,7 @@ function readForm() {
 }
 
 function currencyFor(country) {
-  return { US: "USD", UK: "GBP", EU: "EUR", JP: "JPY", VN: "VND" }[country] || "USD";
+  return CURRENCIES[country] || "USD";
 }
 
 function renderSnippet() {
@@ -51,11 +54,24 @@ req["Authorization"] = "Bearer #{ENV.fetch('INFLATION_API_KEY')}"
 res = Net::HTTP.start(uri.host, uri.port, use_ssl: true) { |h| h.request(req) }
 raise "API error #{res.code}" unless res.is_a?(Net::HTTPSuccess)
 JSON.parse(res.body).fetch("amount")`;
-  $("#snippet").textContent = code;
+  setText("#snippet", code);
+}
+
+function renderResult(result, country) {
+  const cur = currencyFor(country);
+  setText("#inf-amount-out", `${fmtNumber(result.amount)} ${cur}`);
+  setText("#inf-detail", `${fmtNumber(result.original_amount)} ${cur} (${result.from}) → ${fmtNumber(result.amount)} ${cur} (${result.to})`);
+  setText("#inf-meta", `CPI ${result.from_index} → ${result.to_index} · ${result.country} · ${result.granularity}`);
+}
+
+function renderError(message) {
+  setText("#inf-amount-out", "—");
+  setText("#inf-detail", message);
+  setText("#inf-meta", "");
 }
 
 function setVmState(state_, label, dotClass) {
-  $("#vm-label").textContent = label;
+  setText("#vm-label", label);
   const dot = $("#vm-dot");
   dot.className = `inline-block w-2 h-2 rounded-full ${dotClass}`;
   $("#vm-pill").dataset.state = state_;
@@ -71,6 +87,7 @@ async function calculate() {
   const { amount, from, to, country } = state.form;
   const btn = $("#inf-calc");
   btn.disabled = true;
+  const origLabel = btn.textContent;
   btn.textContent = "Calculating…";
 
   try {
@@ -80,17 +97,13 @@ async function calculate() {
       JSON.generate(r.to_h)
     `);
     const result = JSON.parse(rb.toString());
-    const cur = currencyFor(country);
-    $("#inf-amount-out").textContent = `${fmtNumber(result.amount)} ${cur}`;
-    $("#inf-detail").textContent     = `${fmtNumber(result.original_amount)} ${cur} (${result.from}) → ${fmtNumber(result.amount)} ${cur} (${result.to})`;
-    $("#inf-meta").textContent       = `CPI ${result.from_index} → ${result.to_index} · ${result.country} · ${result.granularity}`;
+    renderResult(result, country);
   } catch (e) {
-    $("#inf-amount-out").textContent = "—";
-    $("#inf-detail").textContent     = e.message || "Calculation failed.";
-    $("#inf-meta").textContent       = "";
+    console.error(e);
+    renderError(e.message || "Calculation failed.");
   } finally {
     btn.disabled = false;
-    btn.textContent = "Calculate";
+    btn.textContent = origLabel;
   }
 }
 
