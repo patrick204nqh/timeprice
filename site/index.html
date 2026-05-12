@@ -249,11 +249,14 @@
     <h2 class="text-sm font-semibold uppercase tracking-wider text-stone-500 mb-3">Recipes</h2>
     <div class="space-y-4">
 
-      <div class="rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden">
-        <div class="px-4 py-2.5 border-b border-stone-200 dark:border-stone-800">
-          <div class="text-sm font-semibold">Rails view helper for "today's money"</div>
-          <div class="text-xs text-stone-500 mt-0.5">Drop into <span class="mono">app/helpers/</span> and call from any view.</div>
-        </div>
+      <details class="rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden group" open>
+        <summary class="px-4 py-2.5 border-b border-stone-200 dark:border-stone-800 cursor-pointer flex items-center justify-between hover:bg-stone-50 dark:hover:bg-stone-900/50">
+          <div>
+            <div class="text-sm font-semibold">Rails view helper for "today's money"</div>
+            <div class="text-xs text-stone-500 mt-0.5">Drop into <span class="mono">app/helpers/</span> and call from any view.</div>
+          </div>
+          <span class="text-stone-400 text-lg leading-none group-open:rotate-45 transition-transform">+</span>
+        </summary>
 <pre class="bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto"><code class="mono"># app/helpers/price_helper.rb
 module PriceHelper
   def in_todays_money(amount, year:, country: "US")
@@ -264,14 +267,17 @@ module PriceHelper
 end
 
 # in_todays_money(2.50, year: "1955")  =>  "$30.12"</code></pre>
-      </div>
+      </details>
 
-      <div class="rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden">
-        <div class="px-4 py-2.5 border-b border-stone-200 dark:border-stone-800">
-          <div class="text-sm font-semibold">Real-terms salary history</div>
-          <div class="text-xs text-stone-500 mt-0.5">Restate past pay in current dollars to see whether raises kept up.</div>
-        </div>
-<pre class="bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto"><code class="mono">salaries = { "2015" =&gt; 65_000, "2020" =&gt; 78_000, "2024" =&gt; 92_000 }
+      <details class="rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden group">
+        <summary class="px-4 py-2.5 cursor-pointer flex items-center justify-between hover:bg-stone-50 dark:hover:bg-stone-900/50">
+          <div>
+            <div class="text-sm font-semibold">Real-terms salary history</div>
+            <div class="text-xs text-stone-500 mt-0.5">Restate past pay in current dollars to see whether raises kept up.</div>
+          </div>
+          <span class="text-stone-400 text-lg leading-none group-open:rotate-45 transition-transform">+</span>
+        </summary>
+<pre class="bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto border-t border-stone-200 dark:border-stone-800"><code class="mono">salaries = { "2015" =&gt; 65_000, "2020" =&gt; 78_000, "2024" =&gt; 92_000 }
 
 real = salaries.transform_values do |amount, year = _1|
   Timeprice.inflation(amount: amount, from: year, to: "2024", country: "US").amount.round
@@ -279,14 +285,17 @@ end
 
 # =&gt; {"2015"=&gt;84_953, "2020"=&gt;91_402, "2024"=&gt;92_000}
 #    The 2020 raise was a real-terms cut.</code></pre>
-      </div>
+      </details>
 
-      <div class="rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden">
-        <div class="px-4 py-2.5 border-b border-stone-200 dark:border-stone-800">
-          <div class="text-sm font-semibold">"$X then is $Y today" fun fact</div>
-          <div class="text-xs text-stone-500 mt-0.5">For blog posts, social media, or chat-bot replies.</div>
-        </div>
-<pre class="bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto"><code class="mono">def fun_fact(amount, from_year, country: "US")
+      <details class="rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden group">
+        <summary class="px-4 py-2.5 cursor-pointer flex items-center justify-between hover:bg-stone-50 dark:hover:bg-stone-900/50">
+          <div>
+            <div class="text-sm font-semibold">"$X then is $Y today" fun fact</div>
+            <div class="text-xs text-stone-500 mt-0.5">For blog posts, social media, or chat-bot replies.</div>
+          </div>
+          <span class="text-stone-400 text-lg leading-none group-open:rotate-45 transition-transform">+</span>
+        </summary>
+<pre class="bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto border-t border-stone-200 dark:border-stone-800"><code class="mono">def fun_fact(amount, from_year, country: "US")
   to    = Date.today.strftime("%Y-%m")
   r     = Timeprice.inflation(amount: amount, from: from_year.to_s, to: to, country: country)
   "$#{amount} in #{from_year} is $#{r.amount.round(2)} today (#{country})"
@@ -294,14 +303,17 @@ end
 
 fun_fact(100, 1990)
 # =&gt; "$100 in 1990 is $242.09 today (US)"</code></pre>
-      </div>
+      </details>
 
-      <div class="rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden">
-        <div class="px-4 py-2.5 border-b border-stone-200 dark:border-stone-800">
-          <div class="text-sm font-semibold">Cross-currency, cross-decade compare</div>
-          <div class="text-xs text-stone-500 mt-0.5">"What is \$100 of 2010 USD worth as 2024 VND?" — FX and inflation in one call.</div>
-        </div>
-<pre class="bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto"><code class="mono">pairs = [
+      <details class="rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden group">
+        <summary class="px-4 py-2.5 cursor-pointer flex items-center justify-between hover:bg-stone-50 dark:hover:bg-stone-900/50">
+          <div>
+            <div class="text-sm font-semibold">Cross-currency, cross-decade compare</div>
+            <div class="text-xs text-stone-500 mt-0.5">"What is \$100 of 2010 USD worth as 2024 VND?" — FX and inflation in one call.</div>
+          </div>
+          <span class="text-stone-400 text-lg leading-none group-open:rotate-45 transition-transform">+</span>
+        </summary>
+<pre class="bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto border-t border-stone-200 dark:border-stone-800"><code class="mono">pairs = [
   [%w[USD 2010], %w[VND 2024]],
   [%w[JPY 2010], %w[USD 2024]],
   [%w[EUR 2010], %w[GBP 2024]],
@@ -312,7 +324,7 @@ pairs.each do |from, to|
   printf("%s %s → %s %s: %12.2f %s\n",
          from[0], from[1], to[0], to[1], r.amount, r.to_currency)
 end</code></pre>
-      </div>
+      </details>
 
     </div>
   </section>
