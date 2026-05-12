@@ -1,4 +1,3 @@
-import { $ } from "./dom.js";
 import { state } from "./state.js";
 import { readForm, validateRange } from "./form.js";
 import { renderResult, renderError } from "./result.js";
@@ -20,11 +19,6 @@ export async function calculate() {
     return;
   }
 
-  const btn = $("#inf-calc");
-  btn.disabled = true;
-  const origLabel = btn.textContent;
-  btn.textContent = "Calculating…";
-
   try {
     const rb = state.vm.eval(`
       require "timeprice"
@@ -36,8 +30,5 @@ export async function calculate() {
   } catch (e) {
     console.error(e);
     renderError(cleanErrorMessage(e));
-  } finally {
-    btn.disabled = false;
-    btn.textContent = origLabel;
   }
 }

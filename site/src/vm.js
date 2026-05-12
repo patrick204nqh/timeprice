@@ -24,7 +24,6 @@ export async function bootRuby() {
     vm.eval(`require "/bundle/setup"`);
     state.vm = vm;
     setVmState("ready", "Live · running in your browser", "bg-emerald-500");
-    $("#inf-calc").disabled = false;
     calculate();
   } catch (e) {
     console.error(e);

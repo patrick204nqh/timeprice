@@ -59,6 +59,12 @@ export function bindCopyButtons() {
   });
 }
 
+let calcTimer = null;
+function scheduleCalc() {
+  clearTimeout(calcTimer);
+  calcTimer = setTimeout(calculate, 200);
+}
+
 export function bindForm() {
   const inputs = ["#inf-amount", "#inf-from", "#inf-to"];
   for (const sel of inputs) {
@@ -66,6 +72,7 @@ export function bindForm() {
       readForm();
       renderSnippet();
       writeUrl();
+      scheduleCalc();
     });
   }
   $("#inf-country").addEventListener("change", () => {
@@ -73,9 +80,11 @@ export function bindForm() {
     readForm();
     renderSnippet();
     writeUrl();
+    scheduleCalc();
   });
   $("#inf-form").addEventListener("submit", (e) => {
     e.preventDefault();
+    clearTimeout(calcTimer);
     calculate();
   });
 }
