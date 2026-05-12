@@ -95,6 +95,7 @@ export function applyMetadata() {
   setText("#meta-version", `v${version}`);
   setText("#meta-refresh", generated_at);
   setText("#meta-refresh-2", generated_at);
+  setText("#meta-country-count", String(countries.length));
 }
 
 function fillCountrySelect(sel, countries) {
