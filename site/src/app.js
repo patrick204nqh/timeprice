@@ -1,3 +1,5 @@
+// ---------- constants ----------
+
 const WASM_URL = "./public/timeprice.wasm.gz";
 
 const CURRENCIES = { US: "USD", UK: "GBP", EU: "EUR", JP: "JPY", VN: "VND" };
@@ -20,8 +22,7 @@ const RANGE_LABELS = {
   VN: "Dec 2001 – Mar 2026",
 };
 
-const $ = (sel) => document.querySelector(sel);
-const setText = (sel, text) => { const el = $(sel); if (el) el.textContent = text; };
+// ---------- state ----------
 
 const state = {
   vm: null,
@@ -30,6 +31,29 @@ const state = {
   form: { amount: 100, from: "1990-01", to: "2024-01", country: "US" },
 };
 
+// ---------- dom helpers ----------
+
+const $ = (sel) => document.querySelector(sel);
+const setText = (sel, text) => { const el = $(sel); if (el) el.textContent = text; };
+
+// ---------- utils ----------
+
+function currencyFor(country) {
+  return CURRENCIES[country] || "USD";
+}
+
+function fmtNumber(n, decimals = 2) {
+  return n.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+function cleanErrorMessage(e) {
+  const raw = (e && e.message) ? String(e.message) : String(e);
+  const firstLine = raw.split("\n")[0].trim();
+  return firstLine.replace(/^Error:\s*/, "") || "Calculation failed.";
+}
+
+// ---------- form ----------
+
 function readForm() {
   state.form = {
     amount: parseFloat($("#inf-amount").value) || 0,
@@ -37,10 +61,6 @@ function readForm() {
     to:     $("#inf-to").value,
     country: $("#inf-country").value,
   };
-}
-
-function currencyFor(country) {
-  return CURRENCIES[country] || "USD";
 }
 
 function clampMonth(value, country) {
@@ -73,11 +93,28 @@ function validateRange(from, to, country) {
   return null;
 }
 
-function cleanErrorMessage(e) {
-  const raw = (e && e.message) ? String(e.message) : String(e);
-  const firstLine = raw.split("\n")[0].trim();
-  return firstLine.replace(/^Error:\s*/, "") || "Calculation failed.";
+// ---------- result ----------
+
+function renderResult(result, country) {
+  const cur = currencyFor(country);
+  setText("#inf-amount-out", `${fmtNumber(result.amount)} ${cur}`);
+  setText("#inf-detail", `${fmtNumber(result.original_amount)} ${cur} (${result.from}) → ${fmtNumber(result.amount)} ${cur} (${result.to})`);
+  setText("#inf-meta", `CPI ${result.from_index} → ${result.to_index} · ${result.country} · ${result.granularity}`);
 }
+
+function renderEmpty(message = "Press Calculate once the Ruby VM is ready.") {
+  setText("#inf-amount-out", "—");
+  setText("#inf-detail", message);
+  setText("#inf-meta", "");
+}
+
+function renderError(message) {
+  setText("#inf-amount-out", "—");
+  setText("#inf-detail", message);
+  setText("#inf-meta", "");
+}
+
+// ---------- snippet ----------
 
 function renderSnippet() {
   const { amount, from, to, country } = state.form;
@@ -111,35 +148,7 @@ JSON.parse(res.body).fetch("amount")`;
   setText("#snippet", code);
 }
 
-function renderResult(result, country) {
-  const cur = currencyFor(country);
-  setText("#inf-amount-out", `${fmtNumber(result.amount)} ${cur}`);
-  setText("#inf-detail", `${fmtNumber(result.original_amount)} ${cur} (${result.from}) → ${fmtNumber(result.amount)} ${cur} (${result.to})`);
-  setText("#inf-meta", `CPI ${result.from_index} → ${result.to_index} · ${result.country} · ${result.granularity}`);
-}
-
-function renderEmpty(message = "Press Calculate once the Ruby VM is ready.") {
-  setText("#inf-amount-out", "—");
-  setText("#inf-detail", message);
-  setText("#inf-meta", "");
-}
-
-function renderError(message) {
-  setText("#inf-amount-out", "—");
-  setText("#inf-detail", message);
-  setText("#inf-meta", "");
-}
-
-function setVmState(state_, label, dotClass) {
-  setText("#vm-label", label);
-  const dot = $("#vm-dot");
-  dot.className = `inline-block w-2 h-2 rounded-full ${dotClass}`;
-  $("#vm-pill").dataset.state = state_;
-}
-
-function fmtNumber(n, decimals = 2) {
-  return n.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-}
+// ---------- calculate ----------
 
 async function calculate() {
   if (!state.vm) return;
@@ -173,6 +182,34 @@ async function calculate() {
     btn.textContent = origLabel;
   }
 }
+
+// ---------- url ----------
+
+function readUrl() {
+  const h = location.hash.replace(/^#/, "");
+  if (!h) return;
+  const parts = h.split("/");
+  const [tab, ...rest] = parts;
+  if (tab === "inflation" && rest.length === 4) {
+    const [country, amount, from, to] = rest;
+    if ($("#inf-amount")) $("#inf-amount").value = amount;
+    if ($("#inf-from"))   $("#inf-from").value   = from;
+    if ($("#inf-to"))     $("#inf-to").value     = to;
+    if ($("#inf-country")) $("#inf-country").value = country;
+    readForm();
+  }
+}
+
+function writeUrl() {
+  if (state.tab !== "inflation") {
+    history.replaceState(null, "", `#${state.tab}`);
+    return;
+  }
+  const { amount, from, to, country } = state.form;
+  history.replaceState(null, "", `#inflation/${country}/${amount}/${from}/${to}`);
+}
+
+// ---------- events ----------
 
 function bindTabs() {
   for (const t of document.querySelectorAll(".tab")) {
@@ -249,28 +286,13 @@ function bindForm() {
   });
 }
 
-function readUrl() {
-  const h = location.hash.replace(/^#/, "");
-  if (!h) return;
-  const parts = h.split("/");
-  const [tab, ...rest] = parts;
-  if (tab === "inflation" && rest.length === 4) {
-    const [country, amount, from, to] = rest;
-    if ($("#inf-amount")) $("#inf-amount").value = amount;
-    if ($("#inf-from"))   $("#inf-from").value   = from;
-    if ($("#inf-to"))     $("#inf-to").value     = to;
-    if ($("#inf-country")) $("#inf-country").value = country;
-    readForm();
-  }
-}
+// ---------- vm ----------
 
-function writeUrl() {
-  if (state.tab !== "inflation") {
-    history.replaceState(null, "", `#${state.tab}`);
-    return;
-  }
-  const { amount, from, to, country } = state.form;
-  history.replaceState(null, "", `#inflation/${country}/${amount}/${from}/${to}`);
+function setVmState(state_, label, dotClass) {
+  setText("#vm-label", label);
+  const dot = $("#vm-dot");
+  dot.className = `inline-block w-2 h-2 rounded-full ${dotClass}`;
+  $("#vm-pill").dataset.state = state_;
 }
 
 async function bootRuby() {
@@ -294,6 +316,8 @@ async function bootRuby() {
     renderError("Ruby VM failed to load. Check your browser console.");
   }
 }
+
+// ---------- boot ----------
 
 readUrl();
 applyRangeForCountry($("#inf-country").value);
