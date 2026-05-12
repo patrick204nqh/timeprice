@@ -1,6 +1,33 @@
 {
   "countries": [
     {
+      "code": "AU",
+      "cpi_file": "cpi/au.json",
+      "currency": "AUD",
+      "granularities": [
+        "quarterly",
+        "annual"
+      ]
+    },
+    {
+      "code": "CA",
+      "cpi_file": "cpi/ca.json",
+      "currency": "CAD",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
+      "code": "CN",
+      "cpi_file": "cpi/cn.json",
+      "currency": "CNY",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
       "code": "EU",
       "cpi_file": "cpi/eu.json",
       "currency": "EUR",
@@ -14,6 +41,24 @@
       "cpi_file": "cpi/jp.json",
       "currency": "JPY",
       "granularities": [
+        "annual"
+      ]
+    },
+    {
+      "code": "KR",
+      "cpi_file": "cpi/kr.json",
+      "currency": "KRW",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
+      "code": "RU",
+      "cpi_file": "cpi/ru.json",
+      "currency": "RUB",
+      "granularities": [
+        "monthly",
         "annual"
       ]
     },
@@ -49,9 +94,14 @@
     "annual_file": "fx/usd/_annual.json",
     "base": "USD",
     "currencies": [
+      "AUD",
+      "CAD",
+      "CNY",
       "EUR",
       "GBP",
       "JPY",
+      "KRW",
+      "RUB",
       "VND"
     ],
     "daily_years": [
@@ -85,6 +135,6 @@
       2026
     ]
   },
-  "generated_at": "2026-05-11",
+  "generated_at": "2026-05-12",
   "schema_version": 4
 }

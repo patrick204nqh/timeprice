@@ -26,7 +26,7 @@
   ],
   "providers": [
     {
-      "fetched_at": "2026-05-11",
+      "fetched_at": "2026-05-12",
       "id": "bls",
       "label": "BLS CUUR0000SA0 (CPI-U, U.S. city average, all items)",
       "status": "ok"
