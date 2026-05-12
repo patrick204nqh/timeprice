@@ -19,97 +19,54 @@ export function loadMetadata() {
   }
 }
 
-// Range used by the month picker. Prefers monthly, then quarterly (rendered as
-// a YYYY-MM month boundary), then annual.
-export function cpiMonthRange(country) {
-  const c = state.metadata?.countries?.find((x) => x.code === country);
-  if (!c) return null;
-  const monthly = c.cpi.monthly;
-  if (monthly) return { min: monthly.min, max: monthly.max };
-  const quarterly = c.cpi.quarterly;
-  if (quarterly) return { min: quarterlyToMonth(quarterly.min, "start"), max: quarterlyToMonth(quarterly.max, "end") };
-  const annual = c.cpi.annual;
-  if (annual) return { min: `${annual.min}-01`, max: `${annual.max}-12` };
-  return null;
-}
-
-function quarterlyToMonth(qkey, edge) {
-  // "2026-Q1" → "2026-01" (start) or "2026-03" (end)
-  const [year, q] = qkey.split("-Q");
-  const startMonth = (Number(q) - 1) * 3 + 1;
-  const month = edge === "end" ? startMonth + 2 : startMonth;
-  return `${year}-${String(month).padStart(2, "0")}`;
-}
-
-export function rangeLabel(country) {
-  const r = cpiMonthRange(country);
-  if (!r) return "";
-  return `${humanMonth(r.min)} – ${humanMonth(r.max)}`;
-}
-
-function humanMonth(ym) {
-  if (!ym) return "";
-  const [y, m] = ym.split("-");
-  const names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return `${names[Number(m) - 1]} ${y}`;
-}
-
-// Rebuild the dropdowns and date pickers from metadata, preserving any
-// selection that's still valid.
+// Rebuild the currency dropdowns and date pickers from metadata, preserving
+// any selection that's still valid.
+//
+// We only list currencies that pair with a country we ship CPI for — that's
+// the set Timeprice.compare can handle as a destination (and the dropdown
+// has no way to express "use this as source only"). Same constraint Compare
+// itself enforces via UnsupportedCurrency.
 export function applyMetadata() {
   if (!state.metadata) return;
   const { countries, currencies, fx, version, generated_at } = state.metadata;
-
-  fillCountrySelect("#inf-country", countries);
-
-  // Currencies — FX from/to use all, Compare uses currencies whose country
-  // ships CPI (so the inflation step has a series to use).
-  fillCurrencySelect("#fx-from", currencies);
-  fillCurrencySelect("#fx-to", currencies);
-  const compareCurrencies = currencies.filter((cur) =>
+  const calcCurrencies = currencies.filter((cur) =>
     countries.some((c) => c.currency === cur.code),
   );
-  fillCurrencySelect("#cmp-from-cur", compareCurrencies);
-  fillCurrencySelect("#cmp-to-cur", compareCurrencies);
 
-  // Date picker bounds from FX coverage.
-  const fxDate = $("#fx-date");
-  if (fxDate && fx.daily_min && fx.daily_max) {
-    fxDate.min = fx.daily_min;
-    fxDate.max = fx.daily_max;
-  }
+  fillCurrencySelect("#from-currency", calcCurrencies);
+  fillCurrencySelect("#to-currency", calcCurrencies);
 
-  // Year inputs span FX coverage (broadest sensible default for FX year-only
-  // and compare year-only).
-  const fxMinYear = fx.daily_min?.slice(0, 4);
-  const fxMaxYear = fx.daily_max?.slice(0, 4);
-  for (const sel of ["#fx-year", "#cmp-from-year", "#cmp-to-year"]) {
-    const el = $(sel);
-    if (el && fxMinYear && fxMaxYear) {
-      el.min = fxMinYear;
-      el.max = fxMaxYear;
+  // Date picker bounds.
+  if (fx?.daily_min && fx?.daily_max) {
+    for (const sel of ["#from-date", "#to-date"]) {
+      const el = $(sel);
+      if (el) { el.min = fx.daily_min; el.max = fx.daily_max; }
     }
   }
 
-  // Hero refresh date + version pill.
+  // Year inputs span the widest available CPI window so users can ask
+  // century-old questions where data exists.
+  const cpiMinYear = countries.reduce((acc, c) => {
+    const grains = Object.values(c.cpi || {});
+    const yrs = grains.map((g) => Number(g.min.slice(0, 4)));
+    return Math.min(acc, ...yrs);
+  }, 9999);
+  const cpiMaxYear = countries.reduce((acc, c) => {
+    const grains = Object.values(c.cpi || {});
+    const yrs = grains.map((g) => Number(g.max.slice(0, 4)));
+    return Math.max(acc, ...yrs);
+  }, 0);
+  if (cpiMinYear < 9999 && cpiMaxYear > 0) {
+    for (const sel of ["#from-year", "#to-year"]) {
+      const el = $(sel);
+      if (el) { el.min = String(cpiMinYear); el.max = String(cpiMaxYear); }
+    }
+  }
+
   setText("#meta-version", `v${version}`);
   setText("#meta-refresh", generated_at);
   setText("#meta-refresh-2", generated_at);
   setText("#meta-country-count", String(countries.length));
-}
-
-function fillCountrySelect(sel, countries) {
-  const el = $(sel);
-  if (!el) return;
-  const prev = el.value;
-  el.innerHTML = "";
-  for (const c of countries) {
-    const opt = document.createElement("option");
-    opt.value = c.code;
-    opt.textContent = `${c.code} — ${c.name} (${c.currency})`;
-    el.appendChild(opt);
-  }
-  if (countries.some((c) => c.code === prev)) el.value = prev;
 }
 
 function fillCurrencySelect(sel, currencies) {

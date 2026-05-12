@@ -1,28 +1,27 @@
 import { $ } from "./dom.js";
-import { readForm, applyRangeForCountry } from "./form.js";
-import { renderSnippet } from "./snippet.js";
-import { renderHero } from "./result.js";
+import { state } from "./state.js";
+import { readForm, renderSnippet, renderHero, compute, refreshRangeHint } from "./compute.js";
 import { writeUrl } from "./url.js";
-import { calculate } from "./calculate.js";
-import { runFx } from "./fx.js";
-import { runCompare } from "./compare.js";
 
 let calcTimer = null;
 function scheduleCalc() {
   clearTimeout(calcTimer);
-  calcTimer = setTimeout(calculate, 200);
+  calcTimer = setTimeout(compute, 200);
 }
 
-let fxTimer = null;
-function scheduleFx() {
-  clearTimeout(fxTimer);
-  fxTimer = setTimeout(runFx, 200);
-}
+const INPUT_SELECTORS = [
+  "#calc-amount",
+  "#from-currency", "#from-year", "#from-date",
+  "#to-currency",   "#to-year",   "#to-date",
+];
 
-let cmpTimer = null;
-function scheduleCompare() {
-  clearTimeout(cmpTimer);
-  cmpTimer = setTimeout(runCompare, 200);
+function onInput() {
+  readForm();
+  renderSnippet();
+  renderHero(null);
+  refreshRangeHint();
+  writeUrl();
+  scheduleCalc();
 }
 
 export function bindCopyButtons() {
@@ -37,68 +36,65 @@ export function bindCopyButtons() {
   });
 }
 
-export function bindForm() {
-  const inputs = ["#inf-amount", "#inf-from", "#inf-to"];
-  for (const sel of inputs) {
-    $(sel).addEventListener("input", () => {
-      readForm();
-      renderSnippet();
-      renderHero(null);
-      writeUrl();
-      scheduleCalc();
-    });
-  }
-  $("#inf-country").addEventListener("change", () => {
-    applyRangeForCountry($("#inf-country").value);
-    readForm();
-    renderSnippet();
-    renderHero(null);
-    writeUrl();
-    scheduleCalc();
-  });
-  $("#inf-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    clearTimeout(calcTimer);
-    calculate();
-  });
-}
-
-export function bindFxForm() {
-  for (const sel of ["#fx-amount", "#fx-from", "#fx-to", "#fx-year", "#fx-date"]) {
+export function bindCalcForm() {
+  for (const sel of INPUT_SELECTORS) {
     const el = $(sel);
     if (!el) continue;
-    el.addEventListener("input", scheduleFx);
-    el.addEventListener("change", scheduleFx);
+    el.addEventListener("input", onInput);
+    el.addEventListener("change", onInput);
   }
-  const toggle = $("#fx-date-toggle");
-  const wrap = $("#fx-date-wrap");
-  const dateEl = $("#fx-date");
-  if (toggle && wrap && dateEl) {
+
+  const toggle = $("#precise-toggle");
+  const wrap = $("#precise-wrap");
+  if (toggle && wrap) {
     toggle.addEventListener("click", () => {
       wrap.hidden = !wrap.hidden;
-      toggle.textContent = wrap.hidden ? "Use a specific date" : "Use year only";
-      if (!wrap.hidden && !dateEl.value) {
-        const year = $("#fx-year").value || "2010";
-        dateEl.value = `${year}-06-15`;
+      toggle.textContent = wrap.hidden ? "Use specific dates" : "Use year only";
+      // Seed the day pickers with mid-year of the current year inputs when
+      // the user opens the disclosure for the first time. Keeps the result
+      // stable across the toggle.
+      if (!wrap.hidden) {
+        const fromYear = $("#from-year").value || "2010";
+        const toYear = $("#to-year").value || fromYear;
+        const fromDate = $("#from-date");
+        const toDate = $("#to-date");
+        if (fromDate && !fromDate.value) fromDate.value = `${fromYear}-06-15`;
+        if (toDate && !toDate.value) toDate.value = `${toYear}-06-15`;
       }
-      scheduleFx();
+      onInput();
     });
   }
-  $("#fx-form").addEventListener("submit", (e) => {
+
+  $("#calc-form").addEventListener("submit", (e) => {
     e.preventDefault();
-    clearTimeout(fxTimer);
-    runFx();
+    clearTimeout(calcTimer);
+    compute();
   });
 }
 
-export function bindCompareForm() {
-  for (const sel of ["#cmp-amount", "#cmp-from-cur", "#cmp-from-year", "#cmp-to-cur", "#cmp-to-year"]) {
-    $(sel).addEventListener("input", scheduleCompare);
-    $(sel).addEventListener("change", scheduleCompare);
-  }
-  $("#cmp-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    clearTimeout(cmpTimer);
-    runCompare();
+export function bindExampleChips() {
+  const row = $("#example-chips");
+  if (!row) return;
+  row.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-example]");
+    if (!btn) return;
+    const [fromSpec, toSpec, amount] = btn.dataset.example.split("|");
+    const [fromCur, fromDate] = fromSpec.split(":");
+    const [toCur, toDate] = toSpec.split(":");
+    $("#calc-amount").value = amount;
+    $("#from-currency").value = fromCur;
+    $("#to-currency").value = toCur;
+    $("#from-year").value = fromDate;
+    $("#to-year").value = toDate;
+    // Reset to year-only when a chip is clicked — chips are the simple path.
+    const wrap = $("#precise-wrap");
+    const toggle = $("#precise-toggle");
+    if (wrap && !wrap.hidden) {
+      wrap.hidden = true;
+      $("#from-date").value = "";
+      $("#to-date").value = "";
+      if (toggle) toggle.textContent = "Use specific dates";
+    }
+    onInput();
   });
 }

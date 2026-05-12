@@ -65,9 +65,9 @@
 
   <section class="rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 overflow-hidden">
 
-    <h2 class="sr-only">Inflation calculator</h2>
+    <h2 class="sr-only">Money calculator</h2>
     <div class="px-4 py-2.5 border-b border-stone-200 dark:border-stone-800 flex items-center justify-between text-xs">
-      <div class="font-semibold text-stone-700 dark:text-stone-300">Inflation</div>
+      <div class="font-semibold text-stone-700 dark:text-stone-300">Money calculator</div>
       <div id="vm-pill" class="flex items-center gap-1.5 text-stone-500">
         <span id="vm-dot" class="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
         <span id="vm-label">Ruby VM warming…</span>
@@ -75,47 +75,78 @@
     </div>
 
     <div class="p-4 sm:p-6">
-      <div class="grid sm:grid-cols-2 gap-4 sm:gap-6">
+      <form id="calc-form" class="space-y-3">
 
-        <form id="inf-form" class="space-y-3">
-          <div>
-            <label for="inf-amount" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">Amount</label>
-            <input id="inf-amount" type="number" step="any" value="100"
-                   class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label for="inf-from" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">From</label>
-              <input id="inf-from" type="month" value="1990-01"
-                     class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
-            </div>
-            <div>
-              <label for="inf-to" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">To</label>
-              <input id="inf-to" type="month" value="2024-01"
-                     class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
-            </div>
-          </div>
-          <div>
-            <label for="inf-country" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">Country</label>
-            <select id="inf-country" class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
-              <option value="US">US — United States (USD)</option>
-              <option value="UK">UK — United Kingdom (GBP)</option>
-              <option value="EU">EU — Eurozone (EUR)</option>
-              <option value="JP">JP — Japan (JPY)</option>
-              <option value="VN">VN — Vietnam (VND)</option>
-            </select>
-            <p id="inf-range-hint" class="mt-1 text-xs text-stone-500 mono"></p>
-          </div>
-        </form>
-
-        <div id="inf-result" class="rounded-md bg-stone-100 dark:bg-stone-800/50 p-4 flex flex-col justify-center"
-             role="status" aria-live="polite" aria-atomic="true">
-          <div class="text-xs text-stone-500 mb-1">Result</div>
-          <div class="tabular text-2xl font-semibold" id="inf-amount-out">242.09 USD</div>
-          <div class="tabular text-sm text-stone-600 dark:text-stone-400" id="inf-detail">100.00 USD (1990-01) → 242.09 USD (2024-01)</div>
-          <div class="tabular mt-3 text-xs text-stone-500 mono" id="inf-meta">CPI 127.4 → 308.4 · US · monthly</div>
+        <div>
+          <label for="calc-amount" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">Amount</label>
+          <input id="calc-amount" type="number" step="any" inputmode="decimal" value="100"
+                 class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
         </div>
 
+        <div class="grid grid-cols-1 sm:grid-cols-[max-content_1fr_max-content_1fr] items-center gap-2 sm:gap-3">
+          <div class="text-xs font-medium text-stone-600 dark:text-stone-400 sm:justify-self-end">From</div>
+          <select id="from-currency" class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
+            <option value="USD" selected>USD — US dollar</option>
+            <option value="EUR">EUR — Euro</option>
+            <option value="GBP">GBP — British pound</option>
+            <option value="JPY">JPY — Japanese yen</option>
+            <option value="VND">VND — Vietnamese dong</option>
+          </select>
+          <div class="text-xs text-stone-500 sm:justify-self-end">in</div>
+          <input id="from-year" type="number" inputmode="numeric" value="1990" min="1990" max="2026" step="1"
+                 class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
+
+          <div class="text-xs font-medium text-stone-600 dark:text-stone-400 sm:justify-self-end">To</div>
+          <select id="to-currency" class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
+            <option value="USD" selected>USD — US dollar</option>
+            <option value="EUR">EUR — Euro</option>
+            <option value="GBP">GBP — British pound</option>
+            <option value="JPY">JPY — Japanese yen</option>
+            <option value="VND">VND — Vietnamese dong</option>
+          </select>
+          <div class="text-xs text-stone-500 sm:justify-self-end">in</div>
+          <input id="to-year" type="number" inputmode="numeric" value="2024" min="1990" max="2026" step="1"
+                 class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
+        </div>
+
+        <div>
+          <button id="precise-toggle" type="button"
+                  class="text-xs text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 underline-offset-2 hover:underline">
+            Use specific dates
+          </button>
+          <div id="precise-wrap" hidden class="mt-2 grid grid-cols-2 gap-3">
+            <div>
+              <label for="from-date" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">From date</label>
+              <input id="from-date" type="date" min="1999-01-04" max="2026-05-12"
+                     class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
+            </div>
+            <div>
+              <label for="to-date" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">To date</label>
+              <input id="to-date" type="date" min="1999-01-04" max="2026-05-12"
+                     class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
+            </div>
+          </div>
+        </div>
+
+        <p id="calc-range-hint" class="text-xs text-stone-500 mono"></p>
+      </form>
+
+      <div id="calc-result" class="mt-5 rounded-md bg-stone-100 dark:bg-stone-800/50 p-4"
+           role="status" aria-live="polite" aria-atomic="true">
+        <div class="text-xs text-stone-500 mb-1" id="calc-mode">Inflation</div>
+        <div class="tabular text-2xl font-semibold" id="calc-amount-out">242.09 USD</div>
+        <div class="tabular text-sm text-stone-600 dark:text-stone-400" id="calc-detail">100.00 USD in 1990 → 242.09 USD in 2024</div>
+        <div class="tabular mt-3 text-xs text-stone-500 mono" id="calc-meta">Source: US CPI</div>
+      </div>
+
+      <div class="mt-5">
+        <div class="text-xs font-medium text-stone-600 dark:text-stone-400 mb-2">Try</div>
+        <div class="flex flex-wrap gap-2" id="example-chips">
+          <button type="button" data-example="USD:1990|USD:2024|100" class="text-xs px-2.5 py-1.5 rounded-full border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800">$100 in 1990 → today (USD)</button>
+          <button type="button" data-example="USD:2010|JPY:2010|100" class="text-xs px-2.5 py-1.5 rounded-full border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800">USD → JPY in 2010</button>
+          <button type="button" data-example="USD:2010|VND:2024|100" class="text-xs px-2.5 py-1.5 rounded-full border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800">$100 of 2010 USD → 2024 VND</button>
+          <button type="button" data-example="GBP:1995|GBP:2024|50" class="text-xs px-2.5 py-1.5 rounded-full border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800">£50 in 1995 → today</button>
+        </div>
       </div>
 
       <div class="mt-6">
@@ -126,122 +157,6 @@
         </div>
       </div>
 
-    </div>
-
-  </section>
-
-  <section class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
-    <div class="rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 overflow-hidden">
-      <h2 class="px-4 py-2.5 border-b border-stone-200 dark:border-stone-800 text-xs font-semibold text-stone-700 dark:text-stone-300">Exchange rate</h2>
-      <div class="p-4 sm:p-5 space-y-4">
-        <form id="fx-form" class="grid grid-cols-2 gap-3">
-          <div class="col-span-2">
-            <label for="fx-amount" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">Amount</label>
-            <input id="fx-amount" type="number" step="any" value="100"
-                   class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
-          </div>
-          <div>
-            <label for="fx-from" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">From</label>
-            <select id="fx-from" class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
-              <option value="USD" selected>USD</option>
-              <option value="EUR">EUR</option>
-              <option value="GBP">GBP</option>
-              <option value="JPY">JPY</option>
-              <option value="AUD">AUD</option>
-              <option value="CAD">CAD</option>
-              <option value="CNY">CNY</option>
-              <option value="KRW">KRW</option>
-              <option value="RUB">RUB</option>
-              <option value="VND">VND</option>
-            </select>
-          </div>
-          <div>
-            <label for="fx-to" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">To</label>
-            <select id="fx-to" class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-              <option value="GBP">GBP</option>
-              <option value="JPY" selected>JPY</option>
-              <option value="AUD">AUD</option>
-              <option value="CAD">CAD</option>
-              <option value="CNY">CNY</option>
-              <option value="KRW">KRW</option>
-              <option value="RUB">RUB</option>
-              <option value="VND">VND</option>
-            </select>
-          </div>
-          <div class="col-span-2">
-            <label for="fx-year" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">In year</label>
-            <input id="fx-year" type="number" value="2010" min="1999" max="2026" step="1"
-                   class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
-            <button id="fx-date-toggle" type="button"
-                    class="mt-1 text-xs text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 underline-offset-2 hover:underline">
-              Use a specific date
-            </button>
-            <div id="fx-date-wrap" hidden class="mt-2">
-              <label for="fx-date" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">On date</label>
-              <input id="fx-date" type="date" min="1999-01-04" max="2026-05-12"
-                     class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
-            </div>
-          </div>
-        </form>
-
-        <div id="fx-result" class="rounded-md bg-stone-100 dark:bg-stone-800/50 p-3"
-             role="status" aria-live="polite" aria-atomic="true">
-          <div class="tabular text-xl font-semibold" id="fx-amount-out">— JPY</div>
-          <div class="tabular text-xs text-stone-500 mono mt-1" id="fx-meta">rate on 2010-06-15 · ECB</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 overflow-hidden">
-      <h2 class="px-4 py-2.5 border-b border-stone-200 dark:border-stone-800 text-xs font-semibold text-stone-700 dark:text-stone-300">Compare</h2>
-      <div class="p-4 sm:p-5 space-y-4">
-        <form id="cmp-form" class="grid grid-cols-2 gap-3">
-          <div class="col-span-2">
-            <label for="cmp-amount" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">Amount</label>
-            <input id="cmp-amount" type="number" step="any" value="100"
-                   class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
-          </div>
-          <div>
-            <label for="cmp-from-cur" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">From currency</label>
-            <select id="cmp-from-cur" class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
-              <option value="USD" selected>USD</option>
-              <option value="EUR">EUR</option>
-              <option value="GBP">GBP</option>
-              <option value="JPY">JPY</option>
-              <option value="VND">VND</option>
-            </select>
-          </div>
-          <div>
-            <label for="cmp-from-year" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">From year</label>
-            <input id="cmp-from-year" type="number" min="1971" max="2026" step="1" value="2010"
-                   class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
-          </div>
-          <div>
-            <label for="cmp-to-cur" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">To currency</label>
-            <select id="cmp-to-cur" class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-              <option value="GBP">GBP</option>
-              <option value="JPY">JPY</option>
-              <option value="VND" selected>VND</option>
-            </select>
-          </div>
-          <div>
-            <label for="cmp-to-year" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">To year</label>
-            <input id="cmp-to-year" type="number" min="1971" max="2026" step="1" value="2024"
-                   class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
-          </div>
-        </form>
-
-        <div id="cmp-result" class="rounded-md bg-stone-100 dark:bg-stone-800/50 p-3"
-             role="status" aria-live="polite" aria-atomic="true">
-          <div class="tabular text-xl font-semibold" id="cmp-amount-out">— VND</div>
-          <div class="tabular text-xs text-stone-500 mono mt-1" id="cmp-meta">FX + CPI combined</div>
-        </div>
-      </div>
     </div>
 
   </section>

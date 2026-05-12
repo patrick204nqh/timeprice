@@ -1,12 +1,8 @@
 import { WASM_URL } from "./data.js";
 import { $, setText } from "./dom.js";
 import { state } from "./state.js";
-import { calculate } from "./calculate.js";
-import { runFx } from "./fx.js";
-import { runCompare } from "./compare.js";
-import { renderError } from "./result.js";
+import { compute, renderError, refreshRangeHint } from "./compute.js";
 import { loadMetadata, applyMetadata } from "./metadata.js";
-import { applyRangeForCountry } from "./form.js";
 
 export function setVmState(state_, label, dotClass) {
   setText("#vm-label", label);
@@ -27,14 +23,10 @@ export async function bootRuby() {
     const { vm } = await DefaultRubyVM(module);
     vm.eval(`require "/bundle/setup"`);
     state.vm = vm;
-    if (loadMetadata()) {
-      applyMetadata();
-      applyRangeForCountry($("#inf-country").value);
-    }
+    if (loadMetadata()) applyMetadata();
+    refreshRangeHint();
     setVmState("ready", "Live · running in your browser", "bg-emerald-500");
-    calculate();
-    runFx();
-    runCompare();
+    compute();
   } catch (e) {
     console.error(e);
     setVmState("error", "Ruby VM failed to load — see console", "bg-rose-500");

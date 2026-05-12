@@ -1,7 +1,11 @@
 export const state = {
   vm: null,
   metadata: null,
-  form: { amount: 100, from: "1990-01", to: "2024-01", country: "US" },
-  fx: { amount: 100, from: "USD", to: "JPY", date: "2010-06-15" }, // date is resolved (year-only → YYYY-06-15)
-  compare: { amount: 100, fromCurrency: "USD", fromYear: "2010", toCurrency: "VND", toYear: "2024" },
+  // Single form covering the merged calculator. fromDate/toDate are only
+  // populated when the "Use specific dates" disclosure is open and filled.
+  form: {
+    amount: 100,
+    fromCurrency: "USD", fromYear: "1990", fromDate: "",
+    toCurrency: "USD",   toYear: "2024",   toDate: "",
+  },
 };
