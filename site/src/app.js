@@ -4,7 +4,7 @@ import { readForm, applyRangeForCountry } from "./form.js";
 import { renderEmpty } from "./result.js";
 import { renderSnippet } from "./snippet.js";
 import { readUrl } from "./url.js";
-import { bindTabs, bindSnippetToggle, bindCopyButtons, bindForm } from "./events.js";
+import { bindCopyButtons, bindForm } from "./events.js";
 import { bootRuby } from "./vm.js";
 
 // Default form state matches what's hardcoded in index.html's result card.
@@ -24,8 +24,6 @@ applyRangeForCountry($("#inf-country").value);
 readForm();
 if (!isDefaultForm(state.form)) renderEmpty("Warming up Ruby VM…");
 renderSnippet();
-bindTabs();
-bindSnippetToggle();
 bindCopyButtons();
 bindForm();
 bootRuby();

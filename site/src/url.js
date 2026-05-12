@@ -18,10 +18,6 @@ export function readUrl() {
 }
 
 export function writeUrl() {
-  if (state.tab !== "inflation") {
-    history.replaceState(null, "", `#${state.tab}`);
-    return;
-  }
   const { amount, from, to, country } = state.form;
   history.replaceState(null, "", `#inflation/${country}/${amount}/${from}/${to}`);
 }

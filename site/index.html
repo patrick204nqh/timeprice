@@ -65,20 +65,16 @@
 
   <section class="rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 overflow-hidden">
 
-    <h2 class="sr-only">Calculator</h2>
+    <h2 class="sr-only">Inflation calculator</h2>
     <div class="px-4 py-2.5 border-b border-stone-200 dark:border-stone-800 flex items-center justify-between text-xs">
-      <div class="flex gap-1" role="tablist" aria-label="Calculator mode">
-        <button role="tab" id="tab-inflation" aria-controls="panel-inflation" data-tab="inflation" class="tab px-3 py-1.5 rounded-md font-medium" aria-selected="true">Inflation</button>
-        <button role="tab" id="tab-fx" aria-controls="panel-fx" data-tab="fx" class="tab px-3 py-1.5 rounded-md text-stone-400 cursor-not-allowed" aria-selected="false" aria-disabled="true" tabindex="-1" title="Coming next">FX <span class="text-stone-400">(soon)</span></button>
-        <button role="tab" id="tab-compare" aria-controls="panel-compare" data-tab="compare" class="tab px-3 py-1.5 rounded-md text-stone-400 cursor-not-allowed" aria-selected="false" aria-disabled="true" tabindex="-1" title="Coming next">Compare <span class="text-stone-400">(soon)</span></button>
-      </div>
+      <div class="font-semibold text-stone-700 dark:text-stone-300">Inflation</div>
       <div id="vm-pill" class="flex items-center gap-1.5 text-stone-500">
         <span id="vm-dot" class="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
         <span id="vm-label">Ruby VM warming…</span>
       </div>
     </div>
 
-    <div role="tabpanel" id="panel-inflation" aria-labelledby="tab-inflation" data-panel="inflation" class="panel p-4 sm:p-6">
+    <div class="p-4 sm:p-6">
       <div class="grid sm:grid-cols-2 gap-4 sm:gap-6">
 
         <form id="inf-form" class="space-y-3">
@@ -123,29 +119,13 @@
       </div>
 
       <div class="mt-6">
-        <div class="flex items-center justify-between mb-2">
-          <div class="text-xs font-medium text-stone-600 dark:text-stone-400">Equivalent code</div>
-          <div class="flex gap-1 text-xs">
-            <button data-snippet="ruby" class="snip-toggle px-2.5 py-1 rounded mono font-medium" aria-selected="true">timeprice</button>
-            <button data-snippet="api"  class="snip-toggle px-2.5 py-1 rounded mono text-stone-500" aria-selected="false">with API</button>
-          </div>
-        </div>
+        <div class="text-xs font-medium text-stone-600 dark:text-stone-400 mb-2">Equivalent Ruby</div>
         <div class="relative">
           <pre class="rounded-md bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto"><code id="snippet" class="mono"></code></pre>
           <button id="snip-copy" class="absolute top-2 right-2 px-2 py-1 text-xs rounded bg-stone-700 hover:bg-stone-600 text-stone-100">copy</button>
         </div>
       </div>
 
-    </div>
-
-    <div role="tabpanel" id="panel-fx" aria-labelledby="tab-fx" data-panel="fx" class="panel p-4 sm:p-6 hidden">
-      <div class="text-sm text-stone-500">FX calculator — coming next. The gem already supports it; the UI panel lands in the next iteration.</div>
-      <pre class="mt-3 rounded-md bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto"><code class="mono">Timeprice.exchange(amount: 100, from: "USD", to: "JPY", date: "2010-06-15")</code></pre>
-    </div>
-
-    <div role="tabpanel" id="panel-compare" aria-labelledby="tab-compare" data-panel="compare" class="panel p-4 sm:p-6 hidden">
-      <div class="text-sm text-stone-500">Compare across years and currencies — coming next.</div>
-      <pre class="mt-3 rounded-md bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto"><code class="mono">Timeprice.compare(amount: 100, from: "2010 USD", to: "2024 VND")</code></pre>
     </div>
 
   </section>
