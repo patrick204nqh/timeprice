@@ -12,7 +12,7 @@
 
 <link rel="preload" href="./public/timeprice.wasm.gz" as="fetch" crossorigin>
 
-<!-- Resolve theme BEFORE Tailwind paints so there's no light-to-dark flash. -->
+<!-- Set the .dark class BEFORE Tailwind paints so there's no theme flash. -->
 <script>
   (function () {
     var saved = null;
@@ -21,11 +21,10 @@
     var dark = saved === "dark" || (saved !== "light" && prefersDark);
     if (dark) document.documentElement.classList.add("dark");
   })();
-  // Tailwind CDN reads this before injecting styles.
-  window.tailwind = window.tailwind || {};
-  window.tailwind.config = { darkMode: "class" };
 </script>
 <script src="https://cdn.tailwindcss.com"></script>
+<!-- Must run AFTER the CDN script — that's where the `tailwind` global is defined. -->
+<script>tailwind.config = { darkMode: "class" };</script>
 <style>
   body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
   code, pre, .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
