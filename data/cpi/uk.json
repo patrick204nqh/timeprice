@@ -20,7 +20,7 @@
   ],
   "providers": [
     {
-      "fetched_at": "2026-05-11",
+      "fetched_at": "2026-05-12",
       "id": "ons",
       "label": "ONS D7BT — UK CPI all-items index (2015=100)",
       "status": "ok"
