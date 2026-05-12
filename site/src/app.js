@@ -2,6 +2,24 @@ const WASM_URL = "./public/timeprice.wasm.gz";
 
 const CURRENCIES = { US: "USD", UK: "GBP", EU: "EUR", JP: "JPY", VN: "VND" };
 
+// Supported CPI ranges per country (monthly granularity; annual fallback may
+// extend earlier, but the <input type="month"> picker only takes months).
+const RANGES = {
+  US: { min: "1990-01", max: "2026-03" },
+  UK: { min: "1988-01", max: "2026-03" },
+  EU: { min: "1996-01", max: "2025-12" },
+  JP: { min: "1971-01", max: "2024-12" },
+  VN: { min: "2001-12", max: "2026-03" },
+};
+
+const RANGE_LABELS = {
+  US: "Jan 1990 – Mar 2026",
+  UK: "Jan 1988 – Mar 2026",
+  EU: "Jan 1996 – Dec 2025",
+  JP: "Jan 1971 – Dec 2024",
+  VN: "Dec 2001 – Mar 2026",
+};
+
 const $ = (sel) => document.querySelector(sel);
 const setText = (sel, text) => { const el = $(sel); if (el) el.textContent = text; };
 
@@ -23,6 +41,42 @@ function readForm() {
 
 function currencyFor(country) {
   return CURRENCIES[country] || "USD";
+}
+
+function clampMonth(value, country) {
+  const r = RANGES[country];
+  if (!r || !value) return value;
+  if (value < r.min) return r.min;
+  if (value > r.max) return r.max;
+  return value;
+}
+
+function applyRangeForCountry(country) {
+  const r = RANGES[country];
+  if (!r) return;
+  for (const sel of ["#inf-from", "#inf-to"]) {
+    const el = $(sel);
+    el.min = r.min;
+    el.max = r.max;
+    const clamped = clampMonth(el.value, country);
+    if (clamped !== el.value) el.value = clamped;
+  }
+  setText("#inf-range-hint", `Data available: ${RANGE_LABELS[country]}`);
+}
+
+function validateRange(from, to, country) {
+  const r = RANGES[country];
+  if (!r) return null;
+  const [minLabel, maxLabel] = RANGE_LABELS[country].split(" – ");
+  if (from < r.min || to < r.min) return `${country} CPI data starts ${minLabel}.`;
+  if (from > r.max || to > r.max) return `${country} CPI data ends ${maxLabel}.`;
+  return null;
+}
+
+function cleanErrorMessage(e) {
+  const raw = (e && e.message) ? String(e.message) : String(e);
+  const firstLine = raw.split("\n")[0].trim();
+  return firstLine.replace(/^Error:\s*/, "") || "Calculation failed.";
 }
 
 function renderSnippet() {
@@ -91,6 +145,13 @@ async function calculate() {
   if (!state.vm) return;
   readForm();
   const { amount, from, to, country } = state.form;
+
+  const rangeErr = validateRange(from, to, country);
+  if (rangeErr) {
+    renderError(rangeErr);
+    return;
+  }
+
   const btn = $("#inf-calc");
   btn.disabled = true;
   const origLabel = btn.textContent;
@@ -106,7 +167,7 @@ async function calculate() {
     renderResult(result, country);
   } catch (e) {
     console.error(e);
-    renderError(e.message || "Calculation failed.");
+    renderError(cleanErrorMessage(e));
   } finally {
     btn.disabled = false;
     btn.textContent = origLabel;
@@ -168,7 +229,7 @@ function bindCopyButtons() {
 }
 
 function bindForm() {
-  const inputs = ["#inf-amount", "#inf-from", "#inf-to", "#inf-country"];
+  const inputs = ["#inf-amount", "#inf-from", "#inf-to"];
   for (const sel of inputs) {
     $(sel).addEventListener("input", () => {
       readForm();
@@ -176,6 +237,12 @@ function bindForm() {
       writeUrl();
     });
   }
+  $("#inf-country").addEventListener("change", () => {
+    applyRangeForCountry($("#inf-country").value);
+    readForm();
+    renderSnippet();
+    writeUrl();
+  });
   $("#inf-form").addEventListener("submit", (e) => {
     e.preventDefault();
     calculate();
@@ -229,6 +296,8 @@ async function bootRuby() {
 }
 
 readUrl();
+applyRangeForCountry($("#inf-country").value);
+readForm();
 renderEmpty("Warming up Ruby VM…");
 renderSnippet();
 bindTabs();
