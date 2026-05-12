@@ -12,6 +12,7 @@ AllCops:
     - "tmp/**/*"
     - "pkg/**/*"
     - "vendor/**/*"
+    - "site/**/*"
 
 # --- Layout / Style ---
 
