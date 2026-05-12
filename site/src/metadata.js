@@ -36,24 +36,8 @@ export function applyMetadata() {
   fillCurrencySelect("#from-currency", calcCurrencies);
   fillCurrencySelect("#to-currency", calcCurrencies);
 
-  // Year inputs span the widest available CPI window so users can ask
-  // century-old questions where data exists.
-  const cpiMinYear = countries.reduce((acc, c) => {
-    const grains = Object.values(c.cpi || {});
-    const yrs = grains.map((g) => Number(g.min.slice(0, 4)));
-    return Math.min(acc, ...yrs);
-  }, 9999);
-  const cpiMaxYear = countries.reduce((acc, c) => {
-    const grains = Object.values(c.cpi || {});
-    const yrs = grains.map((g) => Number(g.max.slice(0, 4)));
-    return Math.max(acc, ...yrs);
-  }, 0);
-  if (cpiMinYear < 9999 && cpiMaxYear > 0) {
-    for (const sel of ["#from-year", "#to-year"]) {
-      const el = $(sel);
-      if (el) { el.min = String(cpiMinYear); el.max = String(cpiMaxYear); }
-    }
-  }
+  // Year input bounds live in compute.js — they're per-currency and need
+  // to update on every From/To-currency change, not just on metadata load.
 
   setText("#meta-version", `v${version}`);
   setText("#meta-refresh", generated_at);

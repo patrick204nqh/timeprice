@@ -108,26 +108,36 @@
         <div class="grid grid-cols-1 sm:grid-cols-[max-content_1fr_max-content_1fr] items-center gap-2 sm:gap-3">
           <div class="text-xs font-medium text-stone-600 dark:text-stone-400 sm:justify-self-end">From</div>
           <select id="from-currency" class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
-            <option value="USD" selected>USD — US dollar</option>
+            <option value="AUD">AUD — Australian dollar</option>
+            <option value="CAD">CAD — Canadian dollar</option>
+            <option value="CNY">CNY — Chinese yuan</option>
             <option value="EUR">EUR — Euro</option>
             <option value="GBP">GBP — British pound</option>
             <option value="JPY">JPY — Japanese yen</option>
+            <option value="KRW">KRW — South Korean won</option>
+            <option value="RUB">RUB — Russian ruble</option>
+            <option value="USD" selected>USD — US dollar</option>
             <option value="VND">VND — Vietnamese dong</option>
           </select>
           <div class="text-xs text-stone-500 sm:justify-self-end">in</div>
-          <input id="from-year" type="number" inputmode="numeric" value="1990" min="1990" max="2026" step="1"
+          <input id="from-year" type="number" inputmode="numeric" value="1990" min="1990" max="2024" step="1"
                  class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
 
           <div class="text-xs font-medium text-stone-600 dark:text-stone-400 sm:justify-self-end">To</div>
           <select id="to-currency" class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
-            <option value="USD" selected>USD — US dollar</option>
+            <option value="AUD">AUD — Australian dollar</option>
+            <option value="CAD">CAD — Canadian dollar</option>
+            <option value="CNY">CNY — Chinese yuan</option>
             <option value="EUR">EUR — Euro</option>
             <option value="GBP">GBP — British pound</option>
             <option value="JPY">JPY — Japanese yen</option>
+            <option value="KRW">KRW — South Korean won</option>
+            <option value="RUB">RUB — Russian ruble</option>
+            <option value="USD" selected>USD — US dollar</option>
             <option value="VND">VND — Vietnamese dong</option>
           </select>
           <div class="text-xs text-stone-500 sm:justify-self-end">in</div>
-          <input id="to-year" type="number" inputmode="numeric" value="2024" min="1990" max="2026" step="1"
+          <input id="to-year" type="number" inputmode="numeric" value="2024" min="1990" max="2024" step="1"
                  class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
         </div>
 
@@ -156,10 +166,10 @@
 
       <div id="calc-result" class="mt-5 rounded-md bg-stone-100 dark:bg-stone-800/50 p-4"
            role="status" aria-live="polite" aria-atomic="true">
-        <div class="text-xs text-stone-500 mb-1" id="calc-mode">Inflation</div>
+        <div class="text-xs text-stone-500 mb-1" id="calc-mode">Inflation — United States</div>
         <div class="tabular text-2xl font-semibold" id="calc-amount-out">242.09 USD</div>
         <div class="tabular text-sm text-stone-600 dark:text-stone-400" id="calc-detail">100.00 USD in 1990 → 242.09 USD in 2024</div>
-        <div class="tabular mt-3 text-xs text-stone-500 mono" id="calc-meta">Source: US CPI</div>
+        <div class="tabular mt-3 text-xs text-stone-500 mono" id="calc-meta">United States CPI</div>
       </div>
 
       <div class="mt-5">

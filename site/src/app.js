@@ -1,5 +1,5 @@
 import { state } from "./state.js";
-import { readForm, renderSnippet, renderHero, renderEmpty, refreshRangeHint } from "./compute.js";
+import { readForm, renderSnippet, renderHero, renderEmpty, refreshRangeHint, refreshYearBounds } from "./compute.js";
 import { readUrl } from "./url.js";
 import { bindCopyButtons, bindCalcForm, bindExampleChips } from "./events.js";
 import { bootRuby } from "./vm.js";
@@ -25,6 +25,7 @@ if (!isDefaultForm(state.form)) renderEmpty("Warming up Ruby VM…");
 renderSnippet();
 renderHero(null);
 refreshRangeHint();
+refreshYearBounds();
 bindCopyButtons();
 bindCalcForm();
 bindExampleChips();

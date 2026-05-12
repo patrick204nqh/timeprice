@@ -1,0 +1,23 @@
+pre-commit:
+  parallel: true
+  commands:
+    rubocop:
+      glob: "*.{rb,rake}"
+      run: bundle exec rubocop --force-exclusion {staged_files}
+      stage_fixed: true
+
+pre-push:
+  commands:
+    rspec:
+      run: bundle exec rspec
+    rubocop:
+      run: bundle exec rubocop
+
+commit-msg:
+  commands:
+    no-fixup:
+      run: |
+        if grep -qE '^(fixup|squash)!' {1}; then
+          echo "Refusing fixup/squash commit on this branch. Rebase first."
+          exit 1
+        fi

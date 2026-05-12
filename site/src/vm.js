@@ -1,7 +1,7 @@
 import { WASM_URL } from "./data.js";
 import { $, setText } from "./dom.js";
 import { state } from "./state.js";
-import { compute, renderError, refreshRangeHint, refreshDateBounds } from "./compute.js";
+import { compute, renderError, refreshRangeHint, refreshDateBounds, refreshYearBounds } from "./compute.js";
 import { loadMetadata, applyMetadata } from "./metadata.js";
 
 export function setVmState(state_, label, dotClass) {
@@ -26,6 +26,7 @@ export async function bootRuby() {
     if (loadMetadata()) applyMetadata();
     refreshRangeHint();
     refreshDateBounds();
+    refreshYearBounds();
     setVmState("ready", "Live · running in your browser", "bg-emerald-500");
     compute();
   } catch (e) {

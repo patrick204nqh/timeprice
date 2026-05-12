@@ -76,13 +76,14 @@ function modeLabel(mode, f) {
 }
 
 function metaLine(mode, r, f) {
+  const destName = countryNameFor(f.toCurrency);
   switch (mode) {
     case "inflation":
-      return `${countryFor(f.toCurrency)} CPI · ${r.granularity || ""}`.replace(/ · $/, "");
+      return `${destName} CPI · ${r.granularity || ""}`.replace(/ · $/, "");
     case "fx":
       return `Rate on ${humanDate(f.fromDate || `${f.fromYear}-06-15`)}`;
     case "compare":
-      return `FX on ${humanDate(f.fromDate || `${f.fromYear}-06-15`)} · ${countryFor(f.toCurrency)} CPI to ${humanDate(toGemDate(f))}`;
+      return `FX on ${humanDate(f.fromDate || `${f.fromYear}-06-15`)} · ${destName} CPI to ${humanDate(toGemDate(f))}`;
     default:
       return "No conversion needed";
   }
@@ -277,6 +278,40 @@ export function compute() {
     console.error(e);
     const raw = (e && e.message) ? String(e.message) : String(e);
     renderError(humaniseError(raw));
+  }
+}
+
+// Year input bounds follow the destination currency's CPI window (the
+// binding constraint when inflation is in play). When the form is in pure-FX
+// mode (same year both sides), CPI doesn't constrain anything — fall back
+// to FX coverage so users can still pick a 2026 FX-only query even if the
+// destination CPI ends in 2024.
+export function refreshYearBounds() {
+  const f = state.form;
+  const mode = deriveMode(f);
+  const fromEl = $("#from-year");
+  const toEl = $("#to-year");
+  if (!fromEl || !toEl) return;
+
+  let min, max;
+  if (mode === "inflation" || mode === "compare" || mode === "identity") {
+    const c = state.metadata?.countries?.find((x) => x.currency === f.toCurrency);
+    const widest = c && (c.cpi.monthly || c.cpi.quarterly || c.cpi.annual);
+    if (widest) {
+      min = widest.min.slice(0, 4);
+      max = widest.max.slice(0, 4);
+    }
+  }
+  if (!min || !max) {
+    const fx = state.metadata?.fx;
+    if (fx?.daily_min && fx?.daily_max) {
+      min = fx.daily_min.slice(0, 4);
+      max = fx.daily_max.slice(0, 4);
+    }
+  }
+  if (min && max) {
+    fromEl.min = toEl.min = min;
+    fromEl.max = toEl.max = max;
   }
 }
 
