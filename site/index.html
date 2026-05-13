@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>timeprice · offline historical inflation & FX for Ruby</title>
-<meta name="description" content="A Ruby gem that ships historical inflation and FX data inside the gem. No API keys, no rate limits, no network. Try the calculator — it runs the actual gem in your browser.">
+<title>timeprice · historical money calculator</title>
+<meta name="description" content="Calculator for historical inflation and currency conversion, 1990–today. Powered by the open-source timeprice Ruby gem — runs entirely in your browser.">
 
-<meta property="og:title" content="timeprice — offline historical inflation & FX for Ruby">
-<meta property="og:description" content="Ships data inside the gem. Try the calculator — it runs the actual gem in your browser.">
+<meta property="og:title" content="timeprice — historical money calculator">
+<meta property="og:description" content="What was $X then worth, in any currency, in any year? Runs entirely in your browser.">
 <meta property="og:type" content="website">
 
 <link rel="icon" type="image/svg+xml" href="./public/favicon.svg">
@@ -40,11 +40,10 @@
   <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
     <div class="flex items-baseline gap-3">
       <span class="font-semibold text-lg mono">timeprice</span>
-      <span class="text-sm text-stone-500">offline inflation & FX for Ruby</span>
+      <span class="text-sm text-stone-500 hidden sm:inline">historical money calculator</span>
     </div>
     <nav class="flex items-center gap-4 text-sm">
-      <a href="https://github.com/patrick204nqh/timeprice" class="hover:underline">GitHub</a>
-      <a href="https://rubygems.org/gems/timeprice" class="hover:underline">RubyGems</a>
+      <a href="https://github.com/patrick204nqh/timeprice" class="hover:underline text-stone-600 dark:text-stone-400">GitHub</a>
       <button id="theme-toggle" type="button"
               title="Toggle theme (Light / Dark / System)"
               aria-label="Toggle theme"
@@ -63,24 +62,9 @@
       <span class="text-stone-500"> is worth </span>
       <span class="tabular text-emerald-700 dark:text-emerald-400" id="hero-to">$242.09 in 2024</span><span class="text-stone-500">.</span>
     </h1>
-    <p class="mt-4 text-stone-600 dark:text-stone-400 max-w-2xl">
-      Drop in any amount, currency, and year to ask a different question. Inflation and exchange-rate data ship inside a Ruby gem — covering <span id="meta-country-count">10</span> countries — so nothing here calls out to an API.
+    <p class="mt-3 text-stone-600 dark:text-stone-400 max-w-2xl">
+      Drop in any amount, currency, and year. The whole thing runs in your browser — no API, no network.
     </p>
-  </section>
-
-  <section class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-    <div class="rounded-lg border border-stone-200 dark:border-stone-800 p-4">
-      <div class="text-xs font-semibold uppercase tracking-wider text-stone-500">Offline</div>
-      <div class="mt-1 text-sm">17 MB ships with the gem. No API key, no rate limit, no network.</div>
-    </div>
-    <div class="rounded-lg border border-stone-200 dark:border-stone-800 p-4">
-      <div class="text-xs font-semibold uppercase tracking-wider text-stone-500">Accurate</div>
-      <div class="mt-1 text-sm">Same CPI and FX series central banks publish — BLS, ONS, Eurostat, IMF, GSO, ECB.</div>
-    </div>
-    <div class="rounded-lg border border-stone-200 dark:border-stone-800 p-4">
-      <div class="text-xs font-semibold uppercase tracking-wider text-stone-500">Fresh</div>
-      <div class="mt-1 text-sm">Last refresh <span class="mono" id="meta-refresh">2026-05-12</span> · gem <span class="mono" id="meta-version">v0.6.0</span>.</div>
-    </div>
   </section>
 
   <section class="rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 overflow-hidden">
@@ -180,142 +164,39 @@
         </div>
       </div>
 
-      <div class="mt-6">
-        <div class="text-xs font-medium text-stone-600 dark:text-stone-400 mb-2">Equivalent Ruby</div>
-        <div class="relative">
+      <details class="mt-6 group">
+        <summary class="cursor-pointer text-xs text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 select-none inline-flex items-center gap-1">
+          <span class="inline-block w-3 text-center group-open:rotate-90 transition-transform">▸</span>
+          <span class="underline underline-offset-4 decoration-dotted">Show equivalent Ruby</span>
+        </summary>
+        <div class="relative mt-2">
           <pre class="rounded-md bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto"><code id="snippet" class="mono"></code></pre>
           <button id="snip-copy" class="absolute top-2 right-2 px-2 py-1 text-xs rounded bg-stone-700 hover:bg-stone-600 text-stone-100">copy</button>
         </div>
+      </details>
+
+    </div>
+
+  </section>
+
+  <p class="text-xs text-stone-500 text-center">
+    Data: BLS · ONS · Eurostat · IMF · ECB · GSO ·
+    refreshed <span class="mono" id="meta-refresh">2026-05-12</span> ·
+    gem <span class="mono" id="meta-version">v0.6.0</span>
+  </p>
+
+  <section class="rounded-xl border border-stone-200 dark:border-stone-800 p-4 sm:p-5">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <div class="text-sm font-semibold mb-1">Use it in your Ruby app</div>
+        <div class="text-xs text-stone-500">Docs, recipes, methodology & data licences →
+          <a href="https://github.com/patrick204nqh/timeprice" class="underline">GitHub</a>
+        </div>
       </div>
-
-    </div>
-
-  </section>
-
-  <section>
-    <h2 class="text-sm font-semibold uppercase tracking-wider text-stone-500 mb-3">Use it in Ruby</h2>
-    <div class="flex flex-col sm:flex-row sm:items-center gap-2">
-      <pre class="flex-1 px-4 py-2.5 rounded-md bg-stone-900 text-stone-100 text-sm overflow-x-auto"><code>gem install timeprice</code></pre>
-      <button data-copy="gem install timeprice" class="px-3 py-2.5 text-sm rounded-md border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-900">copy</button>
-    </div>
-  </section>
-
-  <section>
-    <h2 class="text-sm font-semibold uppercase tracking-wider text-stone-500 mb-3">Recipes</h2>
-    <div class="space-y-4">
-
-      <details class="rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden group" open>
-        <summary class="px-4 py-2.5 border-b border-stone-200 dark:border-stone-800 cursor-pointer flex items-center justify-between hover:bg-stone-50 dark:hover:bg-stone-900/50">
-          <div>
-            <div class="text-sm font-semibold">One call that handles any "X then in currency A, how much now in currency B?"</div>
-            <div class="text-xs text-stone-500 mt-0.5">The calculator above is this method, wrapped in a form. Same currency on both sides = inflation. Same year = FX. Different = both.</div>
-          </div>
-          <span class="text-stone-400 text-lg leading-none group-open:rotate-45 transition-transform">+</span>
-        </summary>
-<pre class="bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto"><code class="mono">require "timeprice"
-
-# Pure inflation — same currency, two years
-Timeprice.compare(amount: 100, from: ["USD", "1990"], to: ["USD", "2024"]).amount
-# =&gt; 240.08
-
-# Pure FX — same year, two currencies
-Timeprice.compare(amount: 100, from: ["USD", "2010"], to: ["JPY", "2010"]).amount
-# =&gt; 8866.0
-
-# Cross-cross — FX at the source date, then inflate in the destination economy
-Timeprice.compare(amount: 100, from: ["USD", "2010"], to: ["VND", "2024"]).amount
-# =&gt; 2_932_417.0</code></pre>
-      </details>
-
-      <details class="rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden group">
-        <summary class="px-4 py-2.5 cursor-pointer flex items-center justify-between hover:bg-stone-50 dark:hover:bg-stone-900/50">
-          <div>
-            <div class="text-sm font-semibold">Rails view helper for "today's money"</div>
-            <div class="text-xs text-stone-500 mt-0.5">Drop into <span class="mono">app/helpers/</span> and call from any view.</div>
-          </div>
-          <span class="text-stone-400 text-lg leading-none group-open:rotate-45 transition-transform">+</span>
-        </summary>
-<pre class="bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto border-t border-stone-200 dark:border-stone-800"><code class="mono"># app/helpers/price_helper.rb
-module PriceHelper
-  def in_todays_money(amount, year:, country: "US")
-    today  = Date.today.strftime("%Y-%m")
-    result = Timeprice.inflation(amount: amount, from: year, to: today, country: country)
-    number_to_currency(result.amount)
-  end
-end
-
-# in_todays_money(2.50, year: "1955")  =>  "$30.12"</code></pre>
-      </details>
-
-      <details class="rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden group">
-        <summary class="px-4 py-2.5 cursor-pointer flex items-center justify-between hover:bg-stone-50 dark:hover:bg-stone-900/50">
-          <div>
-            <div class="text-sm font-semibold">Real-terms salary history</div>
-            <div class="text-xs text-stone-500 mt-0.5">Restate past pay in current dollars to see whether raises kept up.</div>
-          </div>
-          <span class="text-stone-400 text-lg leading-none group-open:rotate-45 transition-transform">+</span>
-        </summary>
-<pre class="bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto border-t border-stone-200 dark:border-stone-800"><code class="mono">salaries = { "2015" =&gt; 65_000, "2020" =&gt; 78_000, "2024" =&gt; 92_000 }
-
-real = salaries.transform_values do |amount, year = _1|
-  Timeprice.inflation(amount: amount, from: year, to: "2024", country: "US").amount.round
-end
-
-# =&gt; {"2015"=&gt;84_953, "2020"=&gt;91_402, "2024"=&gt;92_000}
-#    The 2020 raise was a real-terms cut.</code></pre>
-      </details>
-
-      <details class="rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden group">
-        <summary class="px-4 py-2.5 cursor-pointer flex items-center justify-between hover:bg-stone-50 dark:hover:bg-stone-900/50">
-          <div>
-            <div class="text-sm font-semibold">"$X then is $Y today" fun fact</div>
-            <div class="text-xs text-stone-500 mt-0.5">For blog posts, social media, or chat-bot replies.</div>
-          </div>
-          <span class="text-stone-400 text-lg leading-none group-open:rotate-45 transition-transform">+</span>
-        </summary>
-<pre class="bg-stone-900 text-stone-100 text-sm p-4 overflow-x-auto border-t border-stone-200 dark:border-stone-800"><code class="mono">def fun_fact(amount, from_year, country: "US")
-  to    = Date.today.strftime("%Y-%m")
-  r     = Timeprice.inflation(amount: amount, from: from_year.to_s, to: to, country: country)
-  "$#{amount} in #{from_year} is $#{r.amount.round(2)} today (#{country})"
-end
-
-fun_fact(100, 1990)
-# =&gt; "$100 in 1990 is $242.09 today (US)"</code></pre>
-      </details>
-
-    </div>
-  </section>
-
-  <section>
-    <h2 class="text-sm font-semibold uppercase tracking-wider text-stone-500 mb-3">Data sources</h2>
-    <div class="rounded-xl border border-stone-200 dark:border-stone-800 divide-y divide-stone-200 dark:divide-stone-800 text-sm">
-      <div class="grid grid-cols-12 gap-3 px-4 py-2.5 mono text-[0.7rem] uppercase tracking-wider text-stone-500"><span class="col-span-2">Region</span><span class="col-span-5">Series</span><span class="col-span-3">Coverage</span><span class="col-span-2 text-right">Licence</span></div>
-      <div class="grid grid-cols-12 gap-3 px-4 py-3 mono"><span class="col-span-2 font-semibold">US</span><span class="col-span-5 text-stone-600 dark:text-stone-400">CPI-U, US BLS</span><span class="col-span-3 text-stone-500">1913–present</span><span class="col-span-2 text-stone-500 text-right">CC0</span></div>
-      <div class="grid grid-cols-12 gap-3 px-4 py-3 mono"><span class="col-span-2 font-semibold">UK</span><span class="col-span-5 text-stone-600 dark:text-stone-400">CPI, ONS</span><span class="col-span-3 text-stone-500">1988–present</span><span class="col-span-2 text-stone-500 text-right">OGL-UK</span></div>
-      <div class="grid grid-cols-12 gap-3 px-4 py-3 mono"><span class="col-span-2 font-semibold">EU</span><span class="col-span-5 text-stone-600 dark:text-stone-400">HICP, Eurostat</span><span class="col-span-3 text-stone-500">1996–present</span><span class="col-span-2 text-stone-500 text-right">Eurostat</span></div>
-      <div class="grid grid-cols-12 gap-3 px-4 py-3 mono"><span class="col-span-2 font-semibold">JP</span><span class="col-span-5 text-stone-600 dark:text-stone-400">CPI, IMF/Statistics Bureau</span><span class="col-span-3 text-stone-500">1970–present</span><span class="col-span-2 text-stone-500 text-right">IMF</span></div>
-      <div class="grid grid-cols-12 gap-3 px-4 py-3 mono"><span class="col-span-2 font-semibold">VN</span><span class="col-span-5 text-stone-600 dark:text-stone-400">CPI, GSO/IMF</span><span class="col-span-3 text-stone-500">1996–present</span><span class="col-span-2 text-stone-500 text-right">IMF</span></div>
-      <div class="grid grid-cols-12 gap-3 px-4 py-3 mono"><span class="col-span-2 font-semibold">FX</span><span class="col-span-5 text-stone-600 dark:text-stone-400">Daily rates, ECB / IMF</span><span class="col-span-3 text-stone-500">1999–present</span><span class="col-span-2 text-stone-500 text-right">ECB/IMF</span></div>
-    </div>
-    <p class="mt-3 text-xs text-stone-500">All series refreshed on <span class="mono" id="meta-refresh-2">2026-05-12</span>. Full provenance in <a href="https://github.com/patrick204nqh/timeprice/blob/main/data/manifest.json" class="underline">data/manifest.json</a>.</p>
-  </section>
-
-  <section>
-    <h2 class="text-sm font-semibold uppercase tracking-wider text-stone-500 mb-3">Methodology &amp; accuracy</h2>
-    <div class="rounded-xl border border-stone-200 dark:border-stone-800 p-4 sm:p-6 space-y-3 text-sm">
-      <p>
-        <span class="font-semibold">Cross-check:</span> for $100 USD from 1990 to 2024, the
-        <a href="https://www.bls.gov/data/inflation_calculator.htm" class="underline">official BLS calculator</a>
-        agrees with us to within a cent of rounding. Pick a specific date (Jun 15 etc.) and we'll match the BLS monthly answer just as closely.
-      </p>
-      <p class="text-stone-600 dark:text-stone-400">
-        <span class="font-semibold text-stone-700 dark:text-stone-300">How it works.</span>
-        Inflation = <span class="mono">amount × (CPI[to] / CPI[from])</span>, using the monthly index when both dates have one and falling back to annual otherwise. FX uses daily mid-rates (ECB-style); weekend and holiday lookups walk back up to 7 days to the previous trading day. Compare runs FX at the source date first, then inflates in the destination currency — see the <a href="https://github.com/patrick204nqh/timeprice#compare-semantics" class="underline">"Compare semantics" note</a> for why that order matters.
-      </p>
-      <p class="text-stone-600 dark:text-stone-400">
-        <span class="font-semibold text-stone-700 dark:text-stone-300">Rounding.</span>
-        Intermediate ratios are kept at full Float precision; only the final amount is rounded by the caller. Zero-decimal currencies (JPY, KRW, VND) display without decimals.
-      </p>
+      <div class="flex items-center gap-2 shrink-0">
+        <pre class="px-3 py-2 rounded-md bg-stone-900 text-stone-100 text-sm"><code>gem install timeprice</code></pre>
+        <button data-copy="gem install timeprice" class="px-3 py-2 text-xs rounded-md border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-900">copy</button>
+      </div>
     </div>
   </section>
 
@@ -323,8 +204,8 @@ fun_fact(100, 1990)
 
 <footer class="border-t border-stone-200 dark:border-stone-800 mt-12">
   <div class="max-w-4xl mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-stone-500">
-    <div>MIT licensed · data licenses vary, see <a href="https://github.com/patrick204nqh/timeprice/blob/main/DATA_LICENSES.md" class="underline">DATA_LICENSES.md</a></div>
-    <div class="mono">timeprice runs in your browser via <a href="https://github.com/ruby/ruby.wasm" class="underline">ruby.wasm</a></div>
+    <div>MIT · data licences in <a href="https://github.com/patrick204nqh/timeprice/blob/main/DATA_LICENSES.md" class="underline">DATA_LICENSES.md</a></div>
+    <div class="mono">runs in your browser via <a href="https://github.com/ruby/ruby.wasm" class="underline">ruby.wasm</a></div>
   </div>
 </footer>
 
