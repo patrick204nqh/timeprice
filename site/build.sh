@@ -20,6 +20,12 @@ bundle exec rbwasm build \
 # the browser to silently decompress before our DecompressionStream sees it.
 gzip -kf -9 -c public/timeprice.wasm > public/timeprice.wasm.bin
 
+# Tiny manifest so the browser can key its compiled-module cache on the
+# build's content hash. Avoids the full download + compile on repeat
+# visits while invalidating automatically when the wasm changes.
+WASM_SHA=$(shasum -a 256 public/timeprice.wasm.bin | awk '{print $1}')
+printf '{"sha256":"%s"}\n' "$WASM_SHA" > public/timeprice.wasm.meta.json
+
 # Tailwind CSS — produce a purged stylesheet so we don't ship the play CDN
 # (which warns about production use and JIT-compiles in the browser).
 TW_VERSION="v3.4.17"
@@ -38,4 +44,4 @@ if [[ ! -x .bin/tailwindcss ]]; then
 fi
 .bin/tailwindcss -c tailwind.config.js -i tailwind.css -o public/tailwind.css --minify
 
-ls -lh public/timeprice.wasm public/timeprice.wasm.bin public/tailwind.css
+ls -lh public/timeprice.wasm public/timeprice.wasm.bin public/timeprice.wasm.meta.json public/tailwind.css

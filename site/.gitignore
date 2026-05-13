@@ -6,4 +6,5 @@ rubies/
 public/timeprice.wasm
 public/timeprice.wasm.gz
 public/timeprice.wasm.bin
+public/timeprice.wasm.meta.json
 public/tailwind.css
