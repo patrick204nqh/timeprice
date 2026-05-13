@@ -2,7 +2,6 @@ vendor/
 .bundle/
 build/
 rubies/
-Gemfile.lock
 .bin/
 public/timeprice.wasm
 public/timeprice.wasm.gz

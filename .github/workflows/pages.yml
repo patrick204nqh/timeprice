@@ -28,13 +28,23 @@ jobs:
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.3"
-          bundler-cache: false
+          bundler-cache: true
+          working-directory: site
 
-      - name: Cache rbwasm CRuby build
+      # rbwasm extracts a ~26 MB pre-built CRuby tarball into site/rubies/ on
+      # first run; caching it skips the download (~1–2 min) on every rebuild.
+      - name: Cache rbwasm CRuby tarball
         uses: actions/cache@v4
         with:
-          path: ~/.cache/rbwasm
-          key: rbwasm-${{ runner.os }}-ruby3.3-${{ hashFiles('site/Gemfile') }}
+          path: site/rubies
+          key: rbwasm-rubies-${{ runner.os }}-ruby3.3-${{ hashFiles('site/Gemfile.lock') }}
+
+      # Tailwind standalone CLI binary (~10 MB) downloaded by site/build.sh.
+      - name: Cache Tailwind CLI binary
+        uses: actions/cache@v4
+        with:
+          path: site/.bin
+          key: tailwindcss-${{ runner.os }}-v3.4.17
 
       - name: Build timeprice.wasm
         working-directory: site
