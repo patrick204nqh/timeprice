@@ -1,4 +1,4 @@
-export const WASM_URL = "./public/timeprice.wasm.gz";
+export const WASM_URL = "./public/timeprice.wasm.bin";
 
 // Display symbols used in the hero. Pure presentation data (not in the gem's
 // domain), so it stays here. Two-character symbols for currencies that share

@@ -14,7 +14,8 @@
 <link rel="apple-touch-icon" href="./public/favicon.svg">
 <meta name="theme-color" content="#1c1917">
 
-<link rel="preload" href="./public/timeprice.wasm.gz" as="fetch" crossorigin>
+<link rel="preload" href="./public/timeprice.wasm.bin" as="fetch" crossorigin>
+<link rel="stylesheet" href="./public/tailwind.css">
 
 <!-- Set the .dark class BEFORE Tailwind paints so there's no theme flash. -->
 <script>
@@ -26,9 +27,6 @@
     if (dark) document.documentElement.classList.add("dark");
   })();
 </script>
-<script src="https://cdn.tailwindcss.com"></script>
-<!-- Must run AFTER the CDN script — that's where the `tailwind` global is defined. -->
-<script>tailwind.config = { darkMode: "class" };</script>
 <style>
   body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
   code, pre, .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }

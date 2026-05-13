@@ -12,9 +12,30 @@ bundle exec rbwasm build \
   --target wasm32-unknown-wasip1 \
   -o public/timeprice.wasm
 
-# GitHub Pages does not auto-compress .wasm responses, so we ship pre-gzipped
-# and decompress in the browser via DecompressionStream. Cuts the over-the-wire
-# size from ~52MB to ~17MB.
-gzip -kf -9 public/timeprice.wasm
+# Ship pre-gzipped and decompress in the browser via DecompressionStream.
+# Cuts the over-the-wire size from ~52MB to ~17MB.
+#
+# Using a non-".gz" suffix prevents Fastly (GitHub Pages' CDN) from sniffing
+# the gzip magic bytes and adding `Content-Encoding: gzip`, which would cause
+# the browser to silently decompress before our DecompressionStream sees it.
+gzip -kf -9 -c public/timeprice.wasm > public/timeprice.wasm.bin
 
-ls -lh public/timeprice.wasm public/timeprice.wasm.gz
+# Tailwind CSS — produce a purged stylesheet so we don't ship the play CDN
+# (which warns about production use and JIT-compiles in the browser).
+TW_VERSION="v3.4.17"
+mkdir -p .bin
+case "$(uname -s)-$(uname -m)" in
+  Linux-x86_64)   TW_ASSET=tailwindcss-linux-x64 ;;
+  Linux-aarch64)  TW_ASSET=tailwindcss-linux-arm64 ;;
+  Darwin-x86_64)  TW_ASSET=tailwindcss-macos-x64 ;;
+  Darwin-arm64)   TW_ASSET=tailwindcss-macos-arm64 ;;
+  *) echo "Unsupported platform for Tailwind standalone CLI" >&2; exit 1 ;;
+esac
+if [[ ! -x .bin/tailwindcss ]]; then
+  curl -fsSL -o .bin/tailwindcss \
+    "https://github.com/tailwindlabs/tailwindcss/releases/download/${TW_VERSION}/${TW_ASSET}"
+  chmod +x .bin/tailwindcss
+fi
+.bin/tailwindcss -c tailwind.config.js -i tailwind.css -o public/tailwind.css --minify
+
+ls -lh public/timeprice.wasm public/timeprice.wasm.bin public/tailwind.css
