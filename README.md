@@ -6,7 +6,9 @@ Offline historical inflation & FX for Ruby — bundled data, no API keys, monthl
 [![Gem Version](https://img.shields.io/gem/v/timeprice.svg)](https://rubygems.org/gems/timeprice)
 [![Ruby](https://img.shields.io/badge/ruby-%3E%3D%203.2-ruby.svg)](https://www.ruby-lang.org/)
 
-**Try it in your browser:** [patrick204nqh.github.io/timeprice](https://patrick204nqh.github.io/timeprice/) — the calculator runs the actual gem via ruby.wasm, no backend.
+**Try it without installing anything → [patrick204nqh.github.io/timeprice](https://patrick204nqh.github.io/timeprice/).** The page boots the gem in your browser via ruby.wasm — same code, same numbers, no backend.
+
+[![timeprice calculator screenshot](docs/img/calculator.png)](https://patrick204nqh.github.io/timeprice/)
 
 ## Why this exists
 
