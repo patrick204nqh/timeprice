@@ -23,9 +23,13 @@ Enable Pages once in repo Settings → Pages → Source: **GitHub Actions**.
 
 ## Stack
 
-- Static HTML, no JS framework, no bundler — Tailwind via Play CDN for v0.
+- Static HTML, no JS framework, no bundler. Tailwind CSS is built at deploy
+  time via the standalone CLI (downloaded into `.bin/` by `build.sh`).
 - `@ruby/wasm-wasi@2` loaded from jsdelivr for the Ruby runtime.
-- `rbwasm build` packs CRuby 3.3 + the gem + `data/` into a single `.wasm` (~13MB brotli).
+- `rbwasm build` packs CRuby 3.3 + the gem + `data/` into a single `.wasm`
+  (~52 MB raw, ~17 MB pre-gzipped as `public/timeprice.wasm.bin`).
+- Traffic analytics via [GoatCounter](https://www.goatcounter.com) (cookieless,
+  privacy-friendly). Public dashboard: <https://timeprice.goatcounter.com>.
 
 ## Scope (v0)
 
