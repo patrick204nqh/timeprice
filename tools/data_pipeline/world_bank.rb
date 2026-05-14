@@ -25,7 +25,9 @@ module Tools
       def fetch_indicator(country_iso3, indicator)
         url = "https://api.worldbank.org/v2/country/#{country_iso3}/indicator/#{indicator}?format=json&per_page=200"
         body = Tools::DataPipeline.http_json(url)
-        fail "World Bank: unexpected shape for #{country_iso3}/#{indicator}" unless body.is_a?(Array) && body.size >= 2
+        unless body.is_a?(Array) && body.size >= 2
+          fail ShapeError, "World Bank: unexpected shape for #{country_iso3}/#{indicator}"
+        end
 
         (body[1] || []).each_with_object({}) do |row, h|
           val = row["value"]

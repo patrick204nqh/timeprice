@@ -98,6 +98,10 @@ module Tools
         yield
         @results[name] = :ok
       rescue StandardError => e
+        # Typed Tools::DataPipeline::Error subclasses (HttpError,
+        # ShapeError, ValidationError, SchemaError) and any unexpected
+        # StandardError land here. We log + continue so one fetcher
+        # failing doesn't take down the rest of the chain.
         @results[name] = annotate_failure(name, e)
       end
 

@@ -13,8 +13,8 @@ require "fileutils"
 $LOAD_PATH.unshift(File.expand_path("../../lib", __dir__))
 require "timeprice/schema"
 
-module Tools
-end
+require_relative "namespace"
+require_relative "errors"
 
 module Tools
   module DataPipeline
@@ -61,7 +61,7 @@ module Tools
             req.body = body.is_a?(String) ? body : JSON.generate(body)
           end
           res = http.request(req)
-          fail "HTTP #{res.code} for #{url}: #{res.body.to_s[0, 200]}" unless res.is_a?(Net::HTTPSuccess)
+          fail HttpError.new(url: url, status: res.code, body: res.body) unless res.is_a?(Net::HTTPSuccess)
 
           return res.body
         end
@@ -150,8 +150,8 @@ module Tools
 
     def validate_positive_numeric!(hash, label)
       hash.each do |k, v|
-        fail "#{label}: non-numeric value at #{k}: #{v.inspect}" unless v.is_a?(Numeric)
-        fail "#{label}: non-positive value at #{k}: #{v}" unless v.positive?
+        fail ValidationError, "#{label}: non-numeric value at #{k}: #{v.inspect}" unless v.is_a?(Numeric)
+        fail ValidationError, "#{label}: non-positive value at #{k}: #{v}" unless v.positive?
       end
     end
 
