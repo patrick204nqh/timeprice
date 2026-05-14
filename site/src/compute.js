@@ -120,9 +120,27 @@ export function renderHero(out) {
   }
 }
 
+// Result-block state tint. DESIGN.md forbids new semantic colours, so error
+// state shifts the surface from `surface-inset` to `surface-card` plus a 1px
+// hairline — same elevation language as the calc card, repurposed to mark
+// "this block is in a non-result state."
+function setResultState(state_) {
+  const el = $("#calc-result");
+  if (!el) return;
+  const errored = state_ === "error";
+  el.classList.toggle("bg-stone-100", !errored);
+  el.classList.toggle("dark:bg-stone-800/50", !errored);
+  el.classList.toggle("bg-white", errored);
+  el.classList.toggle("dark:bg-stone-900", errored);
+  el.classList.toggle("border", errored);
+  el.classList.toggle("border-stone-300", errored);
+  el.classList.toggle("dark:border-stone-700", errored);
+}
+
 function renderResult(out, mode) {
   const f = state.form;
   const dec = decimalsFor(out.to_currency);
+  setResultState("ok");
   setText("#calc-mode", modeLabel(mode, f));
   setText("#calc-amount-out", `${fmtNumber(out.amount, dec)} ${out.to_currency}`);
   setText(
@@ -134,6 +152,7 @@ function renderResult(out, mode) {
 }
 
 export function renderError(message) {
+  setResultState("error");
   setText("#calc-mode", "Error");
   setText("#calc-amount-out", "—");
   setText("#calc-detail", message);
@@ -142,6 +161,7 @@ export function renderError(message) {
 }
 
 export function renderEmpty(message = "Warming up Ruby VM…") {
+  setResultState("ok");
   setText("#calc-mode", "");
   setText("#calc-amount-out", "—");
   setText("#calc-detail", message);
@@ -234,9 +254,9 @@ export function validateForm(f, mode) {
     if (fx?.daily_min && fx?.daily_max) {
       const min = Number(fx.daily_min.slice(0, 4));
       const max = Number(fx.daily_max.slice(0, 4));
-      const yearToCheck = mode === "fx" ? fromYear : fromYear;
-      if (yearToCheck < min) return `FX rates start ${min}. Pick a year from ${min} on.`;
-      if (yearToCheck > max) return `FX rates end ${max}. Pick a year up to ${max}.`;
+      // FX rate is sampled at the source date (Compare's convention too).
+      if (fromYear < min) return `FX rates start ${min}. Pick a year from ${min} on.`;
+      if (fromYear > max) return `FX rates end ${max}. Pick a year up to ${max}.`;
     }
   }
   return null;

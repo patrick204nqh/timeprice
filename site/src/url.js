@@ -46,6 +46,12 @@ function openPrecise() {
   const icon = $("#precise-toggle-icon");
   if (label) label.textContent = "Use year only";
   if (icon) icon.textContent = "▾";
+  for (const id of ["#from-year", "#to-year"]) {
+    const el = $(id);
+    if (!el) continue;
+    el.disabled = true;
+    el.classList.add("opacity-50", "cursor-not-allowed");
+  }
 }
 
 export function writeUrl() {
