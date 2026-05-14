@@ -103,7 +103,7 @@ module Tools
 
       def parse_quarter(s)
         m = s.match(/\A(\d{4})-Q([1-4])\z/)
-        raise "bad quarter period: #{s.inspect}" unless m
+        fail "bad quarter period: #{s.inspect}" unless m
 
         [m[1].to_i, m[2].to_i]
       end

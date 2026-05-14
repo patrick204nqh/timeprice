@@ -79,10 +79,10 @@ module Timeprice
     def resolve_points(from, to)
       from_point = Point.coerce(from)
       to_point   = Point.coerce(to)
-      raise UnsupportedCurrency, from_point.currency unless Supported.country_for_currency(from_point.currency)
+      fail UnsupportedCurrency, from_point.currency unless Supported.country_for_currency(from_point.currency)
 
       to_country = Supported.country_for_currency(to_point.currency)
-      raise UnsupportedCurrency, to_point.currency unless to_country
+      fail UnsupportedCurrency, to_point.currency unless to_country
 
       [from_point, to_point, to_country]
     end

@@ -30,7 +30,7 @@ module Timeprice
     def assert_supported!(version, path)
       return if supported?(version)
 
-      raise UnsupportedSchemaVersion.new(version, path)
+      fail UnsupportedSchemaVersion.new(version, path)
     end
 
     # Build a CPI payload ready for JSON.dump. Series keys are emitted in a

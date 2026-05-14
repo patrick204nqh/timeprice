@@ -36,11 +36,11 @@ module Timeprice
         a, b = input.map(&:to_s)
         currency = [a, b].find { |s| s.match?(/\A[A-Za-z]{3}\z/) }
         date     = [a, b].find { |s| s.match?(/\A\d{4}(-\d{2}(-\d{2})?)?\z/) }
-        raise ArgumentError, malformed_pair_message(input) if currency.nil? || date.nil?
+        fail ArgumentError, malformed_pair_message(input) if currency.nil? || date.nil?
 
         new(currency: currency.upcase, date: date)
       else
-        raise ArgumentError, "Expected Timeprice::Point or [currency, date] tuple, got #{input.inspect}"
+        fail ArgumentError, "Expected Timeprice::Point or [currency, date] tuple, got #{input.inspect}"
       end
     end
 
@@ -63,7 +63,7 @@ module Timeprice
       when /\A\d{4}\z/         then "#{date}-06-30"
       when /\A\d{4}-\d{2}\z/   then "#{date}-15"
       when /\A\d{4}-\d{2}-\d{2}\z/ then date.to_s
-      else raise ArgumentError, "Invalid date for Point: #{date.inspect}"
+      else fail ArgumentError, "Invalid date for Point: #{date.inspect}"
       end
     end
   end

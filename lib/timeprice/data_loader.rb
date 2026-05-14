@@ -41,8 +41,8 @@ module Timeprice
         manifest_cache[data_root] ||= begin
           path = File.join(data_root, "manifest.json")
           unless File.exist?(path)
-            raise DataNotFound, "manifest.json missing (looked in #{path}). " \
-                                "Check TIMEPRICE_DATA_ROOT or reinstall the gem."
+            fail DataNotFound, "manifest.json missing (looked in #{path}). " \
+                               "Check TIMEPRICE_DATA_ROOT or reinstall the gem."
           end
 
           parse_with_schema(path)
@@ -59,12 +59,12 @@ module Timeprice
         key = country.to_s.downcase
         code = country.to_s.upcase
         cpi_cache[[data_root, key]] ||= begin
-          raise UnsupportedCountry, code unless Supported.country?(code)
+          fail UnsupportedCountry, code unless Supported.country?(code)
 
           path = File.join(data_root, "cpi", "#{key}.json")
           unless File.exist?(path)
-            raise DataNotFound, "CPI data file missing for #{code} (looked in #{path}). " \
-                                "Check TIMEPRICE_DATA_ROOT or reinstall the gem."
+            fail DataNotFound, "CPI data file missing for #{code} (looked in #{path}). " \
+                               "Check TIMEPRICE_DATA_ROOT or reinstall the gem."
           end
 
           parse_with_schema(path)
@@ -79,7 +79,7 @@ module Timeprice
         key = year.to_i
         fx_cache[[data_root, key]] ||= begin
           path = File.join(data_root, "fx", "usd", "#{key}.json")
-          raise DataNotFound, "No FX data for year #{key}" unless File.exist?(path)
+          fail DataNotFound, "No FX data for year #{key}" unless File.exist?(path)
 
           parse_with_schema(path)
         end

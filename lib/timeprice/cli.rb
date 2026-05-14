@@ -160,12 +160,12 @@ module Timeprice
       end
 
       def parse_compare_token(token, label:)
-        raise ArgumentError, "#{label} is required" if token.nil? || token.strip.empty?
+        fail ArgumentError, "#{label} is required" if token.nil? || token.strip.empty?
 
         parts = token.strip.split(/\s+/)
         unless parts.size == 2
-          raise ArgumentError,
-                "#{label} must be \"YEAR CURRENCY\" or \"CURRENCY YEAR\", got #{token.inspect}"
+          fail ArgumentError,
+               "#{label} must be \"YEAR CURRENCY\" or \"CURRENCY YEAR\", got #{token.inspect}"
         end
 
         Point.coerce(parts)

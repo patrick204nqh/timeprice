@@ -34,8 +34,8 @@ module Timeprice
     def convert(amount:, from:, to:, date:)
       from = from.to_s.upcase
       to   = to.to_s.upcase
-      raise UnsupportedCurrency, from unless Supported.currency?(from)
-      raise UnsupportedCurrency, to   unless Supported.currency?(to)
+      fail UnsupportedCurrency, from unless Supported.currency?(from)
+      fail UnsupportedCurrency, to   unless Supported.currency?(to)
 
       d = parse_date(date)
 
@@ -74,9 +74,9 @@ module Timeprice
         usd_to_from, eff_a, gran_a = lookup_usd_base(from, d)
         usd_to_to,   eff_b, gran_b = lookup_usd_base(to,   d)
         if eff_a != eff_b
-          raise DataNotFound,
-                "FX triangulation date mismatch for #{from}->#{to} on #{d}: " \
-                "USD->#{from} resolved #{eff_a}, USD->#{to} resolved #{eff_b}"
+          fail DataNotFound,
+               "FX triangulation date mismatch for #{from}->#{to} on #{d}: " \
+               "USD->#{from} resolved #{eff_a}, USD->#{to} resolved #{eff_b}"
         end
         [usd_to_to / usd_to_from, eff_a, Granularity.merge(gran_a, gran_b)]
       end
@@ -106,7 +106,7 @@ module Timeprice
       annual_rate = annual_fallback(currency, d.year)
       return [annual_rate, d, Granularity::ANNUAL] if annual_rate
 
-      raise DataNotFound, "No FX rate for USD->#{currency} on or before #{d}"
+      fail DataNotFound, "No FX rate for USD->#{currency} on or before #{d}"
     end
 
     # Consult data/fx/usd/_annual.json. Returns Float or nil.
@@ -129,7 +129,7 @@ module Timeprice
         require_daily!(parsed)
         ::Date.new(parsed.year, parsed.month, parsed.day)
       else
-        raise ArgumentError, "Invalid date: #{date.inspect}"
+        fail ArgumentError, "Invalid date: #{date.inspect}"
       end
     rescue ::Date::Error
       raise ArgumentError, "Invalid date: #{date.inspect} is not a real calendar date"
@@ -138,7 +138,7 @@ module Timeprice
     def require_daily!(date)
       return if date.granularity == :daily
 
-      raise ArgumentError, "Invalid date: Exchange needs YYYY-MM-DD, got #{date}"
+      fail ArgumentError, "Invalid date: Exchange needs YYYY-MM-DD, got #{date}"
     end
   end
 end

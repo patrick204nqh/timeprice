@@ -61,14 +61,14 @@ module Tools
       # @return [Series] the (monthly, quarterly, annual) series fetched
       #   from upstream. Use `Series.build(monthly: ..., annual: ...)`.
       def fetch
-        raise NotImplementedError, "#{self.class} must implement #fetch returning a Series"
+        fail NotImplementedError, "#{self.class} must implement #fetch returning a Series"
       end
 
       def run
         series = fetch
         unless series.is_a?(Series)
-          raise "#{self.class}#fetch must return a Tools::DataPipeline::Series " \
-                "(got #{series.class})"
+          fail "#{self.class}#fetch must return a Tools::DataPipeline::Series " \
+               "(got #{series.class})"
         end
         series.each_present do |g, h|
           Tools::DataPipeline.validate_positive_numeric!(h, "#{log_label} #{g}")

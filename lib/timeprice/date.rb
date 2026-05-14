@@ -33,7 +33,7 @@ module Timeprice
       when ANNUAL_RE
         new(year: ::Regexp.last_match(1).to_i, month: nil, quarter: nil, day: nil)
       else
-        raise InvalidDate, "Cannot parse #{str.inspect} as a Timeprice::Date"
+        fail InvalidDate, "Cannot parse #{str.inspect} as a Timeprice::Date"
       end
     end
 

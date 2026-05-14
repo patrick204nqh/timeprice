@@ -32,7 +32,7 @@ module Timeprice
       when QUARTER_RE        then quarterly_or_fallbacks(key)
       when /\A\d{4}-\d{2}\z/ then monthly_or_fallbacks(key)
       when /\A\d{4}\z/       then annual_or_derived(key)
-      else raise ArgumentError, "Invalid date format: #{key.inspect} (use YYYY, YYYY-MM, or YYYY-Qn)"
+      else fail ArgumentError, "Invalid date format: #{key.inspect} (use YYYY, YYYY-MM, or YYYY-Qn)"
       end
     end
 
@@ -48,7 +48,7 @@ module Timeprice
       end
 
       year_key = month_key[0, 4]
-      raise DataNotFound, missing_message(month_key) unless @annual.key?(year_key)
+      fail DataNotFound, missing_message(month_key) unless @annual.key?(year_key)
 
       CpiPoint.new(value: @annual[year_key], granularity: Granularity::MONTHLY_FROM_ANNUAL_FALLBACK)
     end
@@ -71,7 +71,7 @@ module Timeprice
       end
 
       year = quarter_key[0, 4]
-      raise DataNotFound, missing_message(quarter_key) unless @annual.key?(year)
+      fail DataNotFound, missing_message(quarter_key) unless @annual.key?(year)
 
       CpiPoint.new(value: @annual[year], granularity: Granularity::QUARTERLY_FROM_ANNUAL_FALLBACK)
     end
@@ -90,7 +90,7 @@ module Timeprice
       return average(months, months.size, Granularity::ANNUAL_FROM_PARTIAL_MONTHS) if months.any?
       return average(quarters, quarters.size, Granularity::ANNUAL_FROM_PARTIAL_QUARTERS) if quarters.any?
 
-      raise DataNotFound, missing_message(year)
+      fail DataNotFound, missing_message(year)
     end
 
     def average(series, divisor, granularity)

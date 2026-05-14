@@ -48,7 +48,7 @@ module Tools
             year = date_str[0, 4].to_i
             # validate
             currencies.each_value do |v|
-              raise "bad rate at #{date_str}" unless v.is_a?(Numeric) && v.positive? && v < 1e9
+              fail "bad rate at #{date_str}" unless v.is_a?(Numeric) && v.positive? && v < 1e9
             end
             by_year[year][date_str] = currencies
           end

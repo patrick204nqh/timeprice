@@ -55,8 +55,8 @@ module Tools
       def extract_points(body)
         # WDS returns [{ "status" => "SUCCESS", "object" => { "vectorDataPoint" => [...] } }]
         entry = Array(body).first
-        raise "StatCan: unexpected payload shape: #{body.class}" unless entry.is_a?(Hash)
-        raise "StatCan: status #{entry["status"].inspect}" if entry["status"] && entry["status"] != "SUCCESS"
+        fail "StatCan: unexpected payload shape: #{body.class}" unless entry.is_a?(Hash)
+        fail "StatCan: status #{entry["status"].inspect}" if entry["status"] && entry["status"] != "SUCCESS"
 
         entry.dig("object", "vectorDataPoint") || []
       end

@@ -24,11 +24,11 @@ module Tools
       module_function
 
       def run
-        raise NotImplementedError,
-              "KOSIS fetcher is not wired up — KR monthly CPI is sourced from " \
-              "IMF Data Portal (KOR.CPI._T.IX.M). Remove the KOSIS run.call line " \
-              "from tools/data_pipeline/runner.rb, or implement KOSIS_API_KEY support, " \
-              "to silence this warning."
+        fail NotImplementedError,
+             "KOSIS fetcher is not wired up — KR monthly CPI is sourced from " \
+             "IMF Data Portal (KOR.CPI._T.IX.M). Remove the KOSIS run.call line " \
+             "from tools/data_pipeline/runner.rb, or implement KOSIS_API_KEY support, " \
+             "to silence this warning."
       end
     end
   end

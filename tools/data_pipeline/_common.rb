@@ -61,7 +61,7 @@ module Tools
             req.body = body.is_a?(String) ? body : JSON.generate(body)
           end
           res = http.request(req)
-          raise "HTTP #{res.code} for #{url}: #{res.body.to_s[0, 200]}" unless res.is_a?(Net::HTTPSuccess)
+          fail "HTTP #{res.code} for #{url}: #{res.body.to_s[0, 200]}" unless res.is_a?(Net::HTTPSuccess)
 
           return res.body
         end
@@ -69,7 +69,7 @@ module Tools
         last_error = e
         sleep(2) if attempt.zero?
       end
-      raise last_error
+      fail last_error
     end
 
     def http_json(url, **)
@@ -150,8 +150,8 @@ module Tools
 
     def validate_positive_numeric!(hash, label)
       hash.each do |k, v|
-        raise "#{label}: non-numeric value at #{k}: #{v.inspect}" unless v.is_a?(Numeric)
-        raise "#{label}: non-positive value at #{k}: #{v}" unless v.positive?
+        fail "#{label}: non-numeric value at #{k}: #{v.inspect}" unless v.is_a?(Numeric)
+        fail "#{label}: non-positive value at #{k}: #{v}" unless v.positive?
       end
     end
 

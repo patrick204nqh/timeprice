@@ -32,6 +32,11 @@ Style/StringLiterals:
 Style/StringLiteralsInInterpolation:
   EnforcedStyle: double_quotes
 
+# Weirich convention: `fail` introduces a new exception, `raise` re-throws
+# inside a rescue. RuboCop's :semantic style enforces exactly that.
+Style/SignalException:
+  EnforcedStyle: semantic
+
 Style/TrailingCommaInArrayLiteral:
   EnforcedStyleForMultiline: comma
 

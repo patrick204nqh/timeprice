@@ -28,7 +28,7 @@ module Tools
         body = { "seriesid" => [SERIES_ID], "startyear" => start_year.to_s, "endyear" => end_year.to_s }
         url  = "https://api.bls.gov/publicAPI/v2/timeseries/data/"
         json = Tools::DataPipeline.http_json(url, method: :post, body: body)
-        raise "BLS: #{json["status"]}: #{json["message"]}" unless json["status"] == "REQUEST_SUCCEEDED"
+        fail "BLS: #{json["status"]}: #{json["message"]}" unless json["status"] == "REQUEST_SUCCEEDED"
 
         json.dig("Results", "series", 0, "data") || []
       end

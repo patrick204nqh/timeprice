@@ -35,7 +35,7 @@ module Tools
       # Placeholder real fetch. JP CPI series IDs vary; absent docs verification
       # in this offline run, we raise so the rescue path falls back cleanly.
       def fetch_with_key(_app_id)
-        raise NotImplementedError, "e-Stat real fetch not implemented in v0.1; using World Bank fallback."
+        fail NotImplementedError, "e-Stat real fetch not implemented in v0.1; using World Bank fallback."
       end
     end
   end
