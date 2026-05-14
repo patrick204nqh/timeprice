@@ -22,7 +22,7 @@ In scope:
 - The `timeprice` gem itself (`lib/`, `exe/timeprice` CLI).
 - Bundled data integrity — if you find a way to make the gem load tampered
   data from the bundled `data/` directory.
-- The fetcher scripts under `scripts/sources/` that pull upstream data in CI.
+- The fetcher scripts under `tools/data_pipeline/` that pull upstream data in CI.
 
 Out of scope:
 

@@ -11,7 +11,7 @@ Two surfaces, one gem:
 - **Gem** (`lib/`, `exe/`, `data/`, `spec/`) — the Ruby library + CLI + bundled dataset. Public API: `Timeprice.inflation`, `Timeprice.exchange`, `Timeprice.compare`, `Timeprice.metadata`, `Timeprice.sources`. All result objects are `Data.define` value objects.
 - **Site** (`site/`) — a static single-page calculator that boots the gem in the browser via `ruby.wasm`. Built with Tailwind CSS. See `DESIGN.md` for the design system.
 
-Data lives under `data/` in schema v3 (see `data/manifest.json` and `data/cpi/*.json` / `data/fx/usd/*.json`). A monthly GitHub Action refreshes it via `scripts/update_data.rb`.
+Data lives under `data/` in schema v3 (see `data/manifest.json` and `data/cpi/*.json` / `data/fx/usd/*.json`). A monthly GitHub Action refreshes it via `tools/data_pipeline/runner.rb`.
 
 ## Setup commands
 
@@ -48,11 +48,11 @@ Requires Ruby >= 3.2. The repo uses `lefthook` for pre-commit (RuboCop on staged
 bundle exec rake spec                                  # full suite
 bundle exec rspec spec/timeprice/inflation_spec.rb     # one file
 bundle exec rspec spec/timeprice/inflation_spec.rb:42  # one example
-bundle exec ruby scripts/check_schema_stability.rb     # data schema gate
+bundle exec rake data:check_schema     # data schema gate
 ```
 
 - Specs live in `spec/` and use RSpec. Mirror the `lib/` tree.
-- The data-schema check (`scripts/check_schema_stability.rb`) runs in CI and **must pass** for any PR that touches `data/` or the loader. If you change the schema, bump the version constant and update the check.
+- The data-schema check (`tools/data_pipeline/schema_check.rb`) runs in CI and **must pass** for any PR that touches `data/` or the loader. If you change the schema, bump the version constant and update the check.
 - Tests must not hit the network. Bundled fixtures and `data/` are the only sources of truth during specs.
 - New countries / currencies / data ranges must be accompanied by specs covering at least the boundary years documented in the README coverage table.
 
@@ -64,8 +64,8 @@ Do not "fix" this convention unless the user explicitly asks for a behaviour cha
 
 ## Data changes
 
-- **Adding a country / currency** is data work, not code work in most cases. Add the source files under `data/cpi/<country>.json` or `data/fx/usd/...`, update `data/manifest.json`, run `scripts/check_schema_stability.rb`, add specs, and update the coverage table in `README.md`.
-- **Refreshing existing data** is automated by `scripts/update_data.rb` (run monthly by a GitHub Action). For ad-hoc refreshes set `TIMEPRICE_DATA_ROOT` to a working copy to test before committing.
+- **Adding a country / currency** is data work, not code work in most cases. Add the source files under `data/cpi/<country>.json` or `data/fx/usd/...`, update `data/manifest.json`, run `tools/data_pipeline/schema_check.rb`, add specs, and update the coverage table in `README.md`.
+- **Refreshing existing data** is automated by `tools/data_pipeline/runner.rb` (run monthly by a GitHub Action). For ad-hoc refreshes set `TIMEPRICE_DATA_ROOT` to a working copy to test before committing.
 - Every redistributed dataset has a license recorded in `DATA_LICENSES.md` and `NOTICE`. New sources require both files to be updated in the same PR.
 
 ## Site changes
@@ -85,7 +85,7 @@ Do not "fix" this convention unless the user explicitly asks for a behaviour cha
 
 ## Safety / do-not-touch
 
-- **Do not** introduce a network call into `lib/`. The whole point of the gem is offline determinism. Network access is allowed in `scripts/update_data.rb` (data refresh) and nowhere else.
+- **Do not** introduce a network call into `lib/`. The whole point of the gem is offline determinism. Network access is allowed in `tools/data_pipeline/runner.rb` (data refresh) and nowhere else.
 - **Do not** add a runtime gem dependency casually. Each new dependency is a wasm-size tax on the browser build. Justify in the PR description.
 - **Do not** flip the `compare` convention (see above).
 - **Do not** add a second accent colour or any shadow/gradient/web-font to the site (see `DESIGN.md`).
@@ -103,8 +103,8 @@ Do not "fix" this convention unless the user explicitly asks for a behaviour cha
 | `data/cpi/<country>.json` | One CPI series per country (monthly + annual). |
 | `data/fx/usd/<year>.json` | Daily USD-base FX rates per year. |
 | `data/fx/usd/_annual.json` | Annual-fallback FX rates (currently VND, RUB). |
-| `scripts/update_data.rb` | Monthly data refresh — the only place that talks to the network. |
-| `scripts/check_schema_stability.rb` | CI gate on data shape. |
+| `tools/data_pipeline/runner.rb` | Monthly data refresh — the only place that talks to the network. |
+| `tools/data_pipeline/schema_check.rb` | CI gate on data shape. |
 | `spec/` | RSpec tests, mirroring `lib/`. |
 | `site/` | Static browser calculator (Tailwind + ruby.wasm). |
 | `site/index.html` | Single-page entry. |

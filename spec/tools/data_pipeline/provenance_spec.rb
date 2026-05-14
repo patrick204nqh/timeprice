@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "../../../scripts/sources/provenance"
+require_relative "../../../tools/data_pipeline/provenance"
 
-RSpec.describe Sources::Provenance do
+RSpec.describe Tools::DataPipeline::Provenance do
   describe ".compact" do
     it "collapses contiguous same-provider periods into a single range" do
       per_period = {

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "../../../scripts/sources/merge_policy"
+require_relative "../../../tools/data_pipeline/merge_policy"
 
-RSpec.describe Sources::MergePolicy do
+RSpec.describe Tools::DataPipeline::MergePolicy do
   describe ".layer" do
     let(:contribution) do
       { monthly: { "2026-01" => 325.0 }, annual: { "2025" => 322.5 }, provider_id: "bls" }
