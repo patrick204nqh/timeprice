@@ -2,18 +2,13 @@
 
 require "json"
 require_relative "errors"
+require_relative "schema"
 
 module Timeprice
   # Loads and caches the bundled JSON data files. Override the search root
   # by setting `TIMEPRICE_DATA_ROOT` in the environment or assigning
   # {DataLoader.data_root=}.
   module DataLoader
-    SUPPORTED_SCHEMA_VERSION = 4
-
-    # Files written by older toolchains remain readable: v3 is monthly+annual
-    # only; v4 adds an optional `series.quarterly` block.
-    SUPPORTED_SCHEMA_VERSIONS = [3, 4].freeze
-
     DEFAULT_DATA_ROOT = File.expand_path("../../data", __dir__)
 
     class << self
@@ -116,11 +111,7 @@ module Timeprice
       end
 
       def parse_with_schema(path)
-        data = JSON.parse(File.read(path))
-        version = data["schema_version"]
-        raise UnsupportedSchemaVersion.new(version, path) unless SUPPORTED_SCHEMA_VERSIONS.include?(version)
-
-        data
+        Schema.load_cpi(JSON.parse(File.read(path)), path: path)
       end
     end
   end
