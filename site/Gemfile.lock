@@ -36,7 +36,7 @@ PLATFORMS
 
 DEPENDENCIES
   js
-  ruby_wasm (~> 2.7)
+  ruby_wasm (~> 2.9)
   timeprice!
 
 CHECKSUMS
