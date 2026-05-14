@@ -2,18 +2,13 @@
 
 require "json"
 require_relative "errors"
+require_relative "schema"
 
 module Timeprice
   # Loads and caches the bundled JSON data files. Override the search root
   # by setting `TIMEPRICE_DATA_ROOT` in the environment or assigning
   # {DataLoader.data_root=}.
   module DataLoader
-    SUPPORTED_SCHEMA_VERSION = 4
-
-    # Files written by older toolchains remain readable: v3 is monthly+annual
-    # only; v4 adds an optional `series.quarterly` block.
-    SUPPORTED_SCHEMA_VERSIONS = [3, 4].freeze
-
     DEFAULT_DATA_ROOT = File.expand_path("../../data", __dir__)
 
     class << self
@@ -46,8 +41,8 @@ module Timeprice
         manifest_cache[data_root] ||= begin
           path = File.join(data_root, "manifest.json")
           unless File.exist?(path)
-            raise DataNotFound, "manifest.json missing (looked in #{path}). " \
-                                "Check TIMEPRICE_DATA_ROOT or reinstall the gem."
+            fail DataNotFound, "manifest.json missing (looked in #{path}). " \
+                               "Check TIMEPRICE_DATA_ROOT or reinstall the gem."
           end
 
           parse_with_schema(path)
@@ -64,12 +59,12 @@ module Timeprice
         key = country.to_s.downcase
         code = country.to_s.upcase
         cpi_cache[[data_root, key]] ||= begin
-          raise UnsupportedCountry, code unless Supported.country?(code)
+          fail UnsupportedCountry, code unless Supported.country?(code)
 
           path = File.join(data_root, "cpi", "#{key}.json")
           unless File.exist?(path)
-            raise DataNotFound, "CPI data file missing for #{code} (looked in #{path}). " \
-                                "Check TIMEPRICE_DATA_ROOT or reinstall the gem."
+            fail DataNotFound, "CPI data file missing for #{code} (looked in #{path}). " \
+                               "Check TIMEPRICE_DATA_ROOT or reinstall the gem."
           end
 
           parse_with_schema(path)
@@ -84,7 +79,7 @@ module Timeprice
         key = year.to_i
         fx_cache[[data_root, key]] ||= begin
           path = File.join(data_root, "fx", "usd", "#{key}.json")
-          raise DataNotFound, "No FX data for year #{key}" unless File.exist?(path)
+          fail DataNotFound, "No FX data for year #{key}" unless File.exist?(path)
 
           parse_with_schema(path)
         end
@@ -116,11 +111,7 @@ module Timeprice
       end
 
       def parse_with_schema(path)
-        data = JSON.parse(File.read(path))
-        version = data["schema_version"]
-        raise UnsupportedSchemaVersion.new(version, path) unless SUPPORTED_SCHEMA_VERSIONS.include?(version)
-
-        data
+        Schema.load_cpi(JSON.parse(File.read(path)), path: path)
       end
     end
   end

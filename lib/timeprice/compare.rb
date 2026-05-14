@@ -28,6 +28,11 @@ module Timeprice
   #
   # If a future refactor flips the order, the regression test in
   # spec/timeprice/compare_spec.rb will fail.
+  #
+  # @api private
+  # The supported public entry point is {Timeprice.compare}. Direct
+  # references will move to `Timeprice::Internal::Compare` in a future
+  # release.
   module Compare
     module_function
 
@@ -79,10 +84,10 @@ module Timeprice
     def resolve_points(from, to)
       from_point = Point.coerce(from)
       to_point   = Point.coerce(to)
-      raise UnsupportedCurrency, from_point.currency unless Supported.country_for_currency(from_point.currency)
+      fail UnsupportedCurrency, from_point.currency unless Supported.country_for_currency(from_point.currency)
 
       to_country = Supported.country_for_currency(to_point.currency)
-      raise UnsupportedCurrency, to_point.currency unless to_country
+      fail UnsupportedCurrency, to_point.currency unless to_country
 
       [from_point, to_point, to_country]
     end

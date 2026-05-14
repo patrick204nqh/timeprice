@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "date"
+
 module Timeprice
   # A (currency, date) pair used as input to {Timeprice.compare}.
   #
@@ -13,6 +15,12 @@ module Timeprice
   #   Timeprice::Point.coerce(["USD", "2010"])
   #   Timeprice::Point.coerce(["2010", "USD"])
   Point = Data.define(:currency, :date) do
+    # Canonical constructor. Accepts a stdlib-string or Timeprice::Date
+    # for the date argument; stores the canonical string form.
+    def self.parse(currency, date)
+      new(currency: currency.to_s.upcase, date: Timeprice::Date.coerce(date).to_s)
+    end
+
     # Coerce input into a Point. Accepts:
     #   - {Point} (returned as-is)
     #   - 2-element Array of [currency, date] in either order
@@ -28,11 +36,11 @@ module Timeprice
         a, b = input.map(&:to_s)
         currency = [a, b].find { |s| s.match?(/\A[A-Za-z]{3}\z/) }
         date     = [a, b].find { |s| s.match?(/\A\d{4}(-\d{2}(-\d{2})?)?\z/) }
-        raise ArgumentError, malformed_pair_message(input) if currency.nil? || date.nil?
+        fail ArgumentError, malformed_pair_message(input) if currency.nil? || date.nil?
 
         new(currency: currency.upcase, date: date)
       else
-        raise ArgumentError, "Expected Timeprice::Point or [currency, date] tuple, got #{input.inspect}"
+        fail ArgumentError, "Expected Timeprice::Point or [currency, date] tuple, got #{input.inspect}"
       end
     end
 
@@ -55,7 +63,7 @@ module Timeprice
       when /\A\d{4}\z/         then "#{date}-06-30"
       when /\A\d{4}-\d{2}\z/   then "#{date}-15"
       when /\A\d{4}-\d{2}-\d{2}\z/ then date.to_s
-      else raise ArgumentError, "Invalid date for Point: #{date.inspect}"
+      else fail ArgumentError, "Invalid date for Point: #{date.inspect}"
       end
     end
   end

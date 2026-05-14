@@ -2,7 +2,6 @@
 .claude/scheduled_tasks.lock
 .env
 .envrc
-PLAN.md
 /Gemfile.lock
 /pkg/
 /tmp/

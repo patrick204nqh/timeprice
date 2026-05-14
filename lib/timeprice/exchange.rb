@@ -5,6 +5,7 @@ require_relative "errors"
 require_relative "data_loader"
 require_relative "supported"
 require_relative "granularity"
+require_relative "date"
 
 module Timeprice
   ExchangeResult = Data.define(
@@ -15,6 +16,11 @@ module Timeprice
   # Handles identity (USD→USD), direct lookup, inverse, and triangulation
   # through USD. Weekend/holiday dates fall back up to {MAX_FALLBACK_DAYS}
   # days to the nearest prior trading day.
+  #
+  # @api private
+  # The supported public entry point is {Timeprice.exchange}. Direct
+  # references will move to `Timeprice::Internal::Exchange` in a future
+  # release.
   module Exchange
     BASE = "USD"
     MAX_FALLBACK_DAYS = 7
@@ -33,8 +39,8 @@ module Timeprice
     def convert(amount:, from:, to:, date:)
       from = from.to_s.upcase
       to   = to.to_s.upcase
-      raise UnsupportedCurrency, from unless Supported.currency?(from)
-      raise UnsupportedCurrency, to   unless Supported.currency?(to)
+      fail UnsupportedCurrency, from unless Supported.currency?(from)
+      fail UnsupportedCurrency, to   unless Supported.currency?(to)
 
       d = parse_date(date)
 
@@ -73,9 +79,9 @@ module Timeprice
         usd_to_from, eff_a, gran_a = lookup_usd_base(from, d)
         usd_to_to,   eff_b, gran_b = lookup_usd_base(to,   d)
         if eff_a != eff_b
-          raise DataNotFound,
-                "FX triangulation date mismatch for #{from}->#{to} on #{d}: " \
-                "USD->#{from} resolved #{eff_a}, USD->#{to} resolved #{eff_b}"
+          fail DataNotFound,
+               "FX triangulation date mismatch for #{from}->#{to} on #{d}: " \
+               "USD->#{from} resolved #{eff_a}, USD->#{to} resolved #{eff_b}"
         end
         [usd_to_to / usd_to_from, eff_a, Granularity.merge(gran_a, gran_b)]
       end
@@ -105,7 +111,7 @@ module Timeprice
       annual_rate = annual_fallback(currency, d.year)
       return [annual_rate, d, Granularity::ANNUAL] if annual_rate
 
-      raise DataNotFound, "No FX rate for USD->#{currency} on or before #{d}"
+      fail DataNotFound, "No FX rate for USD->#{currency} on or before #{d}"
     end
 
     # Consult data/fx/usd/_annual.json. Returns Float or nil.
@@ -118,20 +124,26 @@ module Timeprice
 
     def parse_date(date)
       case date
-      when Date then date
+      when ::Date
+        date
+      when Timeprice::Date
+        require_daily!(date)
+        ::Date.new(date.year, date.month, date.day)
       when String
-        unless date.match?(/\A\d{4}-\d{2}-\d{2}\z/)
-          raise ArgumentError, "Invalid date format: #{date.inspect} (use YYYY-MM-DD)"
-        end
-
-        begin
-          Date.parse(date)
-        rescue Date::Error
-          raise ArgumentError, "Invalid date: #{date.inspect} is not a real calendar date"
-        end
+        parsed = Timeprice::Date.coerce(date)
+        require_daily!(parsed)
+        ::Date.new(parsed.year, parsed.month, parsed.day)
       else
-        raise ArgumentError, "Invalid date: #{date.inspect}"
+        fail ArgumentError, "Invalid date: #{date.inspect}"
       end
+    rescue ::Date::Error
+      raise ArgumentError, "Invalid date: #{date.inspect} is not a real calendar date"
+    end
+
+    def require_daily!(date)
+      return if date.granularity == :daily
+
+      fail ArgumentError, "Invalid date: Exchange needs YYYY-MM-DD, got #{date}"
     end
   end
 end

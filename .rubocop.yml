@@ -21,7 +21,7 @@ Layout/LineLength:
   AllowedPatterns:
     - "^\\s*#"
   Exclude:
-    - "scripts/**/*"  # long log lines and URL strings
+    - "tools/**/*"  # long log lines and URL strings
 
 Style/Documentation:
   Enabled: false
@@ -31,6 +31,11 @@ Style/StringLiterals:
 
 Style/StringLiteralsInInterpolation:
   EnforcedStyle: double_quotes
+
+# Weirich convention: `fail` introduces a new exception, `raise` re-throws
+# inside a rescue. RuboCop's :semantic style enforces exactly that.
+Style/SignalException:
+  EnforcedStyle: semantic
 
 Style/TrailingCommaInArrayLiteral:
   EnforcedStyleForMultiline: comma
@@ -62,12 +67,12 @@ Gemspec/DevelopmentDependencies:
 Metrics/MethodLength:
   Max: 35
   Exclude:
-    - "scripts/**/*"
+    - "tools/**/*"
 
 Metrics/AbcSize:
   Max: 35
   Exclude:
-    - "scripts/**/*"
+    - "tools/**/*"
 
 Metrics/ClassLength:
   Max: 200
@@ -87,12 +92,12 @@ Metrics/BlockLength:
 Metrics/CyclomaticComplexity:
   Max: 12
   Exclude:
-    - "scripts/**/*"
+    - "tools/**/*"
 
 Metrics/PerceivedComplexity:
   Max: 12
   Exclude:
-    - "scripts/**/*"
+    - "tools/**/*"
 
 # Keyword args are self-documenting; the Sandi-Metz-style limit is meant for
 # positional args. The Provider/CountryFile metadata DSL needs ≥6 named args.
@@ -108,11 +113,11 @@ Lint/ConstantDefinitionInBlock:
 
 Lint/NonAtomicFileOperation:
   Exclude:
-    - "scripts/**/*"
+    - "tools/**/*"
 
 Lint/NoReturnInBeginEndBlocks:
   Exclude:
-    - "scripts/**/*"
+    - "tools/**/*"
 
 # --- RSpec ---
 

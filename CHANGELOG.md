@@ -5,6 +5,37 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Breaking changes (planned for 1.0.0)
+- Public API methods (`inflation`, `exchange`, `compare`) now accept
+  `Timeprice::Date` in addition to strings. The accepted string formats
+  (`YYYY`, `YYYY-MM`, `YYYY-Qn`, `YYYY-MM-DD`) are unchanged. Unparseable
+  input now raises `Timeprice::InvalidDate` instead of a generic
+  `ArgumentError` at the boundary.
+- `Timeprice.metadata` returns a `MetadataSnapshot` value object. Hash
+  access (`meta[:countries]`), `to_h`, and `JSON.generate(meta)` keep
+  working — the wire shape is byte-identical. New code should treat the
+  result as a frozen `Data` instance.
+- `Timeprice::Point` gains `Point.parse(currency, date)` as the
+  canonical constructor; it routes the date through `Timeprice::Date`.
+- Implementation modules (`Timeprice::Inflation`, `::Exchange`,
+  `::Compare`, `::Metadata`) are marked `@api private`. They will be
+  relocated to `Timeprice::Internal::` in a future major release; depend
+  on the `Timeprice.<method>` facade.
+
+### Refactor (internal)
+- `Timeprice::Schema` owns the on-disk format definition; both the
+  reader (DataLoader) and the writer (data pipeline) reference it.
+- Data pipeline moved from `scripts/` to `tools/data_pipeline/`. Run via
+  `bundle exec rake data:refresh` and `bundle exec rake data:check_schema`.
+- Provider self-registration replaces the hand-written orchestration
+  list. Seven World Bank CPI subclasses collapsed into a factory call.
+- `Tools::DataPipeline::Series` value object replaces positional
+  `[monthly, annual]` / `[monthly, quarterly, annual]` returns.
+- Typed `Tools::DataPipeline::Error` hierarchy (HttpError, ShapeError,
+  ValidationError, SchemaError) replaces bare string raises.
+- Adopted the Weirich convention: `fail` for new exceptions, `raise` for
+  re-throws inside rescue blocks.
+
 ## [0.6.0] - 2026-05-12
 
 ### Added

@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
 require_relative "timeprice/version"
+require_relative "timeprice/errors"
+require_relative "timeprice/schema"
+require_relative "timeprice/date"
 require_relative "timeprice/data_loader"
 require_relative "timeprice/supported"
-require_relative "timeprice/errors"
 require_relative "timeprice/point"
 require_relative "timeprice/inflation"
 require_relative "timeprice/exchange"

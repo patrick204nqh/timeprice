@@ -3,6 +3,8 @@ vendor/
 build/
 rubies/
 .bin/
+node_modules/
+package-lock.json
 public/timeprice.wasm
 public/timeprice.wasm.gz
 public/timeprice.wasm.bin

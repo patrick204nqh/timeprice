@@ -318,7 +318,7 @@ Bundled data lives under `data/` in schema v3 and is self-describing:
   currencies sourced at annual resolution (today only VND). Used as the
   fallback tier when no daily rate covers the requested date.
 
-`scripts/check_schema_stability.rb` enforces the shape in CI.
+`tools/data_pipeline/schema_check.rb` enforces the shape in CI.
 
 ## Author
 

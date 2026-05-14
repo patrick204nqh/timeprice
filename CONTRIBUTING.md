@@ -18,7 +18,7 @@ CI runs against Ruby 3.4 (gem supports `>= 3.2`). Both `bundle exec rspec` and `
 
 - **No runtime network calls.** Ever. The whole point of this gem is that
   `require "timeprice"` and the CLI work fully offline. Fetchers in
-  `scripts/sources/` run in CI only and write JSON to `data/` ahead of time.
+  `tools/data_pipeline/` run in CI only and write JSON to `data/` ahead of time.
 - **Data PRs are normal PRs.** The monthly `chore(data): refresh ...` PR
   auto-merges if CI + golden snapshots pass and drift checks find no rebase.
   Anything else gets a human review.
@@ -41,8 +41,8 @@ Open an issue first using the `new_source.md` template. Include:
 If the source is reasonable and the data fits the existing schema (see
 `PLAN.md §2a`), the steps are:
 
-1. Add a fetcher under `scripts/sources/`.
-2. Wire it into `scripts/update_data.rb`.
+1. Add a fetcher under `tools/data_pipeline/`.
+2. Wire it into `tools/data_pipeline/runner.rb`.
 3. Add the bundled JSON file under `data/` with a clean first pull.
 4. Add a row to `DATA_LICENSES.md`, `NOTICE`, and `lib/timeprice/sources.rb`.
 5. Add a golden snapshot test or two against a hand-checked value.

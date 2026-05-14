@@ -35,7 +35,7 @@ jobs:
         id: fetch
         run: |
           set -o pipefail
-          bundle exec ruby scripts/update_data.rb 2>&1 | tee /tmp/update.log
+          bundle exec rake data:refresh 2>&1 | tee /tmp/update.log
 
       - name: Check for changes
         id: diff
@@ -60,7 +60,7 @@ jobs:
       - name: Schema-stability gate
         id: schema
         if: steps.diff.outputs.changed == 'true'
-        run: bundle exec ruby scripts/check_schema_stability.rb
+        run: bundle exec rake data:check_schema
 
       - name: Validate PR scope (data/ only)
         id: scope

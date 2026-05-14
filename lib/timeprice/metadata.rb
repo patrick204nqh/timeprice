@@ -3,6 +3,7 @@
 require_relative "data_loader"
 require_relative "supported"
 require_relative "version"
+require_relative "metadata_snapshot"
 
 module Timeprice
   # Describes the bundled dataset so external surfaces (the website, other
@@ -10,6 +11,10 @@ module Timeprice
   # hardcoding country lists, currency lists, or date ranges.
   #
   # See {Timeprice.metadata} for the public entry point.
+  #
+  # @api private
+  # Direct references will move to `Timeprice::Internal::Metadata` in a
+  # future release.
   module Metadata
     # ISO 3166-style display names for the countries shipped today.
     COUNTRY_NAMES = {
@@ -41,31 +46,30 @@ module Timeprice
 
     module_function
 
-    # Build the metadata snapshot. Result is a frozen, JSON-serialisable Hash.
-    # @return [Hash]
+    # Build the metadata snapshot.
+    # @return [MetadataSnapshot]
     def build
       manifest = DataLoader.load_manifest
       countries = (manifest["countries"] || []).map { |c| country_entry(c) }
       currencies = Supported.currencies.map { |code| { code: code, name: CURRENCY_NAMES[code] || code } }
-      deep_freeze(
+      MetadataSnapshot.new(
         version: VERSION,
         generated_at: manifest["generated_at"],
-        countries: countries,
-        currencies: currencies,
-        fx: fx_entry(manifest)
+        countries: deep_freeze(countries),
+        currencies: deep_freeze(currencies),
+        fx: deep_freeze(fx_entry(manifest))
       )
     end
 
+    # Range info comes from the manifest (`cpi_ranges`), pre-computed at
+    # manifest generation time. Falls back to walking the CPI file for any
+    # country missing the field — older manifests, or local data roots
+    # produced by hand.
     def country_entry(country)
       code = country["code"]
-      cpi = DataLoader.load_cpi(code)
-      series = cpi["series"] || {}
-      per_granularity = {}
-      series.each do |granularity, points|
-        next unless points.is_a?(Hash) && !points.empty?
-
-        keys = points.keys.sort
-        per_granularity[granularity.to_sym] = { min: keys.first, max: keys.last }
+      ranges = country["cpi_ranges"] || derive_cpi_ranges(code)
+      per_granularity = ranges.each_with_object({}) do |(gran, range), acc|
+        acc[gran.to_sym] = { min: range["min"], max: range["max"] }
       end
       {
         code: code,
@@ -76,22 +80,34 @@ module Timeprice
       }
     end
 
-    # Compute the actual first/last daily FX date by peeking at the earliest
-    # and latest year files. Keeps the manifest schema unchanged — `daily_years`
-    # is the source of truth for which years ship, and we read the boundaries
-    # straight from those files.
+    def derive_cpi_ranges(code)
+      cpi = DataLoader.load_cpi(code)
+      series = cpi["series"] || {}
+      series.each_with_object({}) do |(granularity, points), acc|
+        next unless points.is_a?(Hash) && !points.empty?
+
+        keys = points.keys.sort
+        acc[granularity] = { "min" => keys.first, "max" => keys.last }
+      end
+    end
+
+    # Bounds come from the manifest (`fx.daily_min`/`fx.daily_max`). Older
+    # manifests without those keys: peek at the earliest/latest year files.
     def fx_entry(manifest)
-      base = manifest.dig("fx", "base")
-      years = manifest.dig("fx", "daily_years") || []
+      fx = manifest["fx"] || {}
+      base = fx["base"]
+      years = fx["daily_years"] || []
       return { base: base, daily_min: nil, daily_max: nil } if years.empty?
 
-      first = DataLoader.load_fx_year(years.min)
-      last  = DataLoader.load_fx_year(years.max)
-      {
-        base: base,
-        daily_min: (first["rates"] || {}).keys.min,
-        daily_max: (last["rates"] || {}).keys.max,
-      }
+      daily_min = fx["daily_min"]
+      daily_max = fx["daily_max"]
+      if daily_min.nil? || daily_max.nil?
+        first = DataLoader.load_fx_year(years.min)
+        last  = DataLoader.load_fx_year(years.max)
+        daily_min ||= (first["rates"] || {}).keys.min
+        daily_max ||= (last["rates"] || {}).keys.max
+      end
+      { base: base, daily_min: daily_min, daily_max: daily_max }
     end
 
     def deep_freeze(value)
