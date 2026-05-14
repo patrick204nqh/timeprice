@@ -5,6 +5,7 @@ require_relative "errors"
 require_relative "data_loader"
 require_relative "supported"
 require_relative "granularity"
+require_relative "date"
 
 module Timeprice
   ExchangeResult = Data.define(
@@ -118,20 +119,26 @@ module Timeprice
 
     def parse_date(date)
       case date
-      when Date then date
+      when ::Date
+        date
+      when Timeprice::Date
+        require_daily!(date)
+        ::Date.new(date.year, date.month, date.day)
       when String
-        unless date.match?(/\A\d{4}-\d{2}-\d{2}\z/)
-          raise ArgumentError, "Invalid date format: #{date.inspect} (use YYYY-MM-DD)"
-        end
-
-        begin
-          Date.parse(date)
-        rescue Date::Error
-          raise ArgumentError, "Invalid date: #{date.inspect} is not a real calendar date"
-        end
+        parsed = Timeprice::Date.coerce(date)
+        require_daily!(parsed)
+        ::Date.new(parsed.year, parsed.month, parsed.day)
       else
         raise ArgumentError, "Invalid date: #{date.inspect}"
       end
+    rescue ::Date::Error
+      raise ArgumentError, "Invalid date: #{date.inspect} is not a real calendar date"
+    end
+
+    def require_daily!(date)
+      return if date.granularity == :daily
+
+      raise ArgumentError, "Invalid date: Exchange needs YYYY-MM-DD, got #{date}"
     end
   end
 end

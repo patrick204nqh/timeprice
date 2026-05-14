@@ -4,6 +4,7 @@ require_relative "errors"
 require_relative "data_loader"
 require_relative "cpi_lookup"
 require_relative "granularity"
+require_relative "date"
 
 module Timeprice
   # Value object returned by Inflation.adjust. See {Granularity} for the set
@@ -37,16 +38,18 @@ module Timeprice
     # @raise [UnsupportedCountry] if `country` is not supported
     # @raise [DataNotFound]       if no CPI data covers the requested period
     def adjust(amount:, from:, to:, country:)
+      from = Timeprice::Date.coerce(from)
+      to   = Timeprice::Date.coerce(to)
       lookup = CpiLookup.new(DataLoader.load_cpi(country))
-      from_point = lookup.at(from)
-      to_point   = lookup.at(to)
+      from_point = lookup.at(from.to_s)
+      to_point   = lookup.at(to.to_s)
 
       ratio = to_point.value.to_f / from_point.value
       InflationResult.new(
         amount: amount.to_f * ratio,
         original_amount: amount.to_f,
-        from: from,
-        to: to,
+        from: from.to_s,
+        to: to.to_s,
         country: country.to_s.upcase,
         from_index: from_point.value,
         to_index: to_point.value,
