@@ -1,6 +1,8 @@
 import { $ } from "./dom.js";
 import { state } from "./state.js";
-import { readForm, renderSnippet, renderHero, renderEmpty, compute, refreshRangeHint, refreshDateBounds, refreshYearBounds } from "./compute.js";
+import { readForm, compute } from "./compute.js";
+import { renderSnippet, renderHero, renderEmpty } from "./view.js";
+import { refreshRangeHint, refreshDateBounds, refreshYearBounds } from "./bounds.js";
 import { writeUrl } from "./url.js";
 
 let calcTimer = null;

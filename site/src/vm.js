@@ -1,7 +1,9 @@
 import { WASM_URL, WASM_META_URL } from "./data.js";
 import { $, setText } from "./dom.js";
 import { state } from "./state.js";
-import { compute, renderError, refreshRangeHint, refreshDateBounds, refreshYearBounds } from "./compute.js";
+import { compute } from "./compute.js";
+import { renderError } from "./view.js";
+import { refreshRangeHint, refreshDateBounds, refreshYearBounds } from "./bounds.js";
 import { loadMetadata, applyMetadata } from "./metadata.js";
 import { loadCachedModule, saveCachedModule } from "./wasm_cache.js";
 
