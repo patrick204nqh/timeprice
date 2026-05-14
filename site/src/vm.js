@@ -36,13 +36,16 @@ async function compileWasm() {
 
 export async function bootRuby() {
   try {
-    const { DefaultRubyVM } = await import("https://cdn.jsdelivr.net/npm/@ruby/wasm-wasi@2/dist/browser/+esm");
+    // Loader import and meta.json fetch are independent — start both in
+    // parallel so cold-load latency is `max(loader, sha)` not `sum`.
+    const loaderPromise = import("https://cdn.jsdelivr.net/npm/@ruby/wasm-wasi@2/dist/browser/+esm");
     const sha = await fetchSha();
     let module = sha ? await loadCachedModule(sha) : null;
     if (!module) {
       module = await compileWasm();
       if (sha) saveCachedModule(sha, module);
     }
+    const { DefaultRubyVM } = await loaderPromise;
     const { vm } = await DefaultRubyVM(module);
     vm.eval(`require "/bundle/setup"`);
     state.vm = vm;
