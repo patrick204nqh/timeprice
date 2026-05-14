@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "date"
+
 module Timeprice
   # A (currency, date) pair used as input to {Timeprice.compare}.
   #
@@ -13,6 +15,12 @@ module Timeprice
   #   Timeprice::Point.coerce(["USD", "2010"])
   #   Timeprice::Point.coerce(["2010", "USD"])
   Point = Data.define(:currency, :date) do
+    # Canonical constructor. Accepts a stdlib-string or Timeprice::Date
+    # for the date argument; stores the canonical string form.
+    def self.parse(currency, date)
+      new(currency: currency.to_s.upcase, date: Timeprice::Date.coerce(date).to_s)
+    end
+
     # Coerce input into a Point. Accepts:
     #   - {Point} (returned as-is)
     #   - 2-element Array of [currency, date] in either order

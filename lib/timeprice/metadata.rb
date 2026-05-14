@@ -3,6 +3,7 @@
 require_relative "data_loader"
 require_relative "supported"
 require_relative "version"
+require_relative "metadata_snapshot"
 
 module Timeprice
   # Describes the bundled dataset so external surfaces (the website, other
@@ -41,18 +42,18 @@ module Timeprice
 
     module_function
 
-    # Build the metadata snapshot. Result is a frozen, JSON-serialisable Hash.
-    # @return [Hash]
+    # Build the metadata snapshot.
+    # @return [MetadataSnapshot]
     def build
       manifest = DataLoader.load_manifest
       countries = (manifest["countries"] || []).map { |c| country_entry(c) }
       currencies = Supported.currencies.map { |code| { code: code, name: CURRENCY_NAMES[code] || code } }
-      deep_freeze(
+      MetadataSnapshot.new(
         version: VERSION,
         generated_at: manifest["generated_at"],
-        countries: countries,
-        currencies: currencies,
-        fx: fx_entry(manifest)
+        countries: deep_freeze(countries),
+        currencies: deep_freeze(currencies),
+        fx: deep_freeze(fx_entry(manifest))
       )
     end
 
