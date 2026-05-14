@@ -16,6 +16,7 @@ module Sources
       countries = cpi_countries
       daily_years = fx_daily_years
       currencies = fx_currencies(daily_years)
+      daily_min, daily_max = fx_daily_bounds(daily_years)
 
       data = {
         "schema_version" => 4,
@@ -25,6 +26,8 @@ module Sources
           "base" => "USD",
           "currencies" => currencies,
           "daily_years" => daily_years,
+          "daily_min" => daily_min,
+          "daily_max" => daily_max,
           "annual_file" => "fx/usd/_annual.json",
         },
       }
@@ -37,17 +40,33 @@ module Sources
       Dir[File.join(Sources::DATA_ROOT, "cpi", "*.json")].map do |path|
         cpi = JSON.parse(File.read(path))
         code = cpi["country"]
+        series = cpi["series"] || {}
         grans = []
-        grans << "monthly"   if (cpi.dig("series", "monthly")   || {}).any?
-        grans << "quarterly" if (cpi.dig("series", "quarterly") || {}).any?
-        grans << "annual"    if (cpi.dig("series", "annual")    || {}).any?
+        ranges = {}
+        %w[monthly quarterly annual].each do |gran|
+          points = series[gran] || {}
+          next unless points.is_a?(Hash) && points.any?
+
+          grans << gran
+          keys = points.keys.sort
+          ranges[gran] = { "min" => keys.first, "max" => keys.last }
+        end
         {
           "code" => code,
           "currency" => Sources::COUNTRY_TO_CURRENCY.fetch(code),
           "cpi_file" => "cpi/#{File.basename(path)}",
           "granularities" => grans,
+          "cpi_ranges" => ranges,
         }
       end
+    end
+
+    def fx_daily_bounds(daily_years)
+      return [nil, nil] if daily_years.empty?
+
+      first = JSON.parse(File.read(File.join(Sources::DATA_ROOT, "fx", "usd", "#{daily_years.min}.json")))
+      last  = JSON.parse(File.read(File.join(Sources::DATA_ROOT, "fx", "usd", "#{daily_years.max}.json")))
+      [(first["rates"] || {}).keys.min, (last["rates"] || {}).keys.max]
     end
 
     def fx_daily_years

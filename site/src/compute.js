@@ -45,7 +45,7 @@ function toGemDate(f)   { return f.toDate   || f.toYear;   }
 
 // Mode is self-derived. Same currency, different date → inflation.
 // Same date, different currency → FX. Different on both axes → compare.
-function deriveMode(f) {
+export function deriveMode(f) {
   const sameCurrency = f.fromCurrency === f.toCurrency;
   const sameDate = fromGemDate(f) === toGemDate(f);
   if (sameCurrency && sameDate) return "identity";
@@ -54,16 +54,24 @@ function deriveMode(f) {
   return "compare";
 }
 
-const COUNTRY_FOR_CURRENCY_FALLBACK = { USD: "US", GBP: "UK", EUR: "EU", JPY: "JP", VND: "VN" };
+// Metadata lookups. Maps are rebuilt in applyMetadata(); before metadata
+// arrives they're empty and these helpers return the currency code itself,
+// which is a stable, recognisable fallback for the brief pre-VM window
+// (e.g. snippet shows `country: "USD"` instead of "US" — harmless, will
+// re-render on VM-ready).
 function countryFor(currency) {
-  return state.metadata?.countries?.find((c) => c.currency === currency)?.code
-      || COUNTRY_FOR_CURRENCY_FALLBACK[currency]
-      || currency;
+  return state.countryByCurrency.get(currency)?.code || currency;
 }
 
 function countryNameFor(currency) {
-  const meta = state.metadata?.countries?.find((c) => c.currency === currency);
-  return meta?.name || countryFor(currency);
+  return state.countryByCurrency.get(currency)?.name || currency;
+}
+
+// CPI range widest-first: monthly > quarterly > annual. Returns null if the
+// country isn't in metadata or has no series.
+function widestCpi(country) {
+  if (!country?.cpi) return null;
+  return country.cpi.monthly || country.cpi.quarterly || country.cpi.annual || null;
 }
 
 function modeLabel(mode, f) {
@@ -175,7 +183,7 @@ export function renderSnippet() {
 // gem's defaults are technically accurate but full of jargon — "Date "1850"
 // out of supported range" tells the user what's wrong without telling them
 // what to do about it.
-function humaniseError(raw) {
+export function humaniseError(raw) {
   const first = raw.split("\n")[0].replace(/^Error:\s*/, "").trim();
 
   // Date "1850" out of supported range "1990-01".."2026-03"
@@ -201,15 +209,13 @@ function humaniseError(raw) {
 // Pre-VM validation. Catches the obvious "wrong year" mistakes without
 // round-tripping through the VM — and lets us reference the destination
 // country by name when explaining the bound.
-function validateForm(f, mode) {
+export function validateForm(f, mode) {
   const fromYear = Number((f.fromDate || f.fromYear).slice(0, 4));
   const toYear   = Number((f.toDate   || f.toYear).slice(0, 4));
   if (!fromYear || !toYear) return null;
 
   if (mode === "inflation" || mode === "compare") {
-    const country = countryFor(f.toCurrency);
-    const c = state.metadata?.countries?.find((x) => x.code === country);
-    const widest = c && (c.cpi.monthly || c.cpi.quarterly || c.cpi.annual);
+    const widest = widestCpi(state.countryByCurrency.get(f.toCurrency));
     if (widest) {
       const min = Number(widest.min.slice(0, 4));
       const max = Number(widest.max.slice(0, 4));
@@ -295,8 +301,7 @@ export function refreshYearBounds() {
 
   let min, max;
   if (mode === "inflation" || mode === "compare" || mode === "identity") {
-    const c = state.metadata?.countries?.find((x) => x.currency === f.toCurrency);
-    const widest = c && (c.cpi.monthly || c.cpi.quarterly || c.cpi.annual);
+    const widest = widestCpi(state.countryByCurrency.get(f.toCurrency));
     if (widest) {
       min = widest.min.slice(0, 4);
       max = widest.max.slice(0, 4);
@@ -327,8 +332,7 @@ export function refreshDateBounds() {
   if (!fromEl || !toEl) return;
 
   if (mode === "inflation" || mode === "identity") {
-    const c = state.metadata?.countries?.find((x) => x.currency === f.toCurrency);
-    const widest = c && (c.cpi.monthly || c.cpi.quarterly || c.cpi.annual);
+    const widest = widestCpi(state.countryByCurrency.get(f.toCurrency));
     if (widest) {
       // Monthly grain is "YYYY-MM"; promote to a YYYY-MM-DD bound.
       const min = widest.min.length === 7 ? `${widest.min}-01` : widest.min;
@@ -360,10 +364,8 @@ export function refreshRangeHint() {
     }
     return;
   }
-  const c = state.metadata?.countries?.find((x) => x.currency === f.toCurrency);
-  if (!c) { setText("#calc-range-hint", ""); return; }
-  const cpi = c.cpi || {};
-  const widest = cpi.monthly || cpi.quarterly || cpi.annual;
-  if (!widest) { setText("#calc-range-hint", ""); return; }
+  const c = state.countryByCurrency.get(f.toCurrency);
+  const widest = widestCpi(c);
+  if (!c || !widest) { setText("#calc-range-hint", ""); return; }
   setText("#calc-range-hint", `${c.name} inflation data: ${widest.min.slice(0, 4)} – ${widest.max.slice(0, 4)}`);
 }

@@ -1,0 +1,13 @@
+{
+  "name": "timeprice-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.9",
+    "jsdom": "^25.0.1"
+  }
+}

@@ -28,10 +28,10 @@ export function loadMetadata() {
 // itself enforces via UnsupportedCurrency.
 export function applyMetadata() {
   if (!state.metadata) return;
-  const { countries, currencies, fx, version, generated_at } = state.metadata;
-  const calcCurrencies = currencies.filter((cur) =>
-    countries.some((c) => c.currency === cur.code),
-  );
+  const { countries, currencies, version, generated_at } = state.metadata;
+  state.countryByCode = new Map(countries.map((c) => [c.code, c]));
+  state.countryByCurrency = new Map(countries.map((c) => [c.currency, c]));
+  const calcCurrencies = currencies.filter((cur) => state.countryByCurrency.has(cur.code));
 
   fillCurrencySelect("#from-currency", calcCurrencies);
   fillCurrencySelect("#to-currency", calcCurrencies);
