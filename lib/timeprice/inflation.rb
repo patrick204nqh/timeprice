@@ -23,6 +23,11 @@ module Timeprice
   end
 
   # CPI-based inflation adjustment for the {Supported.countries} list.
+  #
+  # @api private
+  # The supported public entry point is {Timeprice.inflation}. Direct
+  # references to this module will move to `Timeprice::Internal::Inflation`
+  # in a future release.
   module Inflation
     module_function
 

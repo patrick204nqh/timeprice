@@ -11,6 +11,10 @@ module Timeprice
   # hardcoding country lists, currency lists, or date ranges.
   #
   # See {Timeprice.metadata} for the public entry point.
+  #
+  # @api private
+  # Direct references will move to `Timeprice::Internal::Metadata` in a
+  # future release.
   module Metadata
     # ISO 3166-style display names for the countries shipped today.
     COUNTRY_NAMES = {

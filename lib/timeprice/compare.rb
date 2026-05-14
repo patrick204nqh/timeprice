@@ -28,6 +28,11 @@ module Timeprice
   #
   # If a future refactor flips the order, the regression test in
   # spec/timeprice/compare_spec.rb will fail.
+  #
+  # @api private
+  # The supported public entry point is {Timeprice.compare}. Direct
+  # references will move to `Timeprice::Internal::Compare` in a future
+  # release.
   module Compare
     module_function
 

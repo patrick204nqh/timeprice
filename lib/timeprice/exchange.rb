@@ -16,6 +16,11 @@ module Timeprice
   # Handles identity (USD→USD), direct lookup, inverse, and triangulation
   # through USD. Weekend/holiday dates fall back up to {MAX_FALLBACK_DAYS}
   # days to the nearest prior trading day.
+  #
+  # @api private
+  # The supported public entry point is {Timeprice.exchange}. Direct
+  # references will move to `Timeprice::Internal::Exchange` in a future
+  # release.
   module Exchange
     BASE = "USD"
     MAX_FALLBACK_DAYS = 7
