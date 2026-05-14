@@ -23,7 +23,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: ruby/setup-ruby@v1
         with:
@@ -34,14 +34,14 @@ jobs:
       # rbwasm extracts a ~26 MB pre-built CRuby tarball into site/rubies/ on
       # first run; caching it skips the download (~1–2 min) on every rebuild.
       - name: Cache rbwasm CRuby tarball
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: site/rubies
           key: rbwasm-rubies-${{ runner.os }}-ruby3.3-${{ hashFiles('site/Gemfile.lock') }}
 
       # Tailwind standalone CLI binary (~10 MB) downloaded by site/build.sh.
       - name: Cache Tailwind CLI binary
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: site/.bin
           key: tailwindcss-${{ runner.os }}-v3.4.17
@@ -55,7 +55,7 @@ jobs:
           mkdir -p dist
           cp -r site/index.html site/src site/public dist/
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
 
@@ -67,4 +67,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
