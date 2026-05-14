@@ -1,5 +1,7 @@
 import { state } from "./state.js";
-import { readForm, renderSnippet, renderHero, renderEmpty, refreshRangeHint, refreshYearBounds } from "./compute.js";
+import { readForm } from "./compute.js";
+import { renderSnippet, renderHero, renderEmpty } from "./view.js";
+import { refreshRangeHint, refreshYearBounds } from "./bounds.js";
 import { readUrl } from "./url.js";
 import { bindCopyButtons, bindCalcForm, bindExampleChips } from "./events.js";
 import { bootRuby } from "./vm.js";

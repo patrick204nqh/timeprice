@@ -3,5 +3,5 @@
 source "https://rubygems.org"
 
 gem "js"
-gem "ruby_wasm", "~> 2.7"
+gem "ruby_wasm", "~> 2.9"
 gem "timeprice", path: ".."
