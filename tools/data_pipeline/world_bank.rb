@@ -49,130 +49,42 @@ module Tools
       def run_cn_cpi          = ChinaCPI.run
       def run_ru_cpi          = RussiaCPI.run
 
-      # Provider subclasses for the two CPI countries served by World Bank.
-      # Both share `provider_id: "world_bank"`; the country_code disambiguates
-      # which file each writes to. The VN source_label intentionally names
-      # only WB — IMF runs second and re-labels the file to reflect the chain.
-      class VietnamCPI < Provider
-        configure(
-          country_code: "vn",
-          country_label: "Vietnam",
-          source_label: "World Bank FP.CPI.TOTL (annual)",
-          default_base_year: "2010=100",
-          log_label: "WorldBank",
-          provider_id: "world_bank",
-          priority: 30
-        )
-
-        def fetch
-          Series.build(annual: WorldBank.fetch_indicator("VNM", "FP.CPI.TOTL"))
+      # Builds and registers a one-shot WorldBank CPI Provider subclass.
+      # Used for every WB-CPI country: all share the same fetch shape
+      # (annual-only FP.CPI.TOTL) so the only per-country variation is
+      # (code, iso3, label, source_label suffix). JP is `register: false`
+      # because it's reached only via the EStat fallback path.
+      def self.register_cpi(code:, iso3:, label:, suffix: nil, register: true)
+        full_label = "#{["World Bank FP.CPI.TOTL (annual", suffix].compact.join(", ")})"
+        klass = Class.new(Provider) do
+          define_singleton_method(:iso3) { iso3 }
+          define_method(:fetch) do
+            Series.build(annual: WorldBank.fetch_indicator(self.class.iso3, "FP.CPI.TOTL"))
+          end
         end
-      end
-
-      class JapanCPI < Provider
-        configure(
-          country_code: "jp",
-          country_label: "Japan",
-          source_label: "World Bank FP.CPI.TOTL (annual, JP fallback)",
+        klass.configure(
+          country_code: code,
+          country_label: label,
+          source_label: full_label,
           default_base_year: "2010=100",
           log_label: "WorldBank",
           provider_id: "world_bank",
           priority: 30,
-          # Dispatched only by EStat's fallback path; the runner must not
-          # iterate it directly or the JP file would be written twice.
-          register: false
+          register: register
         )
-
-        def fetch
-          Series.build(annual: WorldBank.fetch_indicator("JPN", "FP.CPI.TOTL"))
-        end
+        klass
       end
 
-      # Australia annual CPI baseline. ABS quarterly (tools/data_pipeline/abs.rb)
-      # layers on top via CountryFile + MergePolicy.
-      class AustraliaCPI < Provider
-        configure(
-          country_code: "au",
-          country_label: "Australia",
-          source_label: "World Bank FP.CPI.TOTL (annual, AU baseline)",
-          default_base_year: "2010=100",
-          log_label: "WorldBank",
-          provider_id: "world_bank",
-          priority: 30
-        )
-
-        def fetch
-          Series.build(annual: WorldBank.fetch_indicator("AUS", "FP.CPI.TOTL"))
-        end
-      end
-
-      # Canada annual CPI baseline. StatCan monthly layers on top.
-      class CanadaCPI < Provider
-        configure(
-          country_code: "ca",
-          country_label: "Canada",
-          source_label: "World Bank FP.CPI.TOTL (annual, CA baseline)",
-          default_base_year: "2010=100",
-          log_label: "WorldBank",
-          provider_id: "world_bank",
-          priority: 30
-        )
-
-        def fetch
-          Series.build(annual: WorldBank.fetch_indicator("CAN", "FP.CPI.TOTL"))
-        end
-      end
-
-      # Korea annual CPI baseline. KOSIS monthly layers on top.
-      class KoreaCPI < Provider
-        configure(
-          country_code: "kr",
-          country_label: "Korea, Rep.",
-          source_label: "World Bank FP.CPI.TOTL (annual, KR baseline)",
-          default_base_year: "2010=100",
-          log_label: "WorldBank",
-          provider_id: "world_bank",
-          priority: 30
-        )
-
-        def fetch
-          Series.build(annual: WorldBank.fetch_indicator("KOR", "FP.CPI.TOTL"))
-        end
-      end
-
-      # China — primary source for v1 (NBS scraper deferred). Annual only.
-      class ChinaCPI < Provider
-        configure(
-          country_code: "cn",
-          country_label: "China",
-          source_label: "World Bank FP.CPI.TOTL (annual)",
-          default_base_year: "2010=100",
-          log_label: "WorldBank",
-          provider_id: "world_bank",
-          priority: 30
-        )
-
-        def fetch
-          Series.build(annual: WorldBank.fetch_indicator("CHN", "FP.CPI.TOTL"))
-        end
-      end
-
-      # Russia — primary source for v1. Annual only.
-      class RussiaCPI < Provider
-        configure(
-          country_code: "ru",
-          country_label: "Russia",
-          source_label: "World Bank FP.CPI.TOTL (annual)",
-          default_base_year: "2010=100",
-          log_label: "WorldBank",
-          provider_id: "world_bank",
-          priority: 30
-        )
-
-        def fetch
-          Series.build(annual: WorldBank.fetch_indicator("RUS", "FP.CPI.TOTL"))
-        end
-      end
+      # Declaration order is the registry order — preserve the original
+      # run sequence (VN, AU, CA, KR, CN, RU) for byte-identical output.
+      VietnamCPI = register_cpi(code: "vn", iso3: "VNM", label: "Vietnam")
+      AustraliaCPI = register_cpi(code: "au", iso3: "AUS", label: "Australia", suffix: "AU baseline")
+      CanadaCPI   = register_cpi(code: "ca", iso3: "CAN", label: "Canada",     suffix: "CA baseline")
+      KoreaCPI    = register_cpi(code: "kr", iso3: "KOR", label: "Korea, Rep.", suffix: "KR baseline")
+      ChinaCPI    = register_cpi(code: "cn", iso3: "CHN", label: "China")
+      RussiaCPI   = register_cpi(code: "ru", iso3: "RUS", label: "Russia")
+      JapanCPI    = register_cpi(code: "jp", iso3: "JPN", label: "Japan",
+                                 suffix: "JP fallback", register: false)
 
       # VND per USD, annual averages. All years land in the single
       # data/fx/usd/_annual.json — the canonical home for annual FX rates.
