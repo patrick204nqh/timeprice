@@ -61,7 +61,7 @@ export function humaniseError(raw) {
   if (/Unsupported country/i.test(first)) {
     return "That country isn't in our dataset — pick one from the dropdown.";
   }
-  if (/Data not found|No FX data/i.test(first)) {
+  if (/Data not found|No FX data|DataNotFound|triangulation date mismatch|No FX rate/i.test(first)) {
     return "No data point for that combination. Try a nearby year.";
   }
   return first || "Calculation failed.";

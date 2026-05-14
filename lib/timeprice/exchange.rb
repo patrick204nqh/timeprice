@@ -75,16 +75,30 @@ module Timeprice
         rate, eff, gran = lookup_usd_base(from, d)
         [1.0 / rate, eff, gran]
       else
-        # Triangulation: from → USD → to, both legs at the same effective date.
-        usd_to_from, eff_a, gran_a = lookup_usd_base(from, d)
-        usd_to_to,   eff_b, gran_b = lookup_usd_base(to,   d)
-        if eff_a != eff_b
-          fail DataNotFound,
-               "FX triangulation date mismatch for #{from}->#{to} on #{d}: " \
-               "USD->#{from} resolved #{eff_a}, USD->#{to} resolved #{eff_b}"
-        end
-        [usd_to_to / usd_to_from, eff_a, Granularity.merge(gran_a, gran_b)]
+        # Triangulation: from → USD → to. Daily legs must agree on the
+        # effective date; an annual leg is valid for any date in its year, so
+        # we adopt the daily leg's date and let Granularity.merge demote.
+        rate_a, *leg_a = lookup_usd_base(from, d)
+        rate_b, *leg_b = lookup_usd_base(to,   d)
+        eff = reconcile_triangulation_dates(from, to, d, leg_a, leg_b)
+        [rate_b / rate_a, eff, Granularity.merge(leg_a[1], leg_b[1])]
       end
+    end
+
+    # Pick a single effective date for a triangulated rate. Daily legs must
+    # agree; an annual leg is year-wide so it adopts the daily leg's date.
+    # When both legs are annual we fall back to the requested date.
+    def reconcile_triangulation_dates(from, to, d, leg_a, leg_b)
+      eff_a, gran_a = leg_a
+      eff_b, gran_b = leg_b
+      return eff_a if eff_a == eff_b
+      return d     if gran_a == Granularity::ANNUAL && gran_b == Granularity::ANNUAL
+      return eff_b if gran_a == Granularity::ANNUAL
+      return eff_a if gran_b == Granularity::ANNUAL
+
+      fail DataNotFound,
+           "FX triangulation date mismatch for #{from}->#{to} on #{d}: " \
+           "USD->#{from} resolved #{eff_a}, USD->#{to} resolved #{eff_b}"
     end
 
     # Walk back up to MAX_FALLBACK_DAYS to find a daily rate; if none, fall

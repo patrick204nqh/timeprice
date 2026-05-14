@@ -1,0 +1,11 @@
+{
+  "base": "USD",
+  "schema_version": 4,
+  "provenance": [],
+  "providers": [],
+  "annual": {
+    "2010": {
+      "AUD": 1.09
+    }
+  }
+}

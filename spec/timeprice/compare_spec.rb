@@ -39,6 +39,18 @@ RSpec.describe Timeprice::Compare do
       expect(result.converted_amount).to be_within(1e-9).of(100 * 19_000.0)
     end
 
+    it "short-circuits CPI when both points share a date (daily FX, no time elapsed)" do
+      # Both sides on 2010-06-15: pure FX, no inflation. The daily YYYY-MM-DD
+      # format would otherwise blow up CPI's monthly-max lookup.
+      result = described_class.run(
+        amount: 100, from: %w[USD 2010-06-15], to: %w[VND 2010-06-15]
+      )
+      expect(result.cpi_ratio).to eq(1.0)
+      expect(result.amount).to be_within(1e-9).of(result.converted_amount)
+      # Granularity reflects the FX leg alone (daily), not a CPI merge.
+      expect(result.granularity).to eq(Timeprice::Granularity::DAILY)
+    end
+
     it "raises UnsupportedCurrency for unknown destination currency" do
       expect do
         described_class.run(amount: 100, from: %w[USD 2010], to: %w[ZZZ 2024])

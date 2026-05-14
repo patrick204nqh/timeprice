@@ -41,6 +41,18 @@ RSpec.describe Timeprice::Exchange do
       end.to raise_error(Timeprice::DataNotFound, /triangulation date mismatch/)
     end
 
+    it "triangulates when one leg is annual and the other daily (year-aligned)" do
+      # AUD has no daily rates on 2010-06-15 in the fixture and falls back to
+      # the annual rate. EUR resolves on 2010-06-15 daily. The annual leg is
+      # valid for any date in 2010, so triangulation should adopt the daily
+      # leg's date instead of raising a date-mismatch error.
+      r = described_class.convert(amount: 100, from: "EUR", to: "AUD", date: "2010-06-15")
+      expect(r.effective_date).to eq("2010-06-15")
+      expect(r.granularity).to eq(Timeprice::Granularity::ANNUAL)
+      # rate = USD->AUD (annual 1.09) / USD->EUR (daily 0.815)
+      expect(r.rate).to be_within(1e-9).of(1.09 / 0.815)
+    end
+
     it "raises DataNotFound when no rate within fallback window" do
       expect do
         described_class.convert(amount: 100, from: "USD", to: "EUR", date: "2010-01-01")

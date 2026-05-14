@@ -57,7 +57,17 @@ module Timeprice
       converted = fx_result.amount
 
       # Step 2: inflate that destination-currency amount from source date to
-      # destination date using destination-country CPI.
+      # destination date using destination-country CPI. When both points
+      # share a date there's no time-elapsed inflation to apply — short-
+      # circuit with a ratio of 1.0 so daily-grain FX dates (which CPI's
+      # monthly-max resolution can't accept) still resolve cleanly.
+      if from_point.date == to_point.date
+        return fx_only_result(
+          amount: amount, from_point: from_point, to_point: to_point,
+          to_country: to_country, fx_result: fx_result
+        )
+      end
+
       infl = Inflation.adjust(
         amount: converted,
         from: from_point.date.to_s,
@@ -77,6 +87,24 @@ module Timeprice
         cpi_ratio: infl.to_index.to_f / infl.from_index,
         converted_amount: converted,
         granularity: Granularity.merge(fx_result.granularity, infl.granularity)
+      )
+    end
+
+    # Same-date branch: no time-elapsed inflation, so the FX leg alone is
+    # the answer. Builds a CompareResult with cpi_ratio=1.0.
+    def fx_only_result(amount:, from_point:, to_point:, to_country:, fx_result:)
+      CompareResult.new(
+        amount: fx_result.amount,
+        original_amount: amount.to_f,
+        from_currency: from_point.currency,
+        from_date: from_point.date.to_s,
+        to_currency: to_point.currency,
+        to_date: to_point.date.to_s,
+        country: to_country,
+        fx_rate: fx_result.rate,
+        cpi_ratio: 1.0,
+        converted_amount: fx_result.amount,
+        granularity: fx_result.granularity
       )
     end
 

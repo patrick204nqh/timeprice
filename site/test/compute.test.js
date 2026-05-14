@@ -54,6 +54,14 @@ describe("humaniseError", () => {
     expect(humaniseError("Data not found for 2024-13")).toContain("nearby year");
   });
 
+  it.each([
+    "FX triangulation date mismatch for EUR->VND on 2002-06-30",
+    "No FX rate for USD->VND on or before 2010-01-01",
+    "something exploded (Timeprice::DataNotFound)",
+  ])("humanises ruby FX/data errors instead of leaking them: %s", (msg) => {
+    expect(humaniseError(msg)).toContain("nearby year");
+  });
+
   it("falls through to raw first line", () => {
     expect(humaniseError("Something broke\nstack trace")).toBe("Something broke");
   });
