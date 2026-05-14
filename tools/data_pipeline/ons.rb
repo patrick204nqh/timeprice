@@ -52,7 +52,7 @@ module Tools
           annual[y.to_s] = Float(row["value"])
         end
 
-        [monthly, annual]
+        Series.build(monthly: monthly, annual: annual)
       end
     end
   end

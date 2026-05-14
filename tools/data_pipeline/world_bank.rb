@@ -64,7 +64,7 @@ module Tools
         )
 
         def fetch
-          [{}, WorldBank.fetch_indicator("VNM", "FP.CPI.TOTL")]
+          Series.build(annual: WorldBank.fetch_indicator("VNM", "FP.CPI.TOTL"))
         end
       end
 
@@ -79,7 +79,7 @@ module Tools
         )
 
         def fetch
-          [{}, WorldBank.fetch_indicator("JPN", "FP.CPI.TOTL")]
+          Series.build(annual: WorldBank.fetch_indicator("JPN", "FP.CPI.TOTL"))
         end
       end
 
@@ -96,7 +96,7 @@ module Tools
         )
 
         def fetch
-          [{}, WorldBank.fetch_indicator("AUS", "FP.CPI.TOTL")]
+          Series.build(annual: WorldBank.fetch_indicator("AUS", "FP.CPI.TOTL"))
         end
       end
 
@@ -112,7 +112,7 @@ module Tools
         )
 
         def fetch
-          [{}, WorldBank.fetch_indicator("CAN", "FP.CPI.TOTL")]
+          Series.build(annual: WorldBank.fetch_indicator("CAN", "FP.CPI.TOTL"))
         end
       end
 
@@ -128,7 +128,7 @@ module Tools
         )
 
         def fetch
-          [{}, WorldBank.fetch_indicator("KOR", "FP.CPI.TOTL")]
+          Series.build(annual: WorldBank.fetch_indicator("KOR", "FP.CPI.TOTL"))
         end
       end
 
@@ -144,7 +144,7 @@ module Tools
         )
 
         def fetch
-          [{}, WorldBank.fetch_indicator("CHN", "FP.CPI.TOTL")]
+          Series.build(annual: WorldBank.fetch_indicator("CHN", "FP.CPI.TOTL"))
         end
       end
 
@@ -160,7 +160,7 @@ module Tools
         )
 
         def fetch
-          [{}, WorldBank.fetch_indicator("RUS", "FP.CPI.TOTL")]
+          Series.build(annual: WorldBank.fetch_indicator("RUS", "FP.CPI.TOTL"))
         end
       end
 

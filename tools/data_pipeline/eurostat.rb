@@ -46,7 +46,7 @@ module Tools
           annual[year] = (pairs.sum { |_, v| v } / 12.0).round(3)
         end
 
-        [monthly, annual]
+        Series.build(monthly: monthly, annual: annual)
       end
     end
   end

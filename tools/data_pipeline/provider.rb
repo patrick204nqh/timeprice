@@ -4,6 +4,7 @@ require_relative "namespace"
 
 require_relative "_common"
 require_relative "country_file"
+require_relative "series"
 
 module Tools
   module DataPipeline
@@ -50,28 +51,23 @@ module Tools
         new.run
       end
 
-      # @return [Array(Hash, Hash)] [monthly, annual] series fetched from upstream,
-      #   or [Array(Hash, Hash, Hash)] [monthly, quarterly, annual] for providers
-      #   that emit quarterly data (e.g. ABS).
+      # @return [Series] the (monthly, quarterly, annual) series fetched
+      #   from upstream. Empty hashes for granularities the provider does
+      #   not emit. Use `Series.build(monthly: ..., annual: ...)`.
       def fetch
-        raise NotImplementedError, "#{self.class} must implement #fetch returning [monthly, annual]"
+        raise NotImplementedError, "#{self.class} must implement #fetch returning a Series"
       end
 
       def run
-        result = fetch
-        monthly, quarterly, annual = case result.length
-                                     when 2 then [result[0], {}, result[1]]
-                                     when 3 then result
-                                     else raise "#{self.class}#fetch must return [monthly, annual] or [monthly, quarterly, annual]"
-                                     end
-        monthly   ||= {}
-        quarterly ||= {}
-        annual    ||= {}
-        Tools::DataPipeline.validate_positive_numeric!(monthly,   "#{log_label} monthly")   unless monthly.empty?
-        Tools::DataPipeline.validate_positive_numeric!(quarterly, "#{log_label} quarterly") unless quarterly.empty?
-        Tools::DataPipeline.validate_positive_numeric!(annual,    "#{log_label} annual")    unless annual.empty?
-        country_file.write_merged(monthly: monthly, quarterly: quarterly, annual: annual,
-                                  provider_id: self.class.provider_id)
+        series = fetch
+        unless series.is_a?(Series)
+          raise "#{self.class}#fetch must return a Tools::DataPipeline::Series " \
+                "(got #{series.class})"
+        end
+        series.each_present do |g, h|
+          Tools::DataPipeline.validate_positive_numeric!(h, "#{log_label} #{g}")
+        end
+        country_file.write_merged(series: series, provider_id: self.class.provider_id)
       end
 
       private

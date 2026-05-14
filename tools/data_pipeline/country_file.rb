@@ -28,14 +28,14 @@ module Tools
         @log_label         = log_label
       end
 
-      def write_merged(monthly:, annual:, provider_id:, quarterly: {})
+      def write_merged(series:, provider_id:)
         prior = load_prior
         # On-disk provenance is a compact range list; MergePolicy works on a
         # per-period hash, so expand on read and compact on write.
         prior_expanded = prior.merge("provenance" => Provenance.expand(prior["provenance"]))
-        base_year, prior_normalized = apply_drift(prior_expanded, monthly, quarterly, annual)
+        base_year, prior_normalized = apply_drift(prior_expanded, series)
         contribution = {
-          monthly: monthly, quarterly: quarterly, annual: annual,
+          monthly: series.monthly, quarterly: series.quarterly, annual: series.annual,
           provider_id: provider_id
         }
         merged = MergePolicy.layer(prior_normalized, contribution)
@@ -77,13 +77,13 @@ module Tools
       # Returns [base_year, prior_normalized] where prior_normalized has the
       # same keys as prior but with series rebased if the new series indicates
       # a rebase (drift >0.5% on shared periods).
-      def apply_drift(prior, monthly, quarterly, annual)
+      def apply_drift(prior, series)
         prior_series = {
           monthly: prior["monthly"] || {},
           quarterly: prior["quarterly"] || {},
           annual: prior["annual"] || {},
         }
-        new_series = { monthly: monthly, quarterly: quarterly, annual: annual }
+        new_series = { monthly: series.monthly, quarterly: series.quarterly, annual: series.annual }
         base_year  = prior["base_year"] || default_base_year
         verdict, ratio = drift_check(prior_series, new_series)
         return [base_year, prior] unless verdict == :rebase

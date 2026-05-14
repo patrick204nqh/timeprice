@@ -121,7 +121,7 @@ module Tools
         def fetch
           monthly = IMF.fetch_cpi_monthly(self.class.iso3)
           annual  = IMF.derive_annual(monthly)
-          [monthly, annual]
+          Series.build(monthly: monthly, annual: annual)
         end
       end
 

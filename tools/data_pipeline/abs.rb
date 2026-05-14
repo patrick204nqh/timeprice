@@ -54,7 +54,7 @@ module Tools
         body = fetch_sdmx_json
         time_periods = extract_time_periods(body)
         quarterly = parse_quarterly(body, time_periods)
-        [{}, quarterly, {}]
+        Series.build(quarterly: quarterly)
       end
 
       private

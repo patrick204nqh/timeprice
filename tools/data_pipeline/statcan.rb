@@ -37,7 +37,7 @@ module Tools
         points = extract_points(body)
         monthly = parse_monthly(points)
         annual  = derive_annual(monthly)
-        [monthly, annual]
+        Series.build(monthly: monthly, annual: annual)
       end
 
       private

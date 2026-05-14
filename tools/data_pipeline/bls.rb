@@ -74,7 +74,7 @@ module Tools
           annual[year] = avg.round(3)
         end
 
-        [monthly, annual]
+        Series.build(monthly: monthly, annual: annual)
       end
     end
   end
