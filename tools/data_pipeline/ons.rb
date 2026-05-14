@@ -23,7 +23,8 @@ module Tools
         source_label: "ONS D7BT — UK CPI all-items index (2015=100)",
         default_base_year: "2015=100",
         log_label: "ONS",
-        provider_id: "ons"
+        provider_id: "ons",
+        priority: 50
       )
 
       def parse_month(entry)

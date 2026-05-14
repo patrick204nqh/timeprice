@@ -60,7 +60,8 @@ module Tools
           source_label: "World Bank FP.CPI.TOTL (annual)",
           default_base_year: "2010=100",
           log_label: "WorldBank",
-          provider_id: "world_bank"
+          provider_id: "world_bank",
+          priority: 30
         )
 
         def fetch
@@ -75,7 +76,11 @@ module Tools
           source_label: "World Bank FP.CPI.TOTL (annual, JP fallback)",
           default_base_year: "2010=100",
           log_label: "WorldBank",
-          provider_id: "world_bank"
+          provider_id: "world_bank",
+          priority: 30,
+          # Dispatched only by EStat's fallback path; the runner must not
+          # iterate it directly or the JP file would be written twice.
+          register: false
         )
 
         def fetch
@@ -92,7 +97,8 @@ module Tools
           source_label: "World Bank FP.CPI.TOTL (annual, AU baseline)",
           default_base_year: "2010=100",
           log_label: "WorldBank",
-          provider_id: "world_bank"
+          provider_id: "world_bank",
+          priority: 30
         )
 
         def fetch
@@ -108,7 +114,8 @@ module Tools
           source_label: "World Bank FP.CPI.TOTL (annual, CA baseline)",
           default_base_year: "2010=100",
           log_label: "WorldBank",
-          provider_id: "world_bank"
+          provider_id: "world_bank",
+          priority: 30
         )
 
         def fetch
@@ -124,7 +131,8 @@ module Tools
           source_label: "World Bank FP.CPI.TOTL (annual, KR baseline)",
           default_base_year: "2010=100",
           log_label: "WorldBank",
-          provider_id: "world_bank"
+          provider_id: "world_bank",
+          priority: 30
         )
 
         def fetch
@@ -140,7 +148,8 @@ module Tools
           source_label: "World Bank FP.CPI.TOTL (annual)",
           default_base_year: "2010=100",
           log_label: "WorldBank",
-          provider_id: "world_bank"
+          provider_id: "world_bank",
+          priority: 30
         )
 
         def fetch
@@ -156,7 +165,8 @@ module Tools
           source_label: "World Bank FP.CPI.TOTL (annual)",
           default_base_year: "2010=100",
           log_label: "WorldBank",
-          provider_id: "world_bank"
+          provider_id: "world_bank",
+          priority: 30
         )
 
         def fetch

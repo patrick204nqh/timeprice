@@ -29,7 +29,8 @@ module Tools
         source_label: "Statistics Canada WDS (table 18-10-0004-01, monthly) + World Bank (annual baseline)",
         default_base_year: "2002=100",
         log_label: "StatCan",
-        provider_id: "statcan"
+        provider_id: "statcan",
+        priority: 40
       )
 
       def fetch

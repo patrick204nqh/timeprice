@@ -47,7 +47,8 @@ module Tools
         source_label: "ABS 6401.0 Consumer Price Index (quarterly) + World Bank (annual baseline)",
         default_base_year: "2011-2012=100",
         log_label: "ABS",
-        provider_id: "abs"
+        provider_id: "abs",
+        priority: 40
       )
 
       def fetch

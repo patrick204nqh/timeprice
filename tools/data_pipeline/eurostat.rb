@@ -21,7 +21,8 @@ module Tools
         source_label: "Eurostat prc_hicp_midx (HICP, EA all current members, CP00, 2015=100)",
         default_base_year: "2015=100",
         log_label: "Eurostat",
-        provider_id: "eurostat"
+        provider_id: "eurostat",
+        priority: 50
       )
 
       def fetch

@@ -133,7 +133,8 @@ module Tools
           source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
           default_base_year: "2010=100",
           log_label: "IMF",
-          provider_id: "imf"
+          provider_id: "imf",
+          priority: 40
         )
       end
 
@@ -145,7 +146,8 @@ module Tools
           source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
           default_base_year: "2010=100",
           log_label: "IMF",
-          provider_id: "imf"
+          provider_id: "imf",
+          priority: 40
         )
       end
 
@@ -157,7 +159,8 @@ module Tools
           source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
           default_base_year: "2010=100",
           log_label: "IMF",
-          provider_id: "imf"
+          provider_id: "imf",
+          priority: 40
         )
       end
 
@@ -169,7 +172,8 @@ module Tools
           source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
           default_base_year: "2010=100",
           log_label: "IMF",
-          provider_id: "imf"
+          provider_id: "imf",
+          priority: 40
         )
       end
     end
