@@ -462,8 +462,8 @@ The system intentionally has **no primary CTA button**. The hero sentence is the
 
 **`status-pill`** — VM warm-up indicator
 - Layout: flex row, `gap: 6px`, text `{colors.mute}`, type `{typography.label}`.
-- Dot: `{component.status-dot-warming}` (8px, amber, `animate-pulse`) while loading, `{component.status-dot-ready}` (8px, emerald, no animation) once ready, or remove entirely.
-- Label: "Ruby VM warming…" → "Ruby VM ready" or hidden.
+- Dot: `{component.status-dot-warming}` (8px, amber, `animate-pulse`) while loading, `{component.status-dot-ready}` (8px, emerald, no animation) once ready.
+- Label: "Ruby VM warming…" → "Live · running in your browser". The ready state is the brand's quiet flex — keep the dot + label visible so the page can boast "this is local" at all times.
 
 **`example-chip`** — preset calculation
 - Background `transparent`, text `{colors.ink}`, type `{typography.label}`, 1px `{colors.hairline-input}`, `rounded: {rounded.full}`, padding `6px 10px`.
@@ -541,5 +541,6 @@ Only one breakpoint (`sm`, 640px) is used. The container caps at `max-w-4xl` (89
 - Disabled state for `{component.text-input}` / `{component.select-input}` is not specified — currently relies on the native browser disabled style.
 - Error state for an out-of-range year or currency is not specified — currently rendered as `{typography.caption}` + `{colors.mute}` text in `#calc-range-hint`. If a future variant needs more weight, the natural step is wrapping the message in a `{colors.surface-inset}` block (no new colour required).
 - Chart styling is not specified. If a historical-CPI chart is added later, it should use `{colors.mute}` strokes + a single `{colors.accent}` series line on transparent background, with no grid fill.
-- The "Ruby VM ready" steady state is named here but the live site currently removes the pill entirely when ready. Either treatment is acceptable; do not introduce a third.
+<!-- Resolved: status-pill steady state is now canonical "Live · running in your browser". -->
+- Focus-visible outline is now in place (`outline: 2px solid {colors.mute}; offset 2px`) but is applied as a global rule rather than tokenised per-component — extracting a `{colors.hairline-strong}` token is the natural next addition.
 - Marketing pages (blog, docs index) are out of scope. This system is tuned for the calculator surface; a future docs surface would need to extend the type scale, not the colour system.

@@ -31,6 +31,14 @@
   body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
   code, pre, .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
   .tabular { font-variant-numeric: tabular-nums; }
+  /* Focus rings — closes the DESIGN.md "Known Gaps" entry. Uses the mute
+     token (stone-500) so it reads against both surface-card and canvas
+     in either theme without introducing a new colour. */
+  :where(input, select, button, a, summary):focus-visible {
+    outline: 2px solid #78716c;
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
 </style>
 </head>
 
@@ -81,13 +89,11 @@
     <div class="p-4 sm:p-6">
       <form id="calc-form" class="space-y-3">
 
-        <div>
-          <label for="calc-amount" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">Amount</label>
-          <input id="calc-amount" type="number" step="any" inputmode="decimal" value="100"
-                 class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
-        </div>
-
         <div class="grid grid-cols-1 sm:grid-cols-[max-content_1fr_max-content_1fr] items-center gap-2 sm:gap-3">
+          <label for="calc-amount" class="text-xs font-medium text-stone-600 dark:text-stone-400 sm:justify-self-end">Amount</label>
+          <input id="calc-amount" type="number" step="any" inputmode="decimal" value="100"
+                 class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent sm:col-span-3">
+
           <div class="text-xs font-medium text-stone-600 dark:text-stone-400 sm:justify-self-end">From</div>
           <select id="from-currency" class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
             <option value="AUD">AUD — Australian dollar</option>
@@ -200,7 +206,7 @@
       </div>
       <div class="flex items-center gap-2 shrink-0">
         <pre class="px-3 py-2 rounded-md bg-stone-900 text-stone-100 text-sm"><code>gem install timeprice</code></pre>
-        <button data-copy="gem install timeprice" class="px-3 py-2 text-xs rounded-md border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-900">copy</button>
+        <button data-copy="gem install timeprice" class="px-3 py-2 text-xs rounded-md border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800">copy</button>
       </div>
     </div>
   </section>
