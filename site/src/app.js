@@ -21,9 +21,15 @@ function isDefaultForm(f) {
 initTheme();
 readUrl();
 readForm();
-if (!isDefaultForm(state.form)) renderEmpty("Warming up Ruby VM…");
+// Default form matches the pre-rendered HTML — leave it alone so the user
+// sees a real answer on first paint instead of placeholder dots. Any URL
+// override clears both the result block AND the hero so they don't show
+// the stale defaults next to a fresh "From" value.
+if (!isDefaultForm(state.form)) {
+  renderEmpty("Warming up Ruby VM…");
+  renderHero(null);
+}
 renderSnippet();
-renderHero(null);
 refreshRangeHint();
 refreshYearBounds();
 bindCopyButtons();

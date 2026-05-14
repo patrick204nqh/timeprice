@@ -6,7 +6,17 @@ import { writeUrl } from "./url.js";
 let calcTimer = null;
 function scheduleCalc() {
   clearTimeout(calcTimer);
-  calcTimer = setTimeout(compute, 200);
+  calcTimer = setTimeout(compute, 120);
+}
+
+function setYearInputsDisabled(disabled) {
+  for (const id of ["#from-year", "#to-year"]) {
+    const el = $(id);
+    if (!el) continue;
+    el.disabled = disabled;
+    el.classList.toggle("opacity-50", disabled);
+    el.classList.toggle("cursor-not-allowed", disabled);
+  }
 }
 
 const INPUT_SELECTORS = [
@@ -32,9 +42,12 @@ function onInput() {
 
 export function bindCopyButtons() {
   document.body.addEventListener("click", async (e) => {
-    const btn = e.target.closest("[data-copy], #snip-copy");
+    const btn = e.target.closest("[data-copy], #snip-copy, #copy-link");
     if (!btn) return;
-    const text = btn.dataset.copy || $("#snippet").textContent;
+    let text;
+    if (btn.id === "copy-link") text = location.href;
+    else if (btn.id === "snip-copy") text = $("#snippet").textContent;
+    else text = btn.dataset.copy;
     try { await navigator.clipboard.writeText(text); } catch {}
     if (!btn.dataset.origText) btn.dataset.origText = btn.textContent;
     btn.textContent = "copied";
@@ -70,6 +83,10 @@ export function bindCalcForm() {
         if (fromDate && !fromDate.value) fromDate.value = `${fromYear}-06-15`;
         if (toDate && !toDate.value) toDate.value = `${toYear}-06-15`;
       }
+      // Year inputs are silently overridden by the day pickers while
+      // precise mode is on — disable them so the user doesn't type into
+      // an input that does nothing.
+      setYearInputsDisabled(!wrap.hidden);
       onInput();
     });
   }
@@ -105,6 +122,7 @@ export function bindExampleChips() {
       const icon = $("#precise-toggle-icon");
       if (label) label.textContent = "Use specific dates";
       if (icon) icon.textContent = "▸";
+      setYearInputsDisabled(false);
     }
     onInput();
   });
