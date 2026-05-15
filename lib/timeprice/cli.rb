@@ -1,6 +1,20 @@
 # frozen_string_literal: true
 
-require "thor"
+begin
+  require "thor"
+rescue LoadError
+  warn <<~MSG
+    The `timeprice` CLI requires the `thor` gem, which isn't installed in
+    this environment. Install it with:
+
+        gem install thor
+
+    Library use (`require "timeprice"`) does not need thor; it's a CLI-only
+    dependency as of v0.8.0.
+  MSG
+  exit 1
+end
+
 require "json"
 require_relative "../timeprice"
 require_relative "cli/presenters/inflation"

@@ -10,10 +10,10 @@ RSpec.describe "timeprice.gemspec" do
     expect(spec.files.grep(%r{data/}).any?).to be(true)
   end
 
-  it "declares Thor as a runtime dependency" do
+  it "keeps Thor out of the runtime dependency set (CLI-only, see lib/timeprice/cli.rb)" do
     thor = spec.dependencies.find { |d| d.name == "thor" }
     expect(thor).not_to be_nil
-    expect(thor.type).to eq(:runtime)
+    expect(thor.type).to eq(:development)
   end
 
   it "requires Ruby >= 3.2" do

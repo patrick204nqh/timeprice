@@ -5,6 +5,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- `thor` is now a development dependency, not a runtime dependency. The
+  CLI (`exe/timeprice`) still works exactly as before, but users who only
+  `require "timeprice"` as a library no longer pull in thor and its
+  transitive stdlib (`set`, `digest`, `erb`, etc.). The ruby.wasm site
+  bundle drops ~200 KB raw / ~55 KB gzipped. CLI users need to run
+  `gem install thor` once; `bin/timeprice` prints a clear hint if it's
+  missing.
+
 ### Breaking changes (planned for 1.0.0)
 - Public API methods (`inflation`, `exchange`, `compare`) now accept
   `Timeprice::Date` in addition to strings. The accepted string formats
