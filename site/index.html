@@ -117,9 +117,19 @@
             <option value="VND">VND — Vietnamese dong</option>
           </select>
           <div class="text-xs text-stone-500 sm:justify-self-end">When</div>
-          <input id="from-when" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
-                 placeholder="e.g. 2008, 2008-03, or 2008-03-14"
-                 class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
+          <div class="when-group flex items-center gap-2 flex-wrap" data-side="from">
+            <input id="from-year" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
+                   maxlength="4" placeholder="YYYY" aria-label="From year"
+                   class="mono w-[5.5ch] px-2 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent text-center">
+            <input id="from-month" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
+                   maxlength="2" placeholder="──" aria-label="From month"
+                   class="mono w-[4ch] px-2 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent text-center text-stone-400 dark:text-stone-500 focus:text-stone-900 dark:focus:text-stone-100">
+            <input id="from-day" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
+                   maxlength="2" placeholder="──" aria-label="From day" disabled
+                   class="mono w-[4ch] px-2 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent text-center text-stone-400 dark:text-stone-500 focus:text-stone-900 dark:focus:text-stone-100 disabled:opacity-50">
+            <span id="from-grain" class="mono text-xs text-stone-500" aria-live="polite"></span>
+            <input id="from-when" type="hidden">
+          </div>
 
           <div class="text-xs font-medium text-stone-600 dark:text-stone-400 sm:justify-self-end">To</div>
           <select id="to-currency" class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
@@ -135,9 +145,19 @@
             <option value="VND">VND — Vietnamese dong</option>
           </select>
           <div class="text-xs text-stone-500 sm:justify-self-end">When</div>
-          <input id="to-when" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
-                 placeholder="empty = today"
-                 class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
+          <div class="when-group flex items-center gap-2 flex-wrap" data-side="to">
+            <input id="to-year" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
+                   maxlength="4" placeholder="YYYY" aria-label="To year"
+                   class="mono w-[5.5ch] px-2 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent text-center">
+            <input id="to-month" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
+                   maxlength="2" placeholder="──" aria-label="To month"
+                   class="mono w-[4ch] px-2 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent text-center text-stone-400 dark:text-stone-500 focus:text-stone-900 dark:focus:text-stone-100">
+            <input id="to-day" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
+                   maxlength="2" placeholder="──" aria-label="To day" disabled
+                   class="mono w-[4ch] px-2 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent text-center text-stone-400 dark:text-stone-500 focus:text-stone-900 dark:focus:text-stone-100 disabled:opacity-50">
+            <span id="to-grain" class="mono text-xs text-stone-500" aria-live="polite"></span>
+            <input id="to-when" type="hidden">
+          </div>
         </div>
 
         <p id="calc-range-hint" class="text-xs text-stone-500"></p>

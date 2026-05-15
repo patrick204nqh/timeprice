@@ -72,8 +72,16 @@ export function bindExampleChips() {
     $("#calc-amount").value = amount;
     $("#from-currency").value = fromCur;
     $("#to-currency").value = toCur;
-    $("#from-when").value = fromDate || "";
-    $("#to-when").value = toDate || "";
+    // Drive the Y/M/D widgets so the visible inputs + grain badge update.
+    // Empty date == "blank the whole side" for chip clicks (different
+    // contract from URL applyPoint, which preserves seeds on empty).
+    state.whenWidgets?.from?.set(fromDate || "", { silent: true });
+    state.whenWidgets?.to?.set(toDate || "", { silent: true });
+    if (!state.whenWidgets) {
+      // Fallback path for environments without widgets bound (tests).
+      $("#from-when").value = fromDate || "";
+      $("#to-when").value = toDate || "";
+    }
     onInput();
   });
 }
