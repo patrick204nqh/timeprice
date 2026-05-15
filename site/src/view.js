@@ -55,7 +55,7 @@ function granularityCopy(tag) {
 // derived mode label: if the FX leg did real work (rate ≠ 1, or currencies
 // differ), surface it; if the CPI leg did real work (ratio ≠ 1, or dates
 // differ), surface it. Both can be true; both can be false (identity).
-function metaLine(r, f) {
+function metaLine(r) {
   const g = granularityCopy(r.granularity);
   const fxActive = r.from_currency !== r.to_currency;
   const cpiActive = r.from_date !== r.to_date;
@@ -143,7 +143,6 @@ export function renderHero(out) {
 }
 
 export function renderResult(out) {
-  const f = state.form;
   const dec = decimalsFor(out.to_currency);
   setResultState("ok");
   setHeroErrorState(false);
@@ -155,7 +154,7 @@ export function renderResult(out) {
     "#calc-detail",
     `${fmtNumber(out.original_amount, decimalsFor(out.from_currency))} ${out.from_currency} in ${humanDate(out.from_date)} → ${fmtNumber(out.amount, dec)} ${out.to_currency} in ${humanDate(out.to_date)}`,
   );
-  setText("#calc-meta", metaLine(out, f));
+  setText("#calc-meta", metaLine(out));
   renderHero(out);
   state.lastResultValid = true;
 }
