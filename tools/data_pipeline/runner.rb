@@ -170,7 +170,9 @@ module Tools
 
         drift.each do |entry|
           title = "Manifest drift: #{entry[:label]}"
-          body  = "Registered provider for country #{entry[:country]} produced no entry in data/manifest.json."
+          body  = "Registered provider for country #{entry[:country]} produced no entry in data/manifest.json. " \
+                  "Re-run the fetcher locally, confirm data/cpi/#{entry[:country].downcase}.json exists, " \
+                  "and check that the country code is in tools/data_pipeline/_common.rb COUNTRY_TO_CURRENCY."
           safe  = body.gsub("%", "%25").gsub("\r", "%0D").gsub("\n", "%0A")
           line  = entry[:file] ? "::error file=#{entry[:file]},title=#{title}::#{safe}" : "::error title=#{title}::#{safe}"
           Tools::DataPipeline.log "#{entry[:label]}: MANIFEST DRIFT — country #{entry[:country]} missing from manifest"
