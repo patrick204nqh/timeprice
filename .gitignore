@@ -8,3 +8,4 @@
 /.bundle/
 /coverage/
 *.gem
+node_modules/
