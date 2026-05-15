@@ -13,4 +13,9 @@ export const state = {
     fromCurrency: "USD", fromYear: "1990", fromDate: "",
     toCurrency: "USD",   toYear: "2024",   toDate: "",
   },
+  // Tracks whether the last render reflects a successful Ruby computation.
+  // Drives renderSnippet() — copying a `Timeprice.compare(...)` call that
+  // would raise in Ruby is a footgun, so we suppress it during invalid form
+  // state.
+  lastResultValid: false,
 };
