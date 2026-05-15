@@ -69,6 +69,27 @@ function setResultState(state_) {
   el.classList.toggle("dark:border-stone-700", errored);
 }
 
+// Toggles hero typography between "live result" and "permanent error" looks.
+// On error: drop the emerald accent + tabular-num cadence on hero-to and mute
+// both halves to stone — em-dash + muted colour reads as "no value," whereas
+// the default emerald + "…" reads as "still computing." Restored on success.
+function setHeroErrorState(errored) {
+  const from = $("#hero-from");
+  const to = $("#hero-to");
+  if (!from || !to) return;
+  // hero-from: only the muted-stone tint differs in error state. The base
+  // markup has no explicit colour, so adding/removing stone-500 is enough.
+  from.classList.toggle("text-stone-500", errored);
+  from.classList.toggle("dark:text-stone-400", errored);
+  from.classList.toggle("tabular", !errored);
+  // hero-to: swap emerald accent for muted stone and drop tabular cadence.
+  to.classList.toggle("text-emerald-700", !errored);
+  to.classList.toggle("dark:text-emerald-400", !errored);
+  to.classList.toggle("tabular", !errored);
+  to.classList.toggle("text-stone-500", errored);
+  to.classList.toggle("dark:text-stone-400", errored);
+}
+
 // Disambiguate the source side in the hero whenever the two sides aren't
 // the same currency — "$" alone reads as USD/AUD/CAD ambiguously, "$100 USD"
 // doesn't. When source and dest dates match (FX mode), drop the trailing
@@ -106,6 +127,7 @@ export function renderResult(out, mode) {
   const f = state.form;
   const dec = decimalsFor(out.to_currency);
   setResultState("ok");
+  setHeroErrorState(false);
   setText("#calc-mode", modeLabel(mode, f));
   setText("#calc-amount-out", `${fmtNumber(out.amount, dec)} ${out.to_currency}`);
   setText(
@@ -114,17 +136,22 @@ export function renderResult(out, mode) {
   );
   setText("#calc-meta", metaLine(mode, out, f));
   renderHero(out);
+  state.lastResultValid = true;
 }
 
 export function renderError(message) {
+  state.lastResultValid = false;
   setResultState("error");
   setText("#calc-mode", "Error");
   setText("#calc-amount-out", "—");
   setText("#calc-detail", message);
   setText("#calc-meta", "");
-  // Update only the "from" half — leave hero-to with the previous valid
-  // result so transient errors during typing don't blink the headline.
+  // Update only the "from" half, then plant a permanent em-dash on the
+  // "to" side — leaving "…" there reads as "still computing," when in fact
+  // we've given up. Em-dash + muted colour = "no value."
   renderHeroFrom();
+  setText("#hero-to", "—");
+  setHeroErrorState(true);
 }
 
 export function renderEmpty(message = "Warming up Ruby VM…") {
@@ -137,6 +164,14 @@ export function renderEmpty(message = "Warming up Ruby VM…") {
 }
 
 export function renderSnippet() {
+  // If the current form would raise in Ruby, swap the snippet for a
+  // comment. We keep the <details> affordance visible — disappearing UI is
+  // less friendly than a placeholder that explains itself — but copying a
+  // call that would raise is a footgun.
+  if (!state.lastResultValid) {
+    setText("#snippet", "# (form is currently invalid — fix the inputs above)");
+    return;
+  }
   const f = state.form;
   const fromDate = fromGemDate(f);
   const toDate = toGemDate(f);
