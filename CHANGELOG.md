@@ -22,6 +22,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   relocated to `Timeprice::Internal::` in a future major release; depend
   on the `Timeprice.<method>` facade.
 
+## [0.7.0] - 2026-05-15
+
+### Fixed
+- `Exchange.resolve_rate` no longer raises `DataNotFound` when one
+  triangulation leg falls back to the annual rate and the other resolves
+  on a daily date. Annual rates are year-wide, so they now adopt the
+  daily leg's effective date. Daily-vs-daily mismatches still raise.
+- `Compare.run` short-circuits CPI with `cpi_ratio: 1.0` when both
+  points share a date — there's no time-elapsed inflation to apply, and
+  the daily `YYYY-MM-DD` grain that this path produces would otherwise
+  blow up CPI's monthly-max lookup.
+- Web UI: `humaniseError` now recognises `DataNotFound`, FX
+  triangulation, and "No FX rate" patterns so a Ruby backtrace can no
+  longer surface in the result block.
+
 ### Refactor (internal)
 - `Timeprice::Schema` owns the on-disk format definition; both the
   reader (DataLoader) and the writer (data pipeline) reference it.

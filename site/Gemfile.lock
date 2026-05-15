@@ -1,7 +1,7 @@
 PATH
   remote: ..
   specs:
-    timeprice (0.6.0)
+    timeprice (0.7.0)
       thor (~> 1.3)
 
 GEM
@@ -50,7 +50,7 @@ CHECKSUMS
   ruby_wasm (2.9.4-x86_64-linux) sha256=0d5e19430745742c09f35167d58586ce68c7f124090c722b8e4f9c21b6adc943
   ruby_wasm (2.9.4-x86_64-linux-musl) sha256=05eba60cfb90b2e69068b4bc0b7a2ac74031c9387b4cd3d8094487b161bc31d7
   thor (1.5.0) sha256=e3a9e55fe857e44859ce104a84675ab6e8cd59c650a49106a05f55f136425e73
-  timeprice (0.6.0)
+  timeprice (0.7.0)
 
 BUNDLED WITH
   4.0.8
