@@ -22,17 +22,23 @@ module Timeprice
       @annual    = data.dig("series", "annual")    || {}
     end
 
-    # @param key [String] "YYYY", "YYYY-MM", or "YYYY-Qn"
+    # @param key [String] "YYYY", "YYYY-MM", "YYYY-Qn", or "YYYY-MM-DD"
     # @return [CpiPoint]
     # @raise [DataNotFound] if no CPI value covers `key`
     # @raise [ArgumentError] on malformed `key`
+    #
+    # Daily keys are accepted and silently resolved at month grain — CPI is
+    # published monthly at best, so the day is dropped before lookup. The
+    # returned granularity reflects what the monthly cascade actually found
+    # (monthly / quarterly fallback / annual fallback), not "daily".
     def at(key)
       key = key.to_s
       case key
-      when QUARTER_RE        then quarterly_or_fallbacks(key)
-      when /\A\d{4}-\d{2}\z/ then monthly_or_fallbacks(key)
-      when /\A\d{4}\z/       then annual_or_derived(key)
-      else fail ArgumentError, "Invalid date format: #{key.inspect} (use YYYY, YYYY-MM, or YYYY-Qn)"
+      when QUARTER_RE              then quarterly_or_fallbacks(key)
+      when /\A\d{4}-\d{2}-\d{2}\z/ then monthly_or_fallbacks(key[0, 7])
+      when /\A\d{4}-\d{2}\z/       then monthly_or_fallbacks(key)
+      when /\A\d{4}\z/             then annual_or_derived(key)
+      else fail ArgumentError, "Invalid date format: #{key.inspect} (use YYYY, YYYY-MM, YYYY-Qn, or YYYY-MM-DD)"
       end
     end
 
