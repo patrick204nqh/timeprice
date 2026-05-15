@@ -7,6 +7,45 @@ bundle install
 
 mkdir -p public
 
+# Trim Ruby stdlib components the browser never loads (REPL, docs, networking,
+# inter-process). Saves ~3 MB raw / ~860 KB gzipped off cold load. We trim the
+# cached prebuilt tarball directly because rbwasm short-circuits to it on every
+# subsequent build (`packager/core.rb:286`), so editing the install_dir would
+# get ignored. ruby_wasm 2.9's `--without-stdlib` flag only knows `enc`, hence
+# the manual tar surgery.
+TARBALL_GLOB="rubies/ruby-3.3-wasm32-unknown-wasip1-full-*.tar.gz"
+TARBALL="$(ls $TARBALL_GLOB 2>/dev/null | head -1 || true)"
+
+# Fresh checkouts: let rbwasm compile Ruby once so the tarball exists before
+# we trim it. The wasm it produces here is unstripped and gets overwritten by
+# the final build below.
+if [[ -z "${TARBALL:-}" ]]; then
+  echo "Bootstrap: compiling Ruby for wasm (one-time, slow)..."
+  bundle exec rbwasm build \
+    --ruby-version 3.3 \
+    --target wasm32-unknown-wasip1 \
+    -o public/timeprice.wasm
+  TARBALL="$(ls $TARBALL_GLOB | head -1)"
+fi
+
+TRIM_MARKER="rubies/.stdlib-trimmed"
+if [[ ! -f "$TRIM_MARKER" || "$TARBALL" -nt "$TRIM_MARKER" ]]; then
+  echo "Trimming unused stdlib from $TARBALL..."
+  TRIM_TMP="$(mktemp -d)"
+  trap 'rm -rf "$TRIM_TMP"' EXIT
+  tar -C "$TRIM_TMP" -xzf "$TARBALL"
+  TRIM_ROOT="$(ls "$TRIM_TMP" | head -1)"
+  RBLIB="$TRIM_TMP/$TRIM_ROOT/usr/local/lib/ruby/3.3.0"
+  for d in rdoc irb reline net drb csv syntax_suggest; do
+    rm -rf "$RBLIB/$d" "$RBLIB/$d.rb"
+  done
+  tar -C "$TRIM_TMP" -czf "$TARBALL.new" "$TRIM_ROOT"
+  mv -f "$TARBALL.new" "$TARBALL"
+  rm -rf "$TRIM_TMP"
+  trap - EXIT
+  touch "$TRIM_MARKER"
+fi
+
 bundle exec rbwasm build \
   --ruby-version 3.3 \
   --target wasm32-unknown-wasip1 \
