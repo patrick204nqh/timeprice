@@ -13,7 +13,6 @@ function seedDom() {
       <span class="tabular text-emerald-700 dark:text-emerald-400" id="hero-to">$242.09 in 2024</span>
     </h1>
     <div id="calc-result" class="bg-stone-100 dark:bg-stone-800/50"></div>
-    <div id="calc-mode"></div>
     <div id="calc-amount-out"></div>
     <div id="calc-detail"></div>
     <div id="calc-meta"></div>
@@ -36,6 +35,8 @@ const sampleOut = {
   to_currency: "USD",
   from_date: "1990",
   to_date: "2024",
+  fx_rate: 1,
+  cpi_ratio: 2.4209,
   granularity: "annual",
 };
 
@@ -77,20 +78,47 @@ describe("renderResult", () => {
   });
 
   it("flips state.lastResultValid to true", () => {
-    renderResult(sampleOut, "inflation");
+    renderResult(sampleOut);
     expect(state.lastResultValid).toBe(true);
   });
 
-  it("surfaces granularity in the meta line for inflation mode", () => {
-    renderResult({ ...sampleOut, granularity: "annual" }, "inflation");
+  it("writes the headline as `amount currency` — no mode badge prefix", () => {
+    renderResult(sampleOut);
+    expect(document.querySelector("#calc-amount-out").textContent).toBe("242.09 USD");
+  });
+
+  it("surfaces CPI + granularity in the meta line when dates differ", () => {
+    renderResult(sampleOut);
     const meta = document.querySelector("#calc-meta").textContent;
-    expect(meta).toContain("annual");
     expect(meta).toContain("CPI");
+    expect(meta).toContain("annual");
+  });
+
+  it("surfaces FX disclosure in the meta line when currencies differ", () => {
+    const out = { ...sampleOut, to_currency: "VND", to_date: "1990", from_date: "1990", fx_rate: 23000, cpi_ratio: 1, granularity: "daily" };
+    state.form = { ...baseForm(), toCurrency: "VND", to: "1990" };
+    renderResult(out);
+    const meta = document.querySelector("#calc-meta").textContent;
+    expect(meta).toContain("FX");
+    expect(meta).not.toContain("CPI");
+  });
+
+  it("renders identity (same currency, same date) without a disclosure line claiming work", () => {
+    const out = {
+      amount: 100, original_amount: 100,
+      from_currency: "USD", to_currency: "USD",
+      from_date: "2020", to_date: "2020",
+      fx_rate: 1, cpi_ratio: 1,
+    };
+    state.form = { ...baseForm(), from: "2020", to: "2020" };
+    renderResult(out);
+    const meta = document.querySelector("#calc-meta").textContent;
+    expect(meta).toBe("No conversion needed");
   });
 
   it("restores emerald accent + tabular on #hero-to after a prior error", () => {
     renderError("Boom");
-    renderResult(sampleOut, "inflation");
+    renderResult(sampleOut);
     const to = document.querySelector("#hero-to");
     expect(to.classList.contains("text-emerald-700")).toBe(true);
     expect(to.classList.contains("dark:text-emerald-400")).toBe(true);

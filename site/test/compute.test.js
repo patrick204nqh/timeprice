@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { deriveMode, humaniseError, validateForm, readForm, todayIso, DATE_SHAPE, fromGemDate, toGemDate } from "../src/compute.js";
+import { humaniseError, validateForm, readForm, todayIso, DATE_SHAPE, fromGemDate, toGemDate } from "../src/compute.js";
 import { state } from "../src/state.js";
 
 const form = (overrides = {}) => ({
@@ -65,35 +65,6 @@ describe("fromGemDate / toGemDate", () => {
   });
 });
 
-describe("deriveMode", () => {
-  it("identity when currency and date match", () => {
-    expect(deriveMode(form({ from: "2000", to: "2000" }))).toBe("identity");
-  });
-
-  it("inflation when currency matches but date differs", () => {
-    expect(deriveMode(form())).toBe("inflation");
-  });
-
-  it("fx when date matches but currency differs", () => {
-    expect(deriveMode(form({ from: "2020", to: "2020", toCurrency: "EUR" }))).toBe("fx");
-  });
-
-  it("compare when both currency and date differ", () => {
-    expect(deriveMode(form({ toCurrency: "EUR" }))).toBe("compare");
-  });
-
-  it("accepts full ISO dates as well as years", () => {
-    const f = form({ from: "2020-06-15", to: "2020-06-15", toCurrency: "EUR" });
-    expect(deriveMode(f)).toBe("fx");
-  });
-
-  it("empty `to` defaults to today for mode comparison", () => {
-    const f = form({ from: "1990", to: "" });
-    // Same currency, different date (1990 vs today) → inflation
-    expect(deriveMode(f)).toBe("inflation");
-  });
-});
-
 describe("humaniseError", () => {
   it("rewrites out-of-range with min/max years", () => {
     const msg = humaniseError('Date "1850" out of supported range "1990-01".."2026-03"');
@@ -138,37 +109,52 @@ describe("validateForm", () => {
     state.metadata = { fx: { daily_min: "1999-01-04", daily_max: "2026-05-10" } };
   });
 
-  it("returns null when years are within range", () => {
-    expect(validateForm(form(), "inflation")).toBeNull();
+  it("returns null when years are within range (same currency, dates differ)", () => {
+    expect(validateForm(form())).toBeNull();
   });
 
   it("flags too-early year against destination CPI start", () => {
-    const msg = validateForm(form({ from: "1850" }), "inflation");
+    const msg = validateForm(form({ from: "1850" }));
     expect(msg).toMatch(/United States.*1990/);
   });
 
   it("flags too-late year against destination CPI end", () => {
-    const msg = validateForm(form({ to: "2099" }), "inflation");
+    const msg = validateForm(form({ to: "2099" }));
     expect(msg).toMatch(/United States.*2026/);
   });
 
-  it("checks FX bounds in fx mode", () => {
+  it("checks FX bounds when currencies differ and dates match", () => {
     const f = form({ from: "1980", to: "1980", toCurrency: "EUR" });
-    expect(validateForm(f, "fx")).toMatch(/FX rates start 1999/);
+    expect(validateForm(f)).toMatch(/FX rates start 1999/);
   });
 
-  it("checks FX upper bound in fx mode", () => {
+  it("checks FX upper bound when currencies differ and dates match", () => {
     const f = form({ from: "2099", to: "2099", toCurrency: "EUR" });
-    expect(validateForm(f, "fx")).toMatch(/FX rates end 2026/);
+    expect(validateForm(f)).toMatch(/FX rates end 2026/);
   });
 
-  it("returns null in compare mode when both sides are valid", () => {
+  it("returns null when both currencies and dates differ and inputs are in range", () => {
     const f = form({ from: "2000", to: "2020", toCurrency: "EUR" });
-    expect(validateForm(f, "compare")).toBeNull();
+    expect(validateForm(f)).toBeNull();
   });
 
-  it("returns null gracefully when destination has no metadata", () => {
-    const f = form({ toCurrency: "XYZ" });
-    expect(validateForm(f, "inflation")).toBeNull();
+  it("returns null gracefully when destination has no metadata (same currency)", () => {
+    const f = form({ fromCurrency: "XYZ", toCurrency: "XYZ" });
+    expect(validateForm(f)).toBeNull();
+  });
+
+  it("skips CPI bound check when dates match (CPI leg is a no-op)", () => {
+    // Same date — CPI ratio = 1.0; we shouldn't fault the year for being
+    // outside the CPI window because we're not consulting CPI.
+    const f = form({ from: "1850", to: "1850", toCurrency: "EUR" });
+    // Currencies also differ here so FX bound kicks in instead; the point
+    // is the message mentions FX, not US/EU inflation.
+    expect(validateForm(f)).toMatch(/FX rates start/);
+  });
+
+  it("skips FX bound check when currencies match (FX leg is a no-op)", () => {
+    // Same currency, dates within CPI window — no FX bound to violate.
+    const f = form({ from: "1995", to: "2024" });
+    expect(validateForm(f)).toBeNull();
   });
 });

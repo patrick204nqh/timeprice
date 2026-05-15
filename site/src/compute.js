@@ -3,9 +3,15 @@ import { state } from "./state.js";
 import { widestCpi, countryNameFor } from "./lookups.js";
 import { renderResult, renderError, renderEmpty } from "./view.js";
 
-// Form reading, mode derivation, validation, and the VM call. Rendering is
-// in view.js; input min/max sync is in bounds.js. This module owns the
-// orchestration path: form → validate → VM eval → render.
+// Form reading, validation, and the VM call. Rendering is in view.js;
+// input min/max sync is in bounds.js. This module owns the orchestration
+// path: form → validate → VM eval → render.
+//
+// No "mode" string is exposed. Same-currency vs FX, same-date vs inflation
+// are observable from the form (and from the result payload) — we don't
+// need a label for them. The Ruby gem always goes through Timeprice.compare;
+// the FX leg is a no-op (rate=1) when currencies match, the CPI leg is a
+// no-op (ratio=1) when dates match.
 
 // Smart-date inputs accept YYYY, YYYY-MM, or YYYY-MM-DD. The gem accepts
 // the same three precisions verbatim, so we trim whitespace and pass them
@@ -38,17 +44,6 @@ export function readForm() {
   };
 }
 
-// Mode is self-derived. Same currency, different date → inflation.
-// Same date, different currency → FX. Different on both axes → compare.
-export function deriveMode(f) {
-  const sameCurrency = f.fromCurrency === f.toCurrency;
-  const sameDate = fromGemDate(f) === toGemDate(f);
-  if (sameCurrency && sameDate) return "identity";
-  if (sameCurrency) return "inflation";
-  if (sameDate) return "fx";
-  return "compare";
-}
-
 // Translate gem error messages into something a civilian can act on. The
 // gem's defaults are technically accurate but full of jargon — "Date "1850"
 // out of supported range" tells the user what's wrong without telling them
@@ -79,12 +74,19 @@ export function humaniseError(raw) {
 // Pre-VM validation. Catches the obvious "wrong year" mistakes without
 // round-tripping through the VM — and lets us reference the destination
 // country by name when explaining the bound.
-export function validateForm(f, mode) {
+//
+// What to check is read from the form, not a derived mode: CPI bounds apply
+// whenever a date is involved (always — both sides have dates); FX bounds
+// apply whenever the two currencies differ.
+export function validateForm(f) {
   const fromYear = Number(fromGemDate(f).slice(0, 4));
   const toYear   = Number(toGemDate(f).slice(0, 4));
   if (!fromYear || !toYear) return null;
 
-  if (mode === "inflation" || mode === "compare") {
+  // CPI is the destination-country inflation leg. It only constrains when
+  // the dates actually differ — same-date Compare runs a no-op CPI leg.
+  const sameDate = fromGemDate(f) === toGemDate(f);
+  if (!sameDate) {
     const widest = widestCpi(state.countryByCurrency.get(f.toCurrency));
     if (widest) {
       const min = Number(widest.min.slice(0, 4));
@@ -99,12 +101,13 @@ export function validateForm(f, mode) {
     }
   }
 
-  if (mode === "fx" || mode === "compare") {
+  // FX is sampled at the source date. It only constrains when the
+  // currencies actually differ — same-currency Compare runs a no-op FX leg.
+  if (f.fromCurrency !== f.toCurrency) {
     const fx = state.metadata?.fx;
     if (fx?.daily_min && fx?.daily_max) {
       const min = Number(fx.daily_min.slice(0, 4));
       const max = Number(fx.daily_max.slice(0, 4));
-      // FX rate is sampled at the source date (Compare's convention too).
       if (fromYear < min) return `FX rates start ${min}. Pick a year from ${min} on.`;
       if (fromYear > max) return `FX rates end ${max}. Pick a year up to ${max}.`;
     }
@@ -124,8 +127,8 @@ export function compute() {
     return;
   }
 
-  // Format check before mode derivation — `to` is already coerced to today
-  // by toGemDate() when blank, so only validate non-empty inputs.
+  // Format check — `to` is already coerced to today by toGemDate() when
+  // blank, so only validate non-empty inputs.
   if (!DATE_SHAPE.test(f.from)) {
     renderError(DATE_FORMAT_HINT);
     return;
@@ -135,9 +138,11 @@ export function compute() {
     return;
   }
 
-  const mode = deriveMode(f);
-
-  if (mode === "identity") {
+  // Identity short-circuit: same currency, same date — no conversion to
+  // perform, no gem call worth making. This is an optimisation, not a
+  // labelled mode; view.js renders it through the same path as any other
+  // result.
+  if (f.fromCurrency === f.toCurrency && fromGemDate(f) === toGemDate(f)) {
     renderResult({
       amount: f.amount,
       original_amount: f.amount,
@@ -145,20 +150,21 @@ export function compute() {
       to_currency: f.toCurrency,
       from_date: fromGemDate(f),
       to_date: toGemDate(f),
-    }, "identity");
+      fx_rate: 1,
+      cpi_ratio: 1,
+    });
     return;
   }
 
-  const validation = validateForm(f, mode);
+  const validation = validateForm(f);
   if (validation) {
     renderError(validation);
     return;
   }
 
   try {
-    // Always go through Timeprice.compare. Inflation = same currency on both
-    // sides (Compare's FX leg is a no-op rate of 1). FX = same date on both
-    // sides (Compare's inflation leg is a no-op ratio of 1).
+    // Always go through Timeprice.compare. Same-currency = FX leg is a
+    // no-op (rate=1); same-date = inflation leg is a no-op (ratio=1).
     const rb = state.vm.eval(`
       require "timeprice"
       r = Timeprice.compare(
@@ -168,7 +174,7 @@ export function compute() {
       )
       JSON.generate(r.to_h)
     `);
-    renderResult(JSON.parse(rb.toString()), mode);
+    renderResult(JSON.parse(rb.toString()));
   } catch (e) {
     console.error(e);
     const raw = (e && e.message) ? String(e.message) : String(e);

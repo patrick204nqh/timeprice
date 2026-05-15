@@ -27,15 +27,6 @@ function humanDate(iso) {
   return `${MONTH_NAMES[Number(m) - 1]} ${Number(d)}, ${y}`;
 }
 
-function modeLabel(mode, f) {
-  switch (mode) {
-    case "inflation": return `Inflation — ${countryNameFor(f.toCurrency)}`;
-    case "fx":        return "Exchange rate";
-    case "compare":   return "Currency + inflation";
-    default:          return "Same currency, same year";
-  }
-}
-
 // Map gem granularity tags to terse copy for the meta line. Falls through
 // to the raw tag when an unknown one slips in — better than a blank line.
 const GRANULARITY_COPY = {
@@ -60,24 +51,22 @@ function granularityCopy(tag) {
   return GRANULARITY_COPY[k] || k;
 }
 
-function metaLine(mode, r, f) {
-  const destName = countryNameFor(f.toCurrency);
+// Disclosure line under the headline. We read the *result payload*, not a
+// derived mode label: if the FX leg did real work (rate ≠ 1, or currencies
+// differ), surface it; if the CPI leg did real work (ratio ≠ 1, or dates
+// differ), surface it. Both can be true; both can be false (identity).
+function metaLine(r, f) {
   const g = granularityCopy(r.granularity);
-  switch (mode) {
-    case "inflation": {
-      return g ? `${destName} · ${g} CPI` : `${destName} CPI`;
-    }
-    case "fx": {
-      const tail = g ? ` · ${g} FX` : "";
-      return `Rate on ${humanDate(fromGemDate(f))}${tail}`;
-    }
-    case "compare": {
-      const tail = g ? ` · ${g}` : "";
-      return `FX on ${humanDate(fromGemDate(f))} · ${destName} CPI to ${humanDate(toGemDate(f))}${tail}`;
-    }
-    default:
-      return "No conversion needed";
-  }
+  const fxActive = (r.from_currency || f.fromCurrency) !== (r.to_currency || f.toCurrency);
+  const cpiActive = (r.from_date || fromGemDate(f)) !== (r.to_date || toGemDate(f));
+  const destName = countryNameFor(r.to_currency || f.toCurrency);
+
+  const parts = [];
+  if (fxActive) parts.push(`FX on ${humanDate(r.from_date || fromGemDate(f))}`);
+  if (cpiActive) parts.push(`${destName} CPI to ${humanDate(r.to_date || toGemDate(f))}`);
+  if (g && (fxActive || cpiActive)) parts.push(g);
+  if (parts.length === 0) return "No conversion needed";
+  return parts.join(" · ");
 }
 
 // Result-block state tint. DESIGN.md forbids new semantic colours, so error
@@ -153,18 +142,20 @@ export function renderHero(out) {
   }
 }
 
-export function renderResult(out, mode) {
+export function renderResult(out) {
   const f = state.form;
   const dec = decimalsFor(out.to_currency);
   setResultState("ok");
   setHeroErrorState(false);
-  setText("#calc-mode", modeLabel(mode, f));
+  // Headline answers the question directly: "100 USD (2008) → 2,450,000 VND
+  // (today)". No mode badge — the meta line below discloses FX/CPI as
+  // applicable, derived from result fields.
   setText("#calc-amount-out", `${fmtNumber(out.amount, dec)} ${out.to_currency}`);
   setText(
     "#calc-detail",
     `${fmtNumber(out.original_amount, decimalsFor(out.from_currency))} ${out.from_currency} in ${humanDate(out.from_date)} → ${fmtNumber(out.amount, dec)} ${out.to_currency} in ${humanDate(out.to_date)}`,
   );
-  setText("#calc-meta", metaLine(mode, out, f));
+  setText("#calc-meta", metaLine(out, f));
   renderHero(out);
   state.lastResultValid = true;
 }
@@ -172,7 +163,6 @@ export function renderResult(out, mode) {
 export function renderError(message) {
   state.lastResultValid = false;
   setResultState("error");
-  setText("#calc-mode", "Error");
   setText("#calc-amount-out", "—");
   setText("#calc-detail", message);
   setText("#calc-meta", "");
@@ -186,7 +176,6 @@ export function renderError(message) {
 
 export function renderEmpty(message = "Warming up Ruby VM…") {
   setResultState("ok");
-  setText("#calc-mode", "");
   setText("#calc-amount-out", "—");
   setText("#calc-detail", message);
   setText("#calc-meta", "");

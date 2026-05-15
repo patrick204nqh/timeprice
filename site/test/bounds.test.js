@@ -19,63 +19,63 @@ const form = (overrides = {}) => ({
 });
 
 describe("computeYearBounds", () => {
-  it("uses destination CPI in inflation mode — VN destination narrows to 1995", () => {
+  it("uses destination CPI when dates differ — VN destination narrows to 1995", () => {
     const f = form({ fromCurrency: "VND", toCurrency: "VND" });
-    expect(computeYearBounds(f, "inflation", COUNTRIES, FX)).toEqual({ min: "1995", max: "2024" });
+    expect(computeYearBounds(f, COUNTRIES, FX)).toEqual({ min: "1995", max: "2024" });
   });
 
-  it("uses destination CPI in inflation mode — US destination opens to 1990", () => {
+  it("uses destination CPI when dates differ — US destination opens to 1990", () => {
     const f = form({ fromCurrency: "USD", toCurrency: "USD" });
-    expect(computeYearBounds(f, "inflation", COUNTRIES, FX)).toEqual({ min: "1990", max: "2026" });
+    expect(computeYearBounds(f, COUNTRIES, FX)).toEqual({ min: "1990", max: "2026" });
   });
 
-  it("uses destination CPI in compare mode — USD->VND clamps to VN range", () => {
+  it("uses destination CPI when both axes differ — USD->VND clamps to VN range", () => {
     const f = form({ fromCurrency: "USD", toCurrency: "VND" });
-    expect(computeYearBounds(f, "compare", COUNTRIES, FX)).toEqual({ min: "1995", max: "2024" });
+    expect(computeYearBounds(f, COUNTRIES, FX)).toEqual({ min: "1995", max: "2024" });
   });
 
-  it("uses destination CPI in compare mode — VND->USD opens to US range", () => {
+  it("uses destination CPI when both axes differ — VND->USD opens to US range", () => {
     const f = form({ fromCurrency: "VND", toCurrency: "USD" });
-    expect(computeYearBounds(f, "compare", COUNTRIES, FX)).toEqual({ min: "1990", max: "2026" });
+    expect(computeYearBounds(f, COUNTRIES, FX)).toEqual({ min: "1990", max: "2026" });
   });
 
-  it("uses FX coverage in fx mode regardless of destination CPI", () => {
-    const f = form({ fromCurrency: "USD", toCurrency: "VND" });
-    expect(computeYearBounds(f, "fx", COUNTRIES, FX)).toEqual({ min: "1999", max: "2026" });
+  it("uses FX coverage when dates match but currencies differ", () => {
+    const f = form({ fromCurrency: "USD", toCurrency: "VND", from: "2020", to: "2020" });
+    expect(computeYearBounds(f, COUNTRIES, FX)).toEqual({ min: "1999", max: "2026" });
   });
 
-  it("returns null in identity mode (no narrowing)", () => {
+  it("returns null when same currency + same date (no narrowing)", () => {
     const f = form({ fromCurrency: "USD", toCurrency: "USD", from: "2020", to: "2020" });
-    expect(computeYearBounds(f, "identity", COUNTRIES, FX)).toBeNull();
+    expect(computeYearBounds(f, COUNTRIES, FX)).toBeNull();
   });
 
   it("returns null when destination has no metadata yet", () => {
     const f = form({ toCurrency: "XYZ" });
-    expect(computeYearBounds(f, "inflation", COUNTRIES, FX)).toBeNull();
+    expect(computeYearBounds(f, COUNTRIES, FX)).toBeNull();
   });
 });
 
 describe("computeRangeHint", () => {
-  it("FX mode shows year-grain coverage with annual fallback note", () => {
+  it("dates match, currencies differ → shows year-grain FX coverage with annual fallback note", () => {
     const f = form({ fromCurrency: "USD", toCurrency: "EUR", from: "2020", to: "2020" });
-    expect(computeRangeHint(f, "fx", COUNTRIES, FX))
+    expect(computeRangeHint(f, COUNTRIES, FX))
       .toBe("Daily FX: 1999–2026 · annual fallback for earlier years");
   });
 
-  it("identity mode shows nothing — same currency, same date, no conversion", () => {
+  it("same currency + same date → empty (no conversion to hint at)", () => {
     const f = form({ fromCurrency: "USD", toCurrency: "USD", from: "2020", to: "2020" });
-    expect(computeRangeHint(f, "identity", COUNTRIES, FX)).toBe("");
+    expect(computeRangeHint(f, COUNTRIES, FX)).toBe("");
   });
 
-  it("inflation mode shows destination CPI window", () => {
+  it("same currency, dates differ → destination CPI window", () => {
     const f = form({ fromCurrency: "USD", toCurrency: "USD" });
-    expect(computeRangeHint(f, "inflation", COUNTRIES, FX))
+    expect(computeRangeHint(f, COUNTRIES, FX))
       .toBe("United States inflation data: 1990 – 2026");
   });
 
-  it("compare mode shows destination CPI window (destination is the inflation leg)", () => {
+  it("both axes differ → destination CPI window (destination is the inflation leg)", () => {
     const f = form({ fromCurrency: "USD", toCurrency: "VND" });
-    expect(computeRangeHint(f, "compare", COUNTRIES, FX))
+    expect(computeRangeHint(f, COUNTRIES, FX))
       .toBe("Vietnam inflation data: 1995 – 2024");
   });
 });
