@@ -13,8 +13,8 @@ const FX = { daily_min: "1999-01-04", daily_max: "2026-05-10" };
 
 const form = (overrides = {}) => ({
   amount: 100,
-  fromCurrency: "USD", fromYear: "2000", fromDate: "",
-  toCurrency: "USD",   toYear: "2020",   toDate: "",
+  fromCurrency: "USD", from: "2000",
+  toCurrency: "USD",   to: "2020",
   ...overrides,
 });
 
@@ -45,7 +45,7 @@ describe("computeYearBounds", () => {
   });
 
   it("returns null in identity mode (no narrowing)", () => {
-    const f = form({ fromCurrency: "USD", toCurrency: "USD", fromYear: "2020", toYear: "2020" });
+    const f = form({ fromCurrency: "USD", toCurrency: "USD", from: "2020", to: "2020" });
     expect(computeYearBounds(f, "identity", COUNTRIES, FX)).toBeNull();
   });
 
@@ -56,32 +56,26 @@ describe("computeYearBounds", () => {
 });
 
 describe("computeRangeHint", () => {
-  it("FX mode mentions annual fallback at year grain by default", () => {
-    const f = form({ fromCurrency: "USD", toCurrency: "EUR", fromYear: "2020", toYear: "2020" });
-    expect(computeRangeHint(f, "fx", COUNTRIES, FX, false))
+  it("FX mode shows year-grain coverage with annual fallback note", () => {
+    const f = form({ fromCurrency: "USD", toCurrency: "EUR", from: "2020", to: "2020" });
+    expect(computeRangeHint(f, "fx", COUNTRIES, FX))
       .toBe("Daily FX: 1999–2026 · annual fallback for earlier years");
   });
 
-  it("FX mode keeps full YYYY-MM-DD precision when the precise-dates disclosure is open", () => {
-    const f = form({ fromCurrency: "USD", toCurrency: "EUR", fromYear: "2020", toYear: "2020" });
-    expect(computeRangeHint(f, "fx", COUNTRIES, FX, true))
-      .toBe("Daily FX: 1999-01-04 – 2026-05-10 · annual fallback for earlier years");
-  });
-
   it("identity mode shows nothing — same currency, same date, no conversion", () => {
-    const f = form({ fromCurrency: "USD", toCurrency: "USD", fromYear: "2020", toYear: "2020" });
-    expect(computeRangeHint(f, "identity", COUNTRIES, FX, false)).toBe("");
+    const f = form({ fromCurrency: "USD", toCurrency: "USD", from: "2020", to: "2020" });
+    expect(computeRangeHint(f, "identity", COUNTRIES, FX)).toBe("");
   });
 
   it("inflation mode shows destination CPI window", () => {
     const f = form({ fromCurrency: "USD", toCurrency: "USD" });
-    expect(computeRangeHint(f, "inflation", COUNTRIES, FX, false))
+    expect(computeRangeHint(f, "inflation", COUNTRIES, FX))
       .toBe("United States inflation data: 1990 – 2026");
   });
 
   it("compare mode shows destination CPI window (destination is the inflation leg)", () => {
     const f = form({ fromCurrency: "USD", toCurrency: "VND" });
-    expect(computeRangeHint(f, "compare", COUNTRIES, FX, false))
+    expect(computeRangeHint(f, "compare", COUNTRIES, FX))
       .toBe("Vietnam inflation data: 1995 – 2024");
   });
 });

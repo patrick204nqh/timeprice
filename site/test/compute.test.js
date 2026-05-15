@@ -1,21 +1,59 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { deriveMode, humaniseError, validateForm } from "../src/compute.js";
+import { deriveMode, humaniseError, validateForm, readForm, todayIso, DATE_SHAPE } from "../src/compute.js";
 import { state } from "../src/state.js";
 
 const form = (overrides = {}) => ({
   amount: 100,
   fromCurrency: "USD",
-  fromYear: "1990",
-  fromDate: "",
+  from: "1990",
   toCurrency: "USD",
-  toYear: "2024",
-  toDate: "",
+  to: "2024",
   ...overrides,
+});
+
+function seedDom({ from = "", to = "" } = {}) {
+  document.body.innerHTML = `
+    <input id="calc-amount" value="100">
+    <select id="from-currency"><option value="USD" selected>USD</option></select>
+    <select id="to-currency"><option value="USD" selected>USD</option></select>
+    <input id="from-when" value="${from}">
+    <input id="to-when" value="${to}">
+  `;
+}
+
+describe("DATE_SHAPE", () => {
+  it.each(["2008", "2008-03", "2008-03-14"])("accepts %s", (s) => {
+    expect(DATE_SHAPE.test(s)).toBe(true);
+  });
+  it.each(["", "08", "2008-3", "2008/03", "2008-03-1", "garbage"])("rejects %s", (s) => {
+    expect(DATE_SHAPE.test(s)).toBe(false);
+  });
+});
+
+describe("readForm", () => {
+  it("returns {from, to} as trimmed strings", () => {
+    seedDom({ from: "  2008-03  ", to: "2024" });
+    readForm();
+    expect(state.form.from).toBe("2008-03");
+    expect(state.form.to).toBe("2024");
+  });
+
+  it("leaves `to` empty when the input is empty (compute() coerces it to today)", () => {
+    seedDom({ from: "1990", to: "" });
+    readForm();
+    expect(state.form.to).toBe("");
+  });
+});
+
+describe("todayIso", () => {
+  it("returns YYYY-MM-DD", () => {
+    expect(todayIso()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
 });
 
 describe("deriveMode", () => {
   it("identity when currency and date match", () => {
-    expect(deriveMode(form({ fromYear: "2000", toYear: "2000" }))).toBe("identity");
+    expect(deriveMode(form({ from: "2000", to: "2000" }))).toBe("identity");
   });
 
   it("inflation when currency matches but date differs", () => {
@@ -23,16 +61,22 @@ describe("deriveMode", () => {
   });
 
   it("fx when date matches but currency differs", () => {
-    expect(deriveMode(form({ fromYear: "2020", toYear: "2020", toCurrency: "EUR" }))).toBe("fx");
+    expect(deriveMode(form({ from: "2020", to: "2020", toCurrency: "EUR" }))).toBe("fx");
   });
 
   it("compare when both currency and date differ", () => {
     expect(deriveMode(form({ toCurrency: "EUR" }))).toBe("compare");
   });
 
-  it("uses fromDate/toDate over year when present", () => {
-    const f = form({ fromDate: "2020-06-15", toDate: "2020-06-15", toCurrency: "EUR" });
+  it("accepts full ISO dates as well as years", () => {
+    const f = form({ from: "2020-06-15", to: "2020-06-15", toCurrency: "EUR" });
     expect(deriveMode(f)).toBe("fx");
+  });
+
+  it("empty `to` defaults to today for mode comparison", () => {
+    const f = form({ from: "1990", to: "" });
+    // Same currency, different date (1990 vs today) → inflation
+    expect(deriveMode(f)).toBe("inflation");
   });
 });
 
@@ -85,27 +129,27 @@ describe("validateForm", () => {
   });
 
   it("flags too-early year against destination CPI start", () => {
-    const msg = validateForm(form({ fromYear: "1850" }), "inflation");
+    const msg = validateForm(form({ from: "1850" }), "inflation");
     expect(msg).toMatch(/United States.*1990/);
   });
 
   it("flags too-late year against destination CPI end", () => {
-    const msg = validateForm(form({ toYear: "2099" }), "inflation");
+    const msg = validateForm(form({ to: "2099" }), "inflation");
     expect(msg).toMatch(/United States.*2026/);
   });
 
   it("checks FX bounds in fx mode", () => {
-    const f = form({ fromYear: "1980", toYear: "1980", toCurrency: "EUR" });
+    const f = form({ from: "1980", to: "1980", toCurrency: "EUR" });
     expect(validateForm(f, "fx")).toMatch(/FX rates start 1999/);
   });
 
   it("checks FX upper bound in fx mode", () => {
-    const f = form({ fromYear: "2099", toYear: "2099", toCurrency: "EUR" });
+    const f = form({ from: "2099", to: "2099", toCurrency: "EUR" });
     expect(validateForm(f, "fx")).toMatch(/FX rates end 2026/);
   });
 
   it("returns null in compare mode when both sides are valid", () => {
-    const f = form({ fromYear: "2000", toYear: "2020", toCurrency: "EUR" });
+    const f = form({ from: "2000", to: "2020", toCurrency: "EUR" });
     expect(validateForm(f, "compare")).toBeNull();
   });
 

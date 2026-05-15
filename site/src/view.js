@@ -26,8 +26,9 @@ function humanDate(iso) {
   return `${MONTH_NAMES[Number(m) - 1]} ${Number(d)}, ${y}`;
 }
 
-function fromGemDate(f) { return f.fromDate || f.fromYear; }
-function toGemDate(f)   { return f.toDate   || f.toYear;   }
+function todayIso() { return new Date().toISOString().slice(0, 10); }
+function fromGemDate(f) { return f.from; }
+function toGemDate(f)   { return f.to || todayIso(); }
 
 function modeLabel(mode, f) {
   switch (mode) {
@@ -38,15 +39,43 @@ function modeLabel(mode, f) {
   }
 }
 
+// Map gem granularity tags to terse copy for the meta line. Falls through
+// to the raw tag when an unknown one slips in — better than a blank line.
+const GRANULARITY_COPY = {
+  daily: "daily",
+  monthly: "monthly",
+  quarterly: "quarterly",
+  annual: "annual",
+  annual_from_monthly_avg: "annual (monthly avg)",
+  annual_from_quarterly_avg: "annual (quarterly avg)",
+  annual_from_partial_months: "annual (partial-year)",
+  annual_from_partial_quarters: "annual (partial-year)",
+  quarterly_from_annual_fallback: "quarter (annual fallback)",
+  quarterly_from_monthly_avg: "quarter (monthly avg)",
+  monthly_from_quarterly_fallback: "month (quarter unavail.)",
+  monthly_from_annual_fallback: "month (annual fallback)",
+};
+function granularityCopy(tag) {
+  if (!tag) return "";
+  const k = String(tag).replace(/^:/, "");
+  return GRANULARITY_COPY[k] || k;
+}
+
 function metaLine(mode, r, f) {
   const destName = countryNameFor(f.toCurrency);
+  const g = granularityCopy(r.granularity);
   switch (mode) {
-    case "inflation":
-      return `${destName} CPI · ${r.granularity || ""}`.replace(/ · $/, "");
-    case "fx":
-      return `Rate on ${humanDate(f.fromDate || `${f.fromYear}-06-15`)}`;
-    case "compare":
-      return `FX on ${humanDate(f.fromDate || `${f.fromYear}-06-15`)} · ${destName} CPI to ${humanDate(toGemDate(f))}`;
+    case "inflation": {
+      return g ? `${destName} · ${g} CPI` : `${destName} CPI`;
+    }
+    case "fx": {
+      const tail = g ? ` · ${g} FX` : "";
+      return `Rate on ${humanDate(fromGemDate(f))}${tail}`;
+    }
+    case "compare": {
+      const tail = g ? ` · ${g}` : "";
+      return `FX on ${humanDate(fromGemDate(f))} · ${destName} CPI to ${humanDate(toGemDate(f))}${tail}`;
+    }
     default:
       return "No conversion needed";
   }
@@ -104,7 +133,9 @@ export function renderHeroFrom() {
   const fromDateStr = humanDate(fromGemDate(f));
   const showFromCode = f.fromCurrency !== f.toCurrency;
   const fromCode = showFromCode ? ` ${f.fromCurrency}` : "";
-  setText("#hero-from", `${sym}${fmtNumber(f.amount, decimalsFor(f.fromCurrency))}${fromCode} in ${fromDateStr}`);
+  // Empty `from` → no "in YYYY" tail; the hero reads as "$100 is worth …".
+  const tail = fromDateStr ? ` in ${fromDateStr}` : "";
+  setText("#hero-from", `${sym}${fmtNumber(f.amount, decimalsFor(f.fromCurrency))}${fromCode}${tail}`);
 }
 
 export function renderHero(out) {
@@ -190,7 +221,7 @@ export function renderSnippet() {
   amount: ${f.amount},
   from: "${f.fromCurrency}",
   to:   "${f.toCurrency}",
-  date: "${f.fromDate || `${f.fromYear}-06-15`}",
+  date: "${fromDate}",
 ).amount`;
   } else {
     body = `Timeprice.compare(

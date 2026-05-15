@@ -3,7 +3,7 @@ import { $, setText } from "./dom.js";
 import { state } from "./state.js";
 import { compute } from "./compute.js";
 import { renderError } from "./view.js";
-import { refreshRangeHint, refreshDateBounds, refreshYearBounds } from "./bounds.js";
+import { refreshRangeHint } from "./bounds.js";
 import { loadMetadata, applyMetadata } from "./metadata.js";
 import { loadCachedModule, saveCachedModule } from "./wasm_cache.js";
 
@@ -53,8 +53,6 @@ export async function bootRuby() {
     state.vm = vm;
     if (loadMetadata()) applyMetadata();
     refreshRangeHint();
-    refreshDateBounds();
-    refreshYearBounds();
     setVmState("ready", "Live · running in your browser", "bg-emerald-500");
     compute();
   } catch (e) {

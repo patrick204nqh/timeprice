@@ -24,11 +24,9 @@ function seedDom() {
 const baseForm = () => ({
   amount: 100,
   fromCurrency: "USD",
-  fromYear: "1990",
-  fromDate: "",
+  from: "1990",
   toCurrency: "USD",
-  toYear: "2024",
-  toDate: "",
+  to: "2024",
 });
 
 const sampleOut = {
@@ -81,6 +79,13 @@ describe("renderResult", () => {
   it("flips state.lastResultValid to true", () => {
     renderResult(sampleOut, "inflation");
     expect(state.lastResultValid).toBe(true);
+  });
+
+  it("surfaces granularity in the meta line for inflation mode", () => {
+    renderResult({ ...sampleOut, granularity: "annual" }, "inflation");
+    const meta = document.querySelector("#calc-meta").textContent;
+    expect(meta).toContain("annual");
+    expect(meta).toContain("CPI");
   });
 
   it("restores emerald accent + tabular on #hero-to after a prior error", () => {

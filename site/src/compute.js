@@ -1,33 +1,39 @@
 import { $ } from "./dom.js";
 import { state } from "./state.js";
 import { widestCpi, countryNameFor } from "./lookups.js";
-import { renderResult, renderError } from "./view.js";
+import { renderResult, renderError, renderEmpty } from "./view.js";
 
 // Form reading, mode derivation, validation, and the VM call. Rendering is
 // in view.js; input min/max sync is in bounds.js. This module owns the
 // orchestration path: form → validate → VM eval → render.
 
-// Read the calculator form. Day pickers (when the "Use specific dates"
-// disclosure is open and filled) override the year inputs — they're a
-// power-user knob for FX where Jun 15 vs Jun 16 matters.
+// Smart-date inputs accept YYYY, YYYY-MM, or YYYY-MM-DD. The gem accepts
+// the same three precisions verbatim, so we trim whitespace and pass them
+// through unchanged.
+export const DATE_SHAPE = /^\d{4}(-\d{2}(-\d{2})?)?$/;
+
+export function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// Read the calculator form. Both date fields are free-form text; the gem
+// infers granularity from the input precision. An empty `to` defaults to
+// today; an empty `from` is kept empty so compute() can short-circuit.
 export function readForm() {
-  const useDates = !$("#precise-wrap")?.hidden;
-  const fromYear = $("#from-year").value;
-  const toYear = $("#to-year").value;
-  const fromDate = useDates ? $("#from-date").value : "";
-  const toDate = useDates ? $("#to-date").value : "";
+  const fromRaw = ($("#from-when")?.value || "").trim();
+  const toRaw = ($("#to-when")?.value || "").trim();
   state.form = {
     amount: parseFloat($("#calc-amount").value) || 0,
     fromCurrency: $("#from-currency").value,
-    fromYear, fromDate,
+    from: fromRaw,
     toCurrency: $("#to-currency").value,
-    toYear, toDate,
+    to: toRaw,
   };
 }
 
-// What the gem actually sees — a year string, a YYYY-MM, or a full date.
-function fromGemDate(f) { return f.fromDate || f.fromYear; }
-function toGemDate(f)   { return f.toDate   || f.toYear;   }
+// What the gem actually sees. `to` defaults to today when blank.
+function fromGemDate(f) { return f.from; }
+function toGemDate(f)   { return f.to || todayIso(); }
 
 // Mode is self-derived. Same currency, different date → inflation.
 // Same date, different currency → FX. Different on both axes → compare.
@@ -71,8 +77,8 @@ export function humaniseError(raw) {
 // round-tripping through the VM — and lets us reference the destination
 // country by name when explaining the bound.
 export function validateForm(f, mode) {
-  const fromYear = Number((f.fromDate || f.fromYear).slice(0, 4));
-  const toYear   = Number((f.toDate   || f.toYear).slice(0, 4));
+  const fromYear = Number(fromGemDate(f).slice(0, 4));
+  const toYear   = Number(toGemDate(f).slice(0, 4));
   if (!fromYear || !toYear) return null;
 
   if (mode === "inflation" || mode === "compare") {
@@ -107,6 +113,25 @@ export function compute() {
   if (!state.vm) return;
   readForm();
   const f = state.form;
+
+  // Empty `from` → user hasn't picked a historical side yet. Don't crash,
+  // don't call the gem; show a placeholder result.
+  if (!f.from) {
+    renderEmpty("Pick a starting year on the left.");
+    return;
+  }
+
+  // Format check before mode derivation — `to` is already coerced to today
+  // by toGemDate() when blank, so only validate non-empty inputs.
+  if (!DATE_SHAPE.test(f.from)) {
+    renderError("Use YYYY, YYYY-MM, or YYYY-MM-DD (e.g. 2008, 2008-03, 2008-03-14).");
+    return;
+  }
+  if (f.to && !DATE_SHAPE.test(f.to)) {
+    renderError("Use YYYY, YYYY-MM, or YYYY-MM-DD (e.g. 2008, 2008-03, 2008-03-14).");
+    return;
+  }
+
   const mode = deriveMode(f);
 
   if (mode === "identity") {
