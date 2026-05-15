@@ -57,13 +57,13 @@ function granularityCopy(tag) {
 // differ), surface it. Both can be true; both can be false (identity).
 function metaLine(r, f) {
   const g = granularityCopy(r.granularity);
-  const fxActive = (r.from_currency || f.fromCurrency) !== (r.to_currency || f.toCurrency);
-  const cpiActive = (r.from_date || fromGemDate(f)) !== (r.to_date || toGemDate(f));
-  const destName = countryNameFor(r.to_currency || f.toCurrency);
+  const fxActive = r.from_currency !== r.to_currency;
+  const cpiActive = r.from_date !== r.to_date;
+  const destName = countryNameFor(r.to_currency);
 
   const parts = [];
-  if (fxActive) parts.push(`FX on ${humanDate(r.from_date || fromGemDate(f))}`);
-  if (cpiActive) parts.push(`${destName} CPI to ${humanDate(r.to_date || toGemDate(f))}`);
+  if (fxActive) parts.push(`FX on ${humanDate(r.from_date)}`);
+  if (cpiActive) parts.push(`${destName} CPI to ${humanDate(r.to_date)}`);
   if (g && (fxActive || cpiActive)) parts.push(g);
   if (parts.length === 0) return "No conversion needed";
   return parts.join(" · ");
@@ -182,6 +182,7 @@ export function renderEmpty(message = "Warming up Ruby VM…") {
   renderHero(null);
 }
 
+// Snippet picks the most idiomatic gem entry-point for the user to copy. Compute itself always calls Timeprice.compare.
 export function renderSnippet() {
   // If the current form would raise in Ruby, swap the snippet for a
   // comment. We keep the <details> affordance visible — disappearing UI is

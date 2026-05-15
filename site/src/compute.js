@@ -139,9 +139,10 @@ export function compute() {
   }
 
   // Identity short-circuit: same currency, same date — no conversion to
-  // perform, no gem call worth making. This is an optimisation, not a
-  // labelled mode; view.js renders it through the same path as any other
-  // result.
+  // perform, no gem call worth making. Two reasons: it skips a pointless
+  // gem call, and it bypasses validateForm, which would otherwise reject
+  // out-of-CPI-window years for trivially-valid inputs like 1850 USD → 1850 USD.
+  // Not a labelled mode; view.js renders it through the same path as any other result.
   if (f.fromCurrency === f.toCurrency && fromGemDate(f) === toGemDate(f)) {
     renderResult({
       amount: f.amount,
