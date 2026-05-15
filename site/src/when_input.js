@@ -17,14 +17,6 @@ function clampInt(v, min, max) {
   return v;
 }
 
-// Pad a numeric string to 2 digits; "" passes through. Used on blur so a
-// user-typed "3" becomes "03" without us guessing at every keystroke.
-function pad2(s) {
-  const n = parseInt(s, 10);
-  if (!Number.isFinite(n)) return "";
-  return String(n).padStart(2, "0");
-}
-
 // Derive the grain label from which fields are filled. Day requires Month;
 // Month requires Year. The widget enforces that, but we re-derive defensively
 // so the badge stays in sync after any external set.
@@ -88,7 +80,6 @@ export function bindWhenGroup(side) {
     if (hidden.value !== next) {
       hidden.value = next;
       hidden.dispatchEvent(new Event("input", { bubbles: true }));
-      hidden.dispatchEvent(new Event("change", { bubbles: true }));
     }
   }
 
@@ -204,7 +195,7 @@ export function bindWhenGroup(side) {
       syncAll();
     });
   }
-  bindArrows(yEl, { min: 1, max: 9999, pad: false });
+  bindArrows(yEl, { min: 1900, max: 9999, pad: false });
   bindArrows(mEl, { min: 1, max: 12, pad: true });
   bindArrows(dEl, { min: 1, max: 31, pad: true });
 
