@@ -32,6 +32,14 @@ gem "timeprice", "~> 0.1"
 
 Requires Ruby >= 3.2.
 
+The CLI also needs the `thor` gem, kept out of timeprice's runtime
+dependencies so library users (`require "timeprice"`) and the ruby.wasm
+site bundle don't carry it:
+
+```bash
+gem install thor
+```
+
 ## CLI examples
 
 ```bash
