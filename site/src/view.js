@@ -73,13 +73,23 @@ function setResultState(state_) {
 // the same currency — "$" alone reads as USD/AUD/CAD ambiguously, "$100 USD"
 // doesn't. When source and dest dates match (FX mode), drop the trailing
 // "in YYYY" on the right so the sentence doesn't double up.
-export function renderHero(out) {
+// Updates only the "from" half of the hero. Used by error/empty paths so
+// transient invalid input (a half-typed year, a paused keystroke) doesn't
+// flash hero-to to "…" and back, which crosses the wrap threshold for
+// large numbers and reads as a layout blink.
+export function renderHeroFrom() {
   const f = state.form;
   const sym = symbolFor(f.fromCurrency);
   const fromDateStr = humanDate(fromGemDate(f));
   const showFromCode = f.fromCurrency !== f.toCurrency;
   const fromCode = showFromCode ? ` ${f.fromCurrency}` : "";
   setText("#hero-from", `${sym}${fmtNumber(f.amount, decimalsFor(f.fromCurrency))}${fromCode} in ${fromDateStr}`);
+}
+
+export function renderHero(out) {
+  renderHeroFrom();
+  const f = state.form;
+  const showFromCode = f.fromCurrency !== f.toCurrency;
   if (out) {
     const toSym = symbolFor(out.to_currency || f.toCurrency);
     const toCode = showFromCode ? ` ${out.to_currency}` : "";
@@ -112,7 +122,9 @@ export function renderError(message) {
   setText("#calc-amount-out", "—");
   setText("#calc-detail", message);
   setText("#calc-meta", "");
-  renderHero(null);
+  // Update only the "from" half — leave hero-to with the previous valid
+  // result so transient errors during typing don't blink the headline.
+  renderHeroFrom();
 }
 
 export function renderEmpty(message = "Warming up Ruby VM…") {

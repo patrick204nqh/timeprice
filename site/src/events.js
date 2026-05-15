@@ -1,7 +1,7 @@
 import { $ } from "./dom.js";
 import { state } from "./state.js";
 import { readForm, compute } from "./compute.js";
-import { renderSnippet, renderHero, renderEmpty } from "./view.js";
+import { renderSnippet, renderEmpty } from "./view.js";
 import { refreshRangeHint, refreshDateBounds, refreshYearBounds } from "./bounds.js";
 import { writeUrl } from "./url.js";
 
@@ -30,11 +30,13 @@ const INPUT_SELECTORS = [
 function onInput() {
   readForm();
   renderSnippet();
-  // Clear the static result markup as soon as the user edits anything — the
-  // pre-rendered "$242.09 USD" only matches the page defaults, and watching
-  // it contradict a fresh "From" choice is the worst kind of stale.
+  // While the VM is still warming, replace the static defaults so the
+  // pre-rendered "$242.09 USD" can't contradict a fresh "From" choice.
+  // Once the VM is ready, leave the previous answer in place — scheduleCalc
+  // repaints within 120ms, and clearing in the gap makes the hero swing
+  // wide -> "..." -> wide on every keystroke, which crosses the wrap
+  // threshold for large numbers and reads as a layout blink.
   if (!state.vm) renderEmpty("Warming up Ruby VM…");
-  else renderHero(null);
   refreshRangeHint();
   refreshDateBounds();
   refreshYearBounds();
