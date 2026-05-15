@@ -47,6 +47,7 @@ module Tools
 
       def initialize
         @results = {}
+        @manifest_drift = []
       end
 
       def run
@@ -54,8 +55,10 @@ module Tools
         run_registered_providers
         run_module_cpis
         finalise
+        @manifest_drift = manifest_drift_set
+        annotate_manifest_drift(@manifest_drift)
         summary
-        critical_ok? ? 0 : 1
+        critical_ok? && @manifest_drift.empty? ? 0 : 1
       end
 
       private
@@ -130,7 +133,51 @@ module Tools
         puts ""
         puts "=== Summary ==="
         @results.each { |name, val| puts(val == :ok ? "#{name}: OK" : val) }
+        if @manifest_drift.any?
+          puts ""
+          puts "Manifest drift: registered providers whose country is missing from data/manifest.json:"
+          @manifest_drift.each { |entry| puts "  - #{entry[:label]} (country=#{entry[:country]})" }
+        end
         puts "=== End Summary ==="
+      end
+
+      # Set of registered Provider country codes that did *not* land in
+      # the freshly written manifest. Each entry is a hash with the
+      # provider's display label, country code, and source file (for the
+      # GitHub annotation).
+      def manifest_drift_set
+        manifest_path = File.join(Tools::DataPipeline::DATA_ROOT, "manifest.json")
+        return [] unless File.exist?(manifest_path)
+
+        manifest = JSON.parse(File.read(manifest_path))
+        present = Array(manifest["countries"]).map { |c| c["code"] }.compact
+        Provider.registry.filter_map do |klass|
+          code = klass.country_code
+          next if code.nil? || present.include?(code)
+
+          {
+            label: label_for(klass),
+            country: code,
+            file: klass.source_file&.sub("#{REPO_ROOT}/", ""),
+          }
+        end
+      end
+
+      # Emit a ::error annotation per missing country so the PR check
+      # surface flags drift more loudly than the per-fetcher ::warning.
+      def annotate_manifest_drift(drift)
+        return if drift.empty?
+
+        drift.each do |entry|
+          title = "Manifest drift: #{entry[:label]}"
+          body  = "Registered provider for country #{entry[:country]} produced no entry in data/manifest.json. " \
+                  "Re-run the fetcher locally, confirm data/cpi/#{entry[:country].downcase}.json exists, " \
+                  "and check that the country code is in tools/data_pipeline/_common.rb COUNTRY_TO_CURRENCY."
+          safe  = body.gsub("%", "%25").gsub("\r", "%0D").gsub("\n", "%0A")
+          line  = entry[:file] ? "::error file=#{entry[:file]},title=#{title}::#{safe}" : "::error title=#{title}::#{safe}"
+          Tools::DataPipeline.log "#{entry[:label]}: MANIFEST DRIFT — country #{entry[:country]} missing from manifest"
+          warn line
+        end
       end
 
       # FX-Frankfurter and every Provider flagged `critical: true` must
