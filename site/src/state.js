@@ -6,12 +6,14 @@ export const state = {
   // compute.js. Empty until metadata loads — callers must tolerate misses.
   countryByCode: new Map(),
   countryByCurrency: new Map(),
-  // Single form covering the merged calculator. fromDate/toDate are only
-  // populated when the "Use specific dates" disclosure is open and filled.
+  // Single form covering the merged calculator. `from` / `to` are free-form
+  // date strings — YYYY, YYYY-MM, or YYYY-MM-DD — passed straight to the
+  // gem. Empty `to` is coerced to today by compute; empty `from` short-
+  // circuits to an empty render.
   form: {
     amount: 100,
-    fromCurrency: "USD", fromYear: "1990", fromDate: "",
-    toCurrency: "USD",   toYear: "2024",   toDate: "",
+    fromCurrency: "USD", from: "",
+    toCurrency: "USD",   to: "",
   },
   // Tracks whether the last render reflects a successful Ruby computation.
   // Drives renderSnippet() — copying a `Timeprice.compare(...)` call that

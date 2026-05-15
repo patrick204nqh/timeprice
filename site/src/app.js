@@ -1,39 +1,35 @@
 import { state } from "./state.js";
-import { readForm } from "./compute.js";
+import { readForm, todayIso } from "./compute.js";
 import { renderSnippet, renderHero, renderEmpty } from "./view.js";
-import { refreshRangeHint, refreshYearBounds } from "./bounds.js";
+import { refreshRangeHint } from "./bounds.js";
 import { readUrl } from "./url.js";
 import { bindCopyButtons, bindCalcForm, bindExampleChips } from "./events.js";
 import { bootRuby } from "./vm.js";
 import { initTheme } from "./theme.js";
-
-// Default form state mirrors index.html's pre-rendered result. If the URL
-// hash overrides the defaults, clear the static markup so the user doesn't
-// see a stale answer until the VM finishes warming up.
-const DEFAULTS = {
-  amount: 100,
-  fromCurrency: "USD", fromYear: "1990", fromDate: "",
-  toCurrency: "USD",   toYear: "2024",   toDate: "",
-};
-
-function isDefaultForm(f) {
-  return Object.keys(DEFAULTS).every((k) => f[k] === DEFAULTS[k]);
-}
+import { $ } from "./dom.js";
 
 initTheme();
+
+// Default seeding happens before the URL hash is read so a hash override
+// can overwrite either side. `to` defaults to today; `from` stays empty
+// until the user fills it in — landing on a form that's already half-
+// answered makes the historical-side prompt obvious.
+// Note: readUrl()/applyPoint() deliberately skips writes for empty dates,
+// so a URL like `#to=USD` won't clobber this today-seed. Keep that
+// behaviour in sync if you change either side.
+const toEl = $("#to-when");
+if (toEl && !toEl.value) toEl.value = todayIso();
+
 readUrl();
 readForm();
-// Default form matches the pre-rendered HTML — leave it alone so the user
-// sees a real answer on first paint instead of placeholder dots. Any URL
-// override clears both the result block AND the hero so they don't show
-// the stale defaults next to a fresh "From" value.
-if (!isDefaultForm(state.form)) {
-  renderEmpty("Warming up Ruby VM…");
-  renderHero(null);
-}
+
+// First paint: empty `from` is the expected default state, so show a
+// gentle prompt rather than a stale pre-rendered answer.
+renderEmpty("Pick a starting date on the left.");
+renderHero(null);
+
 renderSnippet();
 refreshRangeHint();
-refreshYearBounds();
 bindCopyButtons();
 bindCalcForm();
 bindExampleChips();

@@ -75,9 +75,9 @@
 
   <section>
     <h1 class="text-3xl sm:text-5xl font-bold tracking-tight leading-tight">
-      <span class="tabular" id="hero-from">$100 in 1990</span>
+      <span class="tabular" id="hero-from">$100</span>
       <span class="text-stone-500"> is worth </span>
-      <span class="tabular text-emerald-700 dark:text-emerald-400" id="hero-to">$242.09 in 2024</span><span class="text-stone-500">.</span>
+      <span class="tabular text-emerald-700 dark:text-emerald-400" id="hero-to">…</span><span class="text-stone-500">.</span>
     </h1>
     <p class="mt-3 text-stone-600 dark:text-stone-400 max-w-2xl">
       Drop in any amount, currency, and year. The whole thing runs in your browser — no API, no network.
@@ -116,8 +116,9 @@
             <option value="USD" selected>USD — US dollar</option>
             <option value="VND">VND — Vietnamese dong</option>
           </select>
-          <div class="text-xs text-stone-500 sm:justify-self-end">in</div>
-          <input id="from-year" type="number" inputmode="numeric" value="1990" min="1990" max="2024" step="1"
+          <div class="text-xs text-stone-500 sm:justify-self-end">When</div>
+          <input id="from-when" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
+                 placeholder="e.g. 2008, 2008-03, or 2008-03-14"
                  class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
 
           <div class="text-xs font-medium text-stone-600 dark:text-stone-400 sm:justify-self-end">To</div>
@@ -133,29 +134,10 @@
             <option value="USD" selected>USD — US dollar</option>
             <option value="VND">VND — Vietnamese dong</option>
           </select>
-          <div class="text-xs text-stone-500 sm:justify-self-end">in</div>
-          <input id="to-year" type="number" inputmode="numeric" value="2024" min="1990" max="2024" step="1"
+          <div class="text-xs text-stone-500 sm:justify-self-end">When</div>
+          <input id="to-when" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
+                 placeholder="empty = today"
                  class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
-        </div>
-
-        <div>
-          <button id="precise-toggle" type="button"
-                  class="text-xs text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 underline underline-offset-4 decoration-dotted">
-            <span id="precise-toggle-icon" class="inline-block w-3 text-center">▸</span>
-            <span id="precise-toggle-label">Use specific dates</span>
-          </button>
-          <div id="precise-wrap" hidden class="mt-2 grid grid-cols-2 gap-3">
-            <div>
-              <label for="from-date" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">From date</label>
-              <input id="from-date" type="date" min="1999-01-04" max="2026-05-12"
-                     class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
-            </div>
-            <div>
-              <label for="to-date" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">To date</label>
-              <input id="to-date" type="date" min="1999-01-04" max="2026-05-12"
-                     class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
-            </div>
-          </div>
         </div>
 
         <p id="calc-range-hint" class="text-xs text-stone-500"></p>
@@ -168,8 +150,7 @@
                 class="absolute top-2 right-2 px-2 py-1 text-xs rounded-md border border-stone-300 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-800 bg-transparent">
           copy link
         </button>
-        <div class="text-xs text-stone-500 mb-1 pr-20" id="calc-mode">Inflation — United States</div>
-        <div class="tabular text-2xl font-semibold" id="calc-amount-out">242.09 USD</div>
+        <div class="tabular text-2xl font-semibold pr-20" id="calc-amount-out">242.09 USD</div>
         <div class="tabular text-sm text-stone-600 dark:text-stone-400" id="calc-detail">100.00 USD in 1990 → 242.09 USD in 2024</div>
         <div class="tabular mt-3 text-xs text-stone-500 mono" id="calc-meta">United States CPI</div>
       </div>

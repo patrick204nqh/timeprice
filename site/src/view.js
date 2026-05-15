@@ -2,6 +2,7 @@ import { $, setText, fmtNumber } from "./dom.js";
 import { state } from "./state.js";
 import { CURRENCY_SYMBOLS } from "./data.js";
 import { countryFor, countryNameFor } from "./lookups.js";
+import { fromGemDate, toGemDate } from "./compute.js";
 
 // All DOM-as-output for the calculator. Inputs come from `state.form` and
 // the optional `out` value returned by the VM. Nothing here reaches into
@@ -26,30 +27,46 @@ function humanDate(iso) {
   return `${MONTH_NAMES[Number(m) - 1]} ${Number(d)}, ${y}`;
 }
 
-function fromGemDate(f) { return f.fromDate || f.fromYear; }
-function toGemDate(f)   { return f.toDate   || f.toYear;   }
-
-function modeLabel(mode, f) {
-  switch (mode) {
-    case "inflation": return `Inflation — ${countryNameFor(f.toCurrency)}`;
-    case "fx":        return "Exchange rate";
-    case "compare":   return "Currency + inflation";
-    default:          return "Same currency, same year";
-  }
+// Map gem granularity tags to terse copy for the meta line. Falls through
+// to the raw tag when an unknown one slips in — better than a blank line.
+const GRANULARITY_COPY = {
+  daily: "daily",
+  monthly: "monthly",
+  quarterly: "quarterly",
+  annual: "annual",
+  annual_from_monthly_avg: "annual (monthly avg)",
+  annual_from_quarterly_avg: "annual (quarterly avg)",
+  annual_from_partial_months: "annual (partial-year)",
+  annual_from_partial_quarters: "annual (partial-year)",
+  quarterly_from_annual_fallback: "quarter (annual fallback)",
+  quarterly_from_monthly_avg: "quarter (monthly avg)",
+  monthly_from_quarterly_fallback: "month (quarter unavail.)",
+  monthly_from_annual_fallback: "month (annual fallback)",
+};
+function granularityCopy(tag) {
+  if (!tag) return "";
+  // The gem returns granularity as a Ruby symbol, which JSON-serialises to
+  // a string with a leading colon (e.g. ":annual"). Strip it before lookup.
+  const k = String(tag).replace(/^:/, "");
+  return GRANULARITY_COPY[k] || k;
 }
 
-function metaLine(mode, r, f) {
-  const destName = countryNameFor(f.toCurrency);
-  switch (mode) {
-    case "inflation":
-      return `${destName} CPI · ${r.granularity || ""}`.replace(/ · $/, "");
-    case "fx":
-      return `Rate on ${humanDate(f.fromDate || `${f.fromYear}-06-15`)}`;
-    case "compare":
-      return `FX on ${humanDate(f.fromDate || `${f.fromYear}-06-15`)} · ${destName} CPI to ${humanDate(toGemDate(f))}`;
-    default:
-      return "No conversion needed";
-  }
+// Disclosure line under the headline. We read the *result payload*, not a
+// derived mode label: if the FX leg did real work (rate ≠ 1, or currencies
+// differ), surface it; if the CPI leg did real work (ratio ≠ 1, or dates
+// differ), surface it. Both can be true; both can be false (identity).
+function metaLine(r) {
+  const g = granularityCopy(r.granularity);
+  const fxActive = r.from_currency !== r.to_currency;
+  const cpiActive = r.from_date !== r.to_date;
+  const destName = countryNameFor(r.to_currency);
+
+  const parts = [];
+  if (fxActive) parts.push(`FX on ${humanDate(r.from_date)}`);
+  if (cpiActive) parts.push(`${destName} CPI to ${humanDate(r.to_date)}`);
+  if (g && (fxActive || cpiActive)) parts.push(g);
+  if (parts.length === 0) return "No conversion needed";
+  return parts.join(" · ");
 }
 
 // Result-block state tint. DESIGN.md forbids new semantic colours, so error
@@ -104,7 +121,9 @@ export function renderHeroFrom() {
   const fromDateStr = humanDate(fromGemDate(f));
   const showFromCode = f.fromCurrency !== f.toCurrency;
   const fromCode = showFromCode ? ` ${f.fromCurrency}` : "";
-  setText("#hero-from", `${sym}${fmtNumber(f.amount, decimalsFor(f.fromCurrency))}${fromCode} in ${fromDateStr}`);
+  // Empty `from` → no "in YYYY" tail; the hero reads as "$100 is worth …".
+  const tail = fromDateStr ? ` in ${fromDateStr}` : "";
+  setText("#hero-from", `${sym}${fmtNumber(f.amount, decimalsFor(f.fromCurrency))}${fromCode}${tail}`);
 }
 
 export function renderHero(out) {
@@ -123,18 +142,19 @@ export function renderHero(out) {
   }
 }
 
-export function renderResult(out, mode) {
-  const f = state.form;
+export function renderResult(out) {
   const dec = decimalsFor(out.to_currency);
   setResultState("ok");
   setHeroErrorState(false);
-  setText("#calc-mode", modeLabel(mode, f));
+  // Headline answers the question directly: "100 USD (2008) → 2,450,000 VND
+  // (today)". No mode badge — the meta line below discloses FX/CPI as
+  // applicable, derived from result fields.
   setText("#calc-amount-out", `${fmtNumber(out.amount, dec)} ${out.to_currency}`);
   setText(
     "#calc-detail",
     `${fmtNumber(out.original_amount, decimalsFor(out.from_currency))} ${out.from_currency} in ${humanDate(out.from_date)} → ${fmtNumber(out.amount, dec)} ${out.to_currency} in ${humanDate(out.to_date)}`,
   );
-  setText("#calc-meta", metaLine(mode, out, f));
+  setText("#calc-meta", metaLine(out));
   renderHero(out);
   state.lastResultValid = true;
 }
@@ -142,7 +162,6 @@ export function renderResult(out, mode) {
 export function renderError(message) {
   state.lastResultValid = false;
   setResultState("error");
-  setText("#calc-mode", "Error");
   setText("#calc-amount-out", "—");
   setText("#calc-detail", message);
   setText("#calc-meta", "");
@@ -156,13 +175,13 @@ export function renderError(message) {
 
 export function renderEmpty(message = "Warming up Ruby VM…") {
   setResultState("ok");
-  setText("#calc-mode", "");
   setText("#calc-amount-out", "—");
   setText("#calc-detail", message);
   setText("#calc-meta", "");
   renderHero(null);
 }
 
+// Snippet picks the most idiomatic gem entry-point for the user to copy. Compute itself always calls Timeprice.compare.
 export function renderSnippet() {
   // If the current form would raise in Ruby, swap the snippet for a
   // comment. We keep the <details> affordance visible — disappearing UI is
@@ -190,7 +209,7 @@ export function renderSnippet() {
   amount: ${f.amount},
   from: "${f.fromCurrency}",
   to:   "${f.toCurrency}",
-  date: "${f.fromDate || `${f.fromYear}-06-15`}",
+  date: "${fromDate}",
 ).amount`;
   } else {
     body = `Timeprice.compare(
