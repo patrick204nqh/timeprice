@@ -14,6 +14,9 @@ initTheme();
 // can overwrite either side. `to` defaults to today; `from` stays empty
 // until the user fills it in — landing on a form that's already half-
 // answered makes the historical-side prompt obvious.
+// Note: readUrl()/applyPoint() deliberately skips writes for empty dates,
+// so a URL like `#to=USD` won't clobber this today-seed. Keep that
+// behaviour in sync if you change either side.
 const toEl = $("#to-when");
 if (toEl && !toEl.value) toEl.value = todayIso();
 
@@ -22,7 +25,7 @@ readForm();
 
 // First paint: empty `from` is the expected default state, so show a
 // gentle prompt rather than a stale pre-rendered answer.
-renderEmpty("Pick a starting year on the left.");
+renderEmpty("Pick a starting date on the left.");
 renderHero(null);
 
 renderSnippet();

@@ -20,10 +20,10 @@ const INPUT_SELECTORS = [
 function onInput() {
   readForm();
   renderSnippet();
-  // While the VM is still warming, replace the static defaults so the
-  // pre-rendered hero can't contradict a fresh "From" choice. Once the VM
-  // is ready, leave the previous answer in place — scheduleCalc repaints
-  // within 120ms.
+  // While the VM is still warming, repaint the "warming up" placeholder so
+  // a fresh keystroke doesn't sit next to a now-stale empty-state message.
+  // Once the VM is ready, leave the previous answer in place — scheduleCalc
+  // repaints within 120ms.
   if (!state.vm) renderEmpty("Warming up Ruby VM…");
   refreshRangeHint();
   writeUrl();

@@ -2,6 +2,7 @@ import { $, setText, fmtNumber } from "./dom.js";
 import { state } from "./state.js";
 import { CURRENCY_SYMBOLS } from "./data.js";
 import { countryFor, countryNameFor } from "./lookups.js";
+import { fromGemDate, toGemDate } from "./compute.js";
 
 // All DOM-as-output for the calculator. Inputs come from `state.form` and
 // the optional `out` value returned by the VM. Nothing here reaches into
@@ -25,10 +26,6 @@ function humanDate(iso) {
   if (!d) return `${MONTH_NAMES[Number(m) - 1]} ${y}`;
   return `${MONTH_NAMES[Number(m) - 1]} ${Number(d)}, ${y}`;
 }
-
-function todayIso() { return new Date().toISOString().slice(0, 10); }
-function fromGemDate(f) { return f.from; }
-function toGemDate(f)   { return f.to || todayIso(); }
 
 function modeLabel(mode, f) {
   switch (mode) {
@@ -57,6 +54,8 @@ const GRANULARITY_COPY = {
 };
 function granularityCopy(tag) {
   if (!tag) return "";
+  // The gem returns granularity as a Ruby symbol, which JSON-serialises to
+  // a string with a leading colon (e.g. ":annual"). Strip it before lookup.
   const k = String(tag).replace(/^:/, "");
   return GRANULARITY_COPY[k] || k;
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { deriveMode, humaniseError, validateForm, readForm, todayIso, DATE_SHAPE } from "../src/compute.js";
+import { deriveMode, humaniseError, validateForm, readForm, todayIso, DATE_SHAPE, fromGemDate, toGemDate } from "../src/compute.js";
 import { state } from "../src/state.js";
 
 const form = (overrides = {}) => ({
@@ -48,6 +48,20 @@ describe("readForm", () => {
 describe("todayIso", () => {
   it("returns YYYY-MM-DD", () => {
     expect(todayIso()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+});
+
+describe("fromGemDate / toGemDate", () => {
+  it("fromGemDate returns f.from verbatim", () => {
+    expect(fromGemDate(form({ from: "2008-03" }))).toBe("2008-03");
+  });
+
+  it("toGemDate returns f.to verbatim when set", () => {
+    expect(toGemDate(form({ to: "2024" }))).toBe("2024");
+  });
+
+  it("toGemDate falls back to today when f.to is empty", () => {
+    expect(toGemDate(form({ to: "" }))).toBe(todayIso());
   });
 });
 

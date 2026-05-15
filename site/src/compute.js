@@ -11,10 +11,17 @@ import { renderResult, renderError, renderEmpty } from "./view.js";
 // the same three precisions verbatim, so we trim whitespace and pass them
 // through unchanged.
 export const DATE_SHAPE = /^\d{4}(-\d{2}(-\d{2})?)?$/;
+const DATE_FORMAT_HINT = "Use YYYY, YYYY-MM, or YYYY-MM-DD (e.g. 2008, 2008-03, 2008-03-14).";
 
 export function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
+
+// What the gem actually sees. `to` defaults to today when blank. These are
+// the single source of truth — view.js and app.js import them rather than
+// re-implementing the "empty `to` → today" rule.
+export function fromGemDate(f) { return f.from; }
+export function toGemDate(f)   { return f.to || todayIso(); }
 
 // Read the calculator form. Both date fields are free-form text; the gem
 // infers granularity from the input precision. An empty `to` defaults to
@@ -30,10 +37,6 @@ export function readForm() {
     to: toRaw,
   };
 }
-
-// What the gem actually sees. `to` defaults to today when blank.
-function fromGemDate(f) { return f.from; }
-function toGemDate(f)   { return f.to || todayIso(); }
 
 // Mode is self-derived. Same currency, different date → inflation.
 // Same date, different currency → FX. Different on both axes → compare.
@@ -117,18 +120,18 @@ export function compute() {
   // Empty `from` → user hasn't picked a historical side yet. Don't crash,
   // don't call the gem; show a placeholder result.
   if (!f.from) {
-    renderEmpty("Pick a starting year on the left.");
+    renderEmpty("Pick a starting date on the left.");
     return;
   }
 
   // Format check before mode derivation — `to` is already coerced to today
   // by toGemDate() when blank, so only validate non-empty inputs.
   if (!DATE_SHAPE.test(f.from)) {
-    renderError("Use YYYY, YYYY-MM, or YYYY-MM-DD (e.g. 2008, 2008-03, 2008-03-14).");
+    renderError(DATE_FORMAT_HINT);
     return;
   }
   if (f.to && !DATE_SHAPE.test(f.to)) {
-    renderError("Use YYYY, YYYY-MM, or YYYY-MM-DD (e.g. 2008, 2008-03, 2008-03-14).");
+    renderError(DATE_FORMAT_HINT);
     return;
   }
 
