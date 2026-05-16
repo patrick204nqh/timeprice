@@ -36,6 +36,13 @@ module Tools
       "KR" => "KRW",
       "CN" => "CNY",
       "RU" => "RUB",
+      "BR" => "BRL",
+      "IN" => "INR",
+      "MX" => "MXN",
+      "CH" => "CHF",
+      "SG" => "SGD",
+      "HK" => "HKD",
+      "NZ" => "NZD",
     }.freeze
 
     module_function
