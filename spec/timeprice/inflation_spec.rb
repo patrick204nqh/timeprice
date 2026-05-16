@@ -14,6 +14,17 @@ RSpec.describe Timeprice::Inflation do
       expect(result.country).to eq("US")
     end
 
+    it "accepts daily dates and resolves them at month grain" do
+      # CPI is monthly at best, so a daily date drops the day before lookup.
+      # The granularity tag reflects the monthly chain, not the daily input.
+      result = described_class.adjust(
+        amount: 100, from: "1990-01-15", to: "2024-01-02", country: "US"
+      )
+      expect(result.granularity).to eq(:monthly)
+      expect(result.from_index).to eq(127.4) # 1990-01
+      expect(result.to_index).to eq(308.417) # 2024-01
+    end
+
     it "falls back from missing monthly to annual (US has annual 2010 but no 2010-03)" do
       # 2010-03 is not in monthly fixture; should fall back to 2010 annual and
       # the result is tagged so callers know they didn't get month-specific data.

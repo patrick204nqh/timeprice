@@ -11,21 +11,25 @@ import { $ } from "./dom.js";
 initTheme();
 
 // Default seeding happens before the URL hash is read so a hash override
-// can overwrite either side. `to` defaults to today; `from` stays empty
-// until the user fills it in — landing on a form that's already half-
-// answered makes the historical-side prompt obvious.
+// can overwrite either side. Both sides land pre-filled — `from` at
+// 2008-01-02 (a recognisable historical anchor: first FX-daily weekday of
+// the year, well inside every CPI series we ship) and `to` at today.
+// First-time visitors see a real computation immediately rather than a
+// blank state with a prompt.
 // Note: readUrl()/applyPoint() deliberately skips writes for empty dates,
-// so a URL like `#to=USD` won't clobber this today-seed. Keep that
-// behaviour in sync if you change either side.
+// so a URL like `#to=USD` won't clobber these seeds. Keep that behaviour
+// in sync if you change either side.
+const fromEl = $("#from-when");
+if (fromEl && !fromEl.value) fromEl.value = "2008-01-02";
 const toEl = $("#to-when");
 if (toEl && !toEl.value) toEl.value = todayIso();
 
 readUrl();
 readForm();
 
-// First paint: empty `from` is the expected default state, so show a
-// gentle prompt rather than a stale pre-rendered answer.
-renderEmpty("Pick a starting date on the left.");
+// First paint: VM hasn't loaded yet; show the warming-up placeholder. Once
+// the VM is ready compute() runs against the seeded form.
+renderEmpty();
 renderHero(null);
 
 renderSnippet();
