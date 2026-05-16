@@ -59,7 +59,14 @@ function clampSeedToCpiWindow() {
   if (!toCurrency) return;
   const widest = widestCpi(state.countryByCurrency.get(toCurrency));
   if (!widest?.max) return;
-  if (toEl.value > widest.max) toEl.value = widest.max;
+  if (toEl.value > widest.max) {
+    // Push through the widget when bound so the visible Y/M/D fields and the
+    // grain badge update in lockstep with the hidden mirror. Falls back to a
+    // raw value-set for tests that don't wire the widget.
+    const widget = state.whenWidgets?.to;
+    if (widget) widget.set(widest.max, { silent: true });
+    else toEl.value = widest.max;
+  }
 }
 
 function fillCurrencySelect(sel, currencies) {

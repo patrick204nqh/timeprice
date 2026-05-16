@@ -20,4 +20,9 @@ export const state = {
   // would raise in Ruby is a footgun, so we suppress it during invalid form
   // state.
   lastResultValid: false,
+  // Bound Y/M/D widget handles, one per side. Populated by app.js at boot.
+  // Other modules use these to push assembled date strings back into the
+  // visible fields (e.g. url.js applyPoint, metadata.js clampSeed).
+  // Contract: set by bindWhenGroup() in app.js; read by url.js, metadata.js, events.js.
+  whenWidgets: null,
 };

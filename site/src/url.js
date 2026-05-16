@@ -1,6 +1,7 @@
 import { $ } from "./dom.js";
 import { state } from "./state.js";
 import { readForm } from "./compute.js";
+import { split as splitWhen } from "./when_input.js";
 
 // URL hash format: #from=USD:1990&to=USD:2024&amount=100
 // Dates may be YYYY, YYYY-MM, or YYYY-MM-DD — the smart-date field accepts
@@ -25,7 +26,27 @@ export function applyPoint(spec, side) {
   if (currency && $(`#${side}-currency`)) $(`#${side}-currency`).value = currency.toUpperCase();
   // Empty date (`USD:` or `USD`) is treated as "no date" — leaves whatever
   // the field was seeded with intact (today, in the case of `to`).
-  if (date && $(`#${side}-when`)) $(`#${side}-when`).value = date;
+  if (date) {
+    // Prefer the bound widget so the visible Y/M/D inputs + grain badge stay
+    // in sync. Falls back to writing the hidden mirror directly when the
+    // widget isn't bound (unit tests that skip the wiring).
+    const widget = state.whenWidgets?.[side];
+    if (widget) {
+      widget.set(date, { silent: true });
+    } else {
+      const hidden = $(`#${side}-when`);
+      if (hidden) hidden.value = date;
+      // Best-effort: if individual Y/M/D fields exist (test seeds them
+      // explicitly), distribute the split there too.
+      const parts = splitWhen(date);
+      const yEl = $(`#${side}-year`);
+      const mEl = $(`#${side}-month`);
+      const dEl = $(`#${side}-day`);
+      if (yEl) yEl.value = parts.year;
+      if (mEl) mEl.value = parts.month;
+      if (dEl) dEl.value = parts.day;
+    }
+  }
 }
 
 export function writeUrl() {

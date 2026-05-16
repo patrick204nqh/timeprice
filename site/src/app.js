@@ -7,6 +7,7 @@ import { bindCopyButtons, bindCalcForm, bindExampleChips } from "./events.js";
 import { bootRuby } from "./vm.js";
 import { initTheme } from "./theme.js";
 import { $ } from "./dom.js";
+import { bindWhenGroup } from "./when_input.js";
 
 initTheme();
 
@@ -23,6 +24,14 @@ const fromEl = $("#from-when");
 if (fromEl && !fromEl.value) fromEl.value = "2008-01-02";
 const toEl = $("#to-when");
 if (toEl && !toEl.value) toEl.value = todayIso();
+
+// Bind the Y/M/D widgets *before* readUrl() so applyPoint() finds a setter
+// to push values back into. The widgets read the hidden mirror on bind, so
+// the seeds above land in the visible fields.
+state.whenWidgets = {
+  from: bindWhenGroup("from"),
+  to: bindWhenGroup("to"),
+};
 
 readUrl();
 readForm();
