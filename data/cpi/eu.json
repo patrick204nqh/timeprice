@@ -20,7 +20,7 @@
   ],
   "providers": [
     {
-      "fetched_at": "2026-05-12",
+      "fetched_at": "2026-05-16",
       "id": "eurostat",
       "label": "Eurostat prc_hicp_midx (HICP, EA all current members, CP00, 2015=100)",
       "status": "ok"

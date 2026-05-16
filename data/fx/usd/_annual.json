@@ -174,13 +174,13 @@
   ],
   "providers": [
     {
-      "fetched_at": "2026-05-12",
+      "fetched_at": "2026-05-16",
       "id": "world_bank",
       "label": "World Bank PA.NUS.FCRF",
       "status": "ok"
     },
     {
-      "fetched_at": "2026-05-12",
+      "fetched_at": "2026-05-16",
       "id": "imf",
       "label": "IMF ER dataflow XDC_USD/PA_RT (period-average, annual mean)",
       "status": "ok"

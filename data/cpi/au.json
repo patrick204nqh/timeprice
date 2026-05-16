@@ -20,13 +20,13 @@
   ],
   "providers": [
     {
-      "fetched_at": "2026-05-12",
+      "fetched_at": "2026-05-16",
       "id": "world_bank",
       "label": "World Bank FP.CPI.TOTL (annual, AU baseline)",
       "status": "ok"
     },
     {
-      "fetched_at": "2026-05-12",
+      "fetched_at": "2026-05-16",
       "id": "abs",
       "label": "ABS 6401.0 Consumer Price Index (quarterly) + World Bank (annual baseline)",
       "status": "ok"
