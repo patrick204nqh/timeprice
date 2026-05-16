@@ -9,7 +9,6 @@ require_relative "bls"
 require_relative "world_bank"
 require_relative "ons"
 require_relative "eurostat"
-require_relative "estat"
 require_relative "imf"
 require_relative "abs"
 require_relative "statcan"
@@ -26,18 +25,15 @@ module Tools
         "World Bank VND FX" => -> { Tools::DataPipeline::WorldBank.run_vnd_fx },
         "IMF / RU FX" => -> { Tools::DataPipeline::IMF.run_ru_fx },
       }.freeze
-      # Module-level CPI orchestrators (not Provider subclasses themselves)
-      # — these run after the registry sweep so their fallback paths see
-      # whatever the registered providers wrote.
-      MODULE_CPI_RUNS = {
-        "e-Stat / JP" => -> { Tools::DataPipeline::EStat.run },
-      }.freeze
+      # Module-level CPI orchestrators (not Provider subclasses themselves).
+      # Empty after dropping the e-Stat fallback. Kept as a hash so future
+      # keyless module-level orchestrators can slot in here.
+      MODULE_CPI_RUNS = {}.freeze
       CRITICAL_NAMES = %w[Frankfurter].freeze
       FILE_HINTS = {
         "Frankfurter" => File.expand_path("frankfurter.rb", __dir__),
         "World Bank VND FX" => File.expand_path("world_bank.rb", __dir__),
         "IMF / RU FX" => File.expand_path("imf.rb", __dir__),
-        "e-Stat / JP" => File.expand_path("estat.rb", __dir__),
         "Manifest" => File.expand_path("manifest.rb", __dir__),
       }.freeze
 

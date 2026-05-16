@@ -114,7 +114,7 @@ module Tools
       # CPI Provider subclasses — all share the same shape, only the country
       # ISO3 used in the SDMX key differs. CountryFile + MergePolicy layer the
       # monthly series on top of whichever annual baseline ran first (today:
-      # World Bank for every country, e-Stat for JP).
+      # World Bank for every country).
       class CountryCPI < Tools::DataPipeline::Provider
         def self.iso3 = self::ISO3
 
