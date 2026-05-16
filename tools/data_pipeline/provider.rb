@@ -27,8 +27,7 @@ module Tools
 
       # Every Provider subclass that calls {.configure} registers here by
       # default. Pass `register: false` to opt out (for fallback-only
-      # providers that are dispatched by another module — see
-      # WorldBank::JapanCPI, only invoked by the EStat fallback path).
+      # providers that are dispatched by another module).
       REGISTRY = [] # rubocop:disable Style/MutableConstant
 
       def self.registry
