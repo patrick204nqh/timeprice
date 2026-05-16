@@ -98,13 +98,17 @@
     <div class="p-4 sm:p-6">
       <form id="calc-form" class="space-y-3">
 
-        <div class="grid grid-cols-1 sm:grid-cols-[max-content_1fr_max-content_1fr] items-center gap-2 sm:gap-3">
-          <label for="calc-amount" class="text-xs font-medium text-stone-600 dark:text-stone-400 sm:justify-self-end">Amount</label>
+        <!-- Amount: simple row, label + input -->
+        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+          <label for="calc-amount" class="text-xs font-medium text-stone-600 dark:text-stone-400 sm:w-14 sm:text-right shrink-0">Amount</label>
           <input id="calc-amount" type="number" step="any" inputmode="decimal" value="100"
-                 class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent sm:col-span-3">
+                 class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
+        </div>
 
-          <div class="text-xs font-medium text-stone-600 dark:text-stone-400 sm:justify-self-end">From</div>
-          <select id="from-currency" class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
+        <!-- From row: label + currency + "in" + segmented date + grain pill, reads as one sentence -->
+        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+          <div class="text-xs font-medium text-stone-600 dark:text-stone-400 sm:w-14 sm:text-right shrink-0">From</div>
+          <select id="from-currency" class="mono w-full sm:w-auto sm:flex-1 sm:min-w-0 px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
             <option value="AUD">AUD — Australian dollar</option>
             <option value="CAD">CAD — Canadian dollar</option>
             <option value="CNY">CNY — Chinese yuan</option>
@@ -116,23 +120,28 @@
             <option value="USD" selected>USD — US dollar</option>
             <option value="VND">VND — Vietnamese dong</option>
           </select>
-          <div class="text-xs text-stone-500 sm:justify-self-end">When</div>
-          <div class="when-group flex items-center gap-2 flex-wrap" data-side="from">
-            <input id="from-year" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
-                   maxlength="4" placeholder="YYYY" aria-label="From year"
-                   class="mono w-[7ch] px-2 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent text-center">
-            <input id="from-month" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
-                   maxlength="2" placeholder="──" aria-label="From month"
-                   class="mono w-[4ch] px-2 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent text-center text-stone-400 dark:text-stone-500 focus:text-stone-900 dark:focus:text-stone-100">
-            <input id="from-day" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
-                   maxlength="2" placeholder="──" aria-label="From day" disabled
-                   class="mono w-[4ch] px-2 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent text-center text-stone-400 dark:text-stone-500 focus:text-stone-900 dark:focus:text-stone-100 disabled:opacity-50">
-            <span id="from-grain" class="mono text-xs text-stone-500" aria-live="polite"></span>
+          <div class="when-group flex items-center gap-2 shrink-0" data-side="from">
+            <span class="text-xs text-stone-500" aria-hidden="true">in</span>
+            <div class="when-segmented inline-flex items-stretch rounded-md border border-stone-300 dark:border-stone-700 overflow-hidden divide-x divide-stone-300 dark:divide-stone-700 focus-within:ring-2 focus-within:ring-stone-400 dark:focus-within:ring-stone-500">
+              <input id="from-year" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
+                     maxlength="4" placeholder="YYYY" aria-label="From year"
+                     class="mono w-[5.5ch] px-1.5 py-2 bg-transparent text-center border-0 focus:outline-none focus:ring-0">
+              <input id="from-month" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
+                     maxlength="2" placeholder="MM" aria-label="From month"
+                     class="mono w-[3.25ch] px-1 py-2 bg-transparent text-center border-0 focus:outline-none focus:ring-0 text-stone-400 dark:text-stone-500 focus:text-stone-900 dark:focus:text-stone-100">
+              <input id="from-day" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
+                     maxlength="2" placeholder="DD" aria-label="From day" disabled
+                     class="mono w-[3.25ch] px-1 py-2 bg-transparent text-center border-0 focus:outline-none focus:ring-0 text-stone-400 dark:text-stone-500 focus:text-stone-900 dark:focus:text-stone-100 disabled:opacity-50">
+            </div>
+            <span id="from-grain" class="mono text-[11px] px-2 py-0.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 empty:hidden" aria-live="polite"></span>
             <input id="from-when" type="hidden">
           </div>
+        </div>
 
-          <div class="text-xs font-medium text-stone-600 dark:text-stone-400 sm:justify-self-end">To</div>
-          <select id="to-currency" class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
+        <!-- To row: mirrors From -->
+        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+          <div class="text-xs font-medium text-stone-600 dark:text-stone-400 sm:w-14 sm:text-right shrink-0">To</div>
+          <select id="to-currency" class="mono w-full sm:w-auto sm:flex-1 sm:min-w-0 px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
             <option value="AUD">AUD — Australian dollar</option>
             <option value="CAD">CAD — Canadian dollar</option>
             <option value="CNY">CNY — Chinese yuan</option>
@@ -144,18 +153,20 @@
             <option value="USD" selected>USD — US dollar</option>
             <option value="VND">VND — Vietnamese dong</option>
           </select>
-          <div class="text-xs text-stone-500 sm:justify-self-end">When</div>
-          <div class="when-group flex items-center gap-2 flex-wrap" data-side="to">
-            <input id="to-year" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
-                   maxlength="4" placeholder="YYYY" aria-label="To year"
-                   class="mono w-[7ch] px-2 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent text-center">
-            <input id="to-month" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
-                   maxlength="2" placeholder="──" aria-label="To month"
-                   class="mono w-[4ch] px-2 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent text-center text-stone-400 dark:text-stone-500 focus:text-stone-900 dark:focus:text-stone-100">
-            <input id="to-day" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
-                   maxlength="2" placeholder="──" aria-label="To day" disabled
-                   class="mono w-[4ch] px-2 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent text-center text-stone-400 dark:text-stone-500 focus:text-stone-900 dark:focus:text-stone-100 disabled:opacity-50">
-            <span id="to-grain" class="mono text-xs text-stone-500" aria-live="polite"></span>
+          <div class="when-group flex items-center gap-2 shrink-0" data-side="to">
+            <span class="text-xs text-stone-500" aria-hidden="true">in</span>
+            <div class="when-segmented inline-flex items-stretch rounded-md border border-stone-300 dark:border-stone-700 overflow-hidden divide-x divide-stone-300 dark:divide-stone-700 focus-within:ring-2 focus-within:ring-stone-400 dark:focus-within:ring-stone-500">
+              <input id="to-year" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
+                     maxlength="4" placeholder="YYYY" aria-label="To year"
+                     class="mono w-[5.5ch] px-1.5 py-2 bg-transparent text-center border-0 focus:outline-none focus:ring-0">
+              <input id="to-month" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
+                     maxlength="2" placeholder="MM" aria-label="To month"
+                     class="mono w-[3.25ch] px-1 py-2 bg-transparent text-center border-0 focus:outline-none focus:ring-0 text-stone-400 dark:text-stone-500 focus:text-stone-900 dark:focus:text-stone-100">
+              <input id="to-day" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
+                     maxlength="2" placeholder="DD" aria-label="To day" disabled
+                     class="mono w-[3.25ch] px-1 py-2 bg-transparent text-center border-0 focus:outline-none focus:ring-0 text-stone-400 dark:text-stone-500 focus:text-stone-900 dark:focus:text-stone-100 disabled:opacity-50">
+            </div>
+            <span id="to-grain" class="mono text-[11px] px-2 py-0.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 empty:hidden" aria-live="polite"></span>
             <input id="to-when" type="hidden">
           </div>
         </div>
