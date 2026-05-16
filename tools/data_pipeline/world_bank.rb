@@ -87,6 +87,18 @@ module Tools
       SingaporeCPI   = register_cpi(code: "sg", iso3: "SGP", label: "Singapore")
       HongKongCPI    = register_cpi(code: "hk", iso3: "HKG", label: "Hong Kong SAR, China")
       NewZealandCPI  = register_cpi(code: "nz", iso3: "NZL", label: "New Zealand")
+      IndonesiaCPI   = register_cpi(code: "id", iso3: "IDN", label: "Indonesia")
+      TurkeyCPI      = register_cpi(code: "tr", iso3: "TUR", label: "Türkiye")
+      SouthAfricaCPI = register_cpi(code: "za", iso3: "ZAF", label: "South Africa")
+      PolandCPI      = register_cpi(code: "pl", iso3: "POL", label: "Poland")
+      ThailandCPI    = register_cpi(code: "th", iso3: "THA", label: "Thailand")
+      SwedenCPI      = register_cpi(code: "se", iso3: "SWE", label: "Sweden")
+      NorwayCPI      = register_cpi(code: "no", iso3: "NOR", label: "Norway")
+      CzechiaCPI     = register_cpi(code: "cz", iso3: "CZE", label: "Czechia")
+      HungaryCPI     = register_cpi(code: "hu", iso3: "HUN", label: "Hungary")
+      IsraelCPI      = register_cpi(code: "il", iso3: "ISR", label: "Israel")
+      PhilippinesCPI = register_cpi(code: "ph", iso3: "PHL", label: "Philippines")
+      MalaysiaCPI    = register_cpi(code: "my", iso3: "MYS", label: "Malaysia")
 
       # VND per USD, annual averages. All years land in the single
       # data/fx/usd/_annual.json — the canonical home for annual FX rates.

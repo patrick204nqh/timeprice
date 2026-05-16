@@ -43,6 +43,18 @@ module Tools
       "SG" => "SGD",
       "HK" => "HKD",
       "NZ" => "NZD",
+      "ID" => "IDR",
+      "TR" => "TRY",
+      "ZA" => "ZAR",
+      "PL" => "PLN",
+      "TH" => "THB",
+      "SE" => "SEK",
+      "NO" => "NOK",
+      "CZ" => "CZK",
+      "HU" => "HUF",
+      "IL" => "ILS",
+      "PH" => "PHP",
+      "MY" => "MYR",
     }.freeze
 
     module_function

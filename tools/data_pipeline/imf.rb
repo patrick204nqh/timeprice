@@ -267,6 +267,162 @@ module Tools
           priority: 40
         )
       end
+
+      class IndonesiaCPI < CountryCPI
+        ISO3 = "IDN"
+        configure(
+          country_code: "id",
+          country_label: "Indonesia",
+          source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
+          default_base_year: "2010=100",
+          log_label: "IMF",
+          provider_id: "imf",
+          priority: 40
+        )
+      end
+
+      class TurkeyCPI < CountryCPI
+        ISO3 = "TUR"
+        configure(
+          country_code: "tr",
+          country_label: "Türkiye",
+          source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
+          default_base_year: "2010=100",
+          log_label: "IMF",
+          provider_id: "imf",
+          priority: 40
+        )
+      end
+
+      class SouthAfricaCPI < CountryCPI
+        ISO3 = "ZAF"
+        configure(
+          country_code: "za",
+          country_label: "South Africa",
+          source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
+          default_base_year: "2010=100",
+          log_label: "IMF",
+          provider_id: "imf",
+          priority: 40
+        )
+      end
+
+      class PolandCPI < CountryCPI
+        ISO3 = "POL"
+        configure(
+          country_code: "pl",
+          country_label: "Poland",
+          source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
+          default_base_year: "2010=100",
+          log_label: "IMF",
+          provider_id: "imf",
+          priority: 40
+        )
+      end
+
+      class ThailandCPI < CountryCPI
+        ISO3 = "THA"
+        configure(
+          country_code: "th",
+          country_label: "Thailand",
+          source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
+          default_base_year: "2010=100",
+          log_label: "IMF",
+          provider_id: "imf",
+          priority: 40
+        )
+      end
+
+      class SwedenCPI < CountryCPI
+        ISO3 = "SWE"
+        configure(
+          country_code: "se",
+          country_label: "Sweden",
+          source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
+          default_base_year: "2010=100",
+          log_label: "IMF",
+          provider_id: "imf",
+          priority: 40
+        )
+      end
+
+      class NorwayCPI < CountryCPI
+        ISO3 = "NOR"
+        configure(
+          country_code: "no",
+          country_label: "Norway",
+          source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
+          default_base_year: "2010=100",
+          log_label: "IMF",
+          provider_id: "imf",
+          priority: 40
+        )
+      end
+
+      class CzechiaCPI < CountryCPI
+        ISO3 = "CZE"
+        configure(
+          country_code: "cz",
+          country_label: "Czechia",
+          source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
+          default_base_year: "2010=100",
+          log_label: "IMF",
+          provider_id: "imf",
+          priority: 40
+        )
+      end
+
+      class HungaryCPI < CountryCPI
+        ISO3 = "HUN"
+        configure(
+          country_code: "hu",
+          country_label: "Hungary",
+          source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
+          default_base_year: "2010=100",
+          log_label: "IMF",
+          provider_id: "imf",
+          priority: 40
+        )
+      end
+
+      class IsraelCPI < CountryCPI
+        ISO3 = "ISR"
+        configure(
+          country_code: "il",
+          country_label: "Israel",
+          source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
+          default_base_year: "2010=100",
+          log_label: "IMF",
+          provider_id: "imf",
+          priority: 40
+        )
+      end
+
+      class PhilippinesCPI < CountryCPI
+        ISO3 = "PHL"
+        configure(
+          country_code: "ph",
+          country_label: "Philippines",
+          source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
+          default_base_year: "2010=100",
+          log_label: "IMF",
+          provider_id: "imf",
+          priority: 40
+        )
+      end
+
+      class MalaysiaCPI < CountryCPI
+        ISO3 = "MYS"
+        configure(
+          country_code: "my",
+          country_label: "Malaysia",
+          source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
+          default_base_year: "2010=100",
+          log_label: "IMF",
+          provider_id: "imf",
+          priority: 40
+        )
+      end
     end
   end
 end
