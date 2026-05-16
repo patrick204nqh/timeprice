@@ -3,191 +3,195 @@
     {
       "code": "AU",
       "cpi_file": "cpi/au.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2024",
+          "min": "1960"
+        },
+        "quarterly": {
+          "max": "2026-Q1",
+          "min": "1948-Q3"
+        }
+      },
       "currency": "AUD",
       "granularities": [
         "quarterly",
         "annual"
-      ],
-      "cpi_ranges": {
-        "annual": {
-          "min": "1960",
-          "max": "2024"
-        },
-        "quarterly": {
-          "min": "1948-Q3",
-          "max": "2026-Q1"
-        }
-      }
+      ]
     },
     {
       "code": "CA",
       "cpi_file": "cpi/ca.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1914"
+        },
+        "monthly": {
+          "max": "2026-03",
+          "min": "1914-01"
+        }
+      },
       "currency": "CAD",
       "granularities": [
         "monthly",
         "annual"
-      ],
-      "cpi_ranges": {
-        "annual": {
-          "min": "1914",
-          "max": "2025"
-        },
-        "monthly": {
-          "min": "1914-01",
-          "max": "2026-03"
-        }
-      }
+      ]
     },
     {
       "code": "CN",
       "cpi_file": "cpi/cn.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1986"
+        },
+        "monthly": {
+          "max": "2026-03",
+          "min": "1993-01"
+        }
+      },
       "currency": "CNY",
       "granularities": [
         "monthly",
         "annual"
-      ],
-      "cpi_ranges": {
-        "annual": {
-          "min": "1986",
-          "max": "2025"
-        },
-        "monthly": {
-          "min": "1993-01",
-          "max": "2026-03"
-        }
-      }
+      ]
     },
     {
       "code": "EU",
       "cpi_file": "cpi/eu.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1996"
+        },
+        "monthly": {
+          "max": "2025-12",
+          "min": "1996-01"
+        }
+      },
       "currency": "EUR",
       "granularities": [
         "monthly",
         "annual"
-      ],
-      "cpi_ranges": {
-        "annual": {
-          "min": "1996",
-          "max": "2025"
-        },
-        "monthly": {
-          "min": "1996-01",
-          "max": "2025-12"
-        }
-      }
+      ]
     },
     {
       "code": "JP",
       "cpi_file": "cpi/jp.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2024",
+          "min": "1960"
+        }
+      },
       "currency": "JPY",
       "granularities": [
         "annual"
-      ],
-      "cpi_ranges": {
-        "annual": {
-          "min": "1960",
-          "max": "2024"
-        }
-      }
+      ]
     },
     {
       "code": "KR",
       "cpi_file": "cpi/kr.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1960"
+        },
+        "monthly": {
+          "max": "2026-04",
+          "min": "1990-01"
+        }
+      },
       "currency": "KRW",
       "granularities": [
         "monthly",
         "annual"
-      ],
-      "cpi_ranges": {
-        "annual": {
-          "min": "1960",
-          "max": "2025"
-        },
-        "monthly": {
-          "min": "1990-01",
-          "max": "2026-03"
-        }
-      }
+      ]
     },
     {
       "code": "RU",
       "cpi_file": "cpi/ru.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1992"
+        },
+        "monthly": {
+          "max": "2026-03",
+          "min": "1992-01"
+        }
+      },
       "currency": "RUB",
       "granularities": [
         "monthly",
         "annual"
-      ],
-      "cpi_ranges": {
-        "annual": {
-          "min": "1992",
-          "max": "2025"
-        },
-        "monthly": {
-          "min": "1992-01",
-          "max": "2026-03"
-        }
-      }
+      ]
     },
     {
       "code": "UK",
       "cpi_file": "cpi/uk.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1988"
+        },
+        "monthly": {
+          "max": "2026-03",
+          "min": "1988-01"
+        }
+      },
       "currency": "GBP",
       "granularities": [
         "monthly",
         "annual"
-      ],
-      "cpi_ranges": {
-        "annual": {
-          "min": "1988",
-          "max": "2025"
-        },
-        "monthly": {
-          "min": "1988-01",
-          "max": "2026-03"
-        }
-      }
+      ]
     },
     {
       "code": "US",
       "cpi_file": "cpi/us.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2024",
+          "min": "1990"
+        },
+        "monthly": {
+          "max": "2026-04",
+          "min": "1990-01"
+        }
+      },
       "currency": "USD",
       "granularities": [
         "monthly",
         "annual"
-      ],
-      "cpi_ranges": {
-        "annual": {
-          "min": "1990",
-          "max": "2024"
-        },
-        "monthly": {
-          "min": "1990-01",
-          "max": "2026-03"
-        }
-      }
+      ]
     },
     {
       "code": "VN",
       "cpi_file": "cpi/vn.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1995"
+        },
+        "monthly": {
+          "max": "2026-03",
+          "min": "2001-12"
+        }
+      },
       "currency": "VND",
       "granularities": [
         "monthly",
         "annual"
-      ],
-      "cpi_ranges": {
-        "annual": {
-          "min": "1995",
-          "max": "2025"
-        },
-        "monthly": {
-          "min": "2001-12",
-          "max": "2026-03"
-        }
-      }
+      ]
     }
   ],
   "fx": {
     "annual_file": "fx/usd/_annual.json",
+    "annual_only_currencies": [
+      "RUB",
+      "VND"
+    ],
     "base": "USD",
     "currencies": [
       "AUD",
@@ -200,6 +204,17 @@
       "RUB",
       "VND"
     ],
+    "daily_currencies": [
+      "AUD",
+      "CAD",
+      "CNY",
+      "EUR",
+      "GBP",
+      "JPY",
+      "KRW"
+    ],
+    "daily_max": "2026-05-13",
+    "daily_min": "1999-01-04",
     "daily_years": [
       1999,
       2000,
@@ -229,10 +244,8 @@
       2024,
       2025,
       2026
-    ],
-    "daily_min": "1999-01-04",
-    "daily_max": "2026-05-11"
+    ]
   },
-  "generated_at": "2026-05-12",
+  "generated_at": "2026-05-16",
   "schema_version": 4
 }

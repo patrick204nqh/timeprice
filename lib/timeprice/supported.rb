@@ -26,6 +26,22 @@ module Timeprice
       ([base] + DataLoader.load_manifest.dig("fx", "currencies")).uniq.freeze
     end
 
+    # @return [Array<String>] currencies with daily FX observations.
+    def daily_currencies
+      manifest = DataLoader.load_manifest
+      list = manifest.dig("fx", "daily_currencies")
+      return currencies if list.nil?
+
+      base = manifest.dig("fx", "base")
+      ([base] + list).uniq.freeze
+    end
+
+    # @return [Array<String>] currencies served only annually (e.g. VND, RUB).
+    def annual_only_currencies
+      manifest = DataLoader.load_manifest
+      (manifest.dig("fx", "annual_only_currencies") || []).freeze
+    end
+
     # @return [Hash{String=>String}] country code → currency code.
     def country_to_currency
       manifest_countries.to_h { |c| [c["code"], c["currency"]] }.freeze

@@ -75,6 +75,19 @@
       "RUB",
       "VND"
     ],
+    "daily_currencies": [
+      "AUD",
+      "CAD",
+      "CNY",
+      "EUR",
+      "GBP",
+      "JPY",
+      "KRW"
+    ],
+    "annual_only_currencies": [
+      "RUB",
+      "VND"
+    ],
     "daily_years": [
       2010
     ]

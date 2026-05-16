@@ -18,7 +18,7 @@ module Tools
       def write
         countries = cpi_countries
         daily_years = fx_daily_years
-        currencies = fx_currencies(daily_years)
+        cur = fx_currencies(daily_years)
         daily_min, daily_max = fx_daily_bounds(daily_years)
 
         data = {
@@ -27,7 +27,9 @@ module Tools
           "countries" => countries,
           "fx" => {
             "base" => "USD",
-            "currencies" => currencies,
+            "currencies" => cur["all"],
+            "daily_currencies" => cur["daily"],
+            "annual_only_currencies" => cur["annual_only"],
             "daily_years" => daily_years,
             "daily_min" => daily_min,
             "daily_max" => daily_max,
@@ -79,18 +81,31 @@ module Tools
           .sort
       end
 
+      # Returns a hash with three sorted lists:
+      #   "all"          — every currency we serve (daily ∪ annual).
+      #   "daily"        — currencies with at least one observation in the daily fx files.
+      #   "annual_only"  — currencies that appear only in _annual.json (today: VND, RUB).
+      # Consumers that want the legacy flat list read manifest["fx"]["currencies"]
+      # (kept as `all` for back-compat).
       def fx_currencies(daily_years)
-        seen = []
+        daily = []
         daily_years.each do |y|
           data = JSON.parse(File.read(File.join(Tools::DataPipeline::DATA_ROOT, "fx", "usd", "#{y}.json")))
-          (data["rates"] || {}).each_value { |day| seen.concat(day.keys) }
+          (data["rates"] || {}).each_value { |day| daily.concat(day.keys) }
         end
+        annual = []
         annual_path = File.join(Tools::DataPipeline::DATA_ROOT, "fx", "usd", "_annual.json")
         if File.exist?(annual_path)
           data = JSON.parse(File.read(annual_path))
-          (data["annual"] || {}).each_value { |yh| seen.concat(yh.keys) }
+          (data["annual"] || {}).each_value { |yh| annual.concat(yh.keys) }
         end
-        seen.uniq.sort
+        daily = daily.uniq.sort
+        annual = annual.uniq.sort
+        {
+          "all" => (daily + annual).uniq.sort,
+          "daily" => daily,
+          "annual_only" => (annual - daily).sort,
+        }
       end
     end
   end
