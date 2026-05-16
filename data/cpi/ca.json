@@ -2,7 +2,7 @@
   "country": "CA",
   "index": {
     "base_period": "2010",
-    "rebased_at": null
+    "rebased_at": "2026-05-16"
   },
   "provenance": [
     {
@@ -20,13 +20,13 @@
   ],
   "providers": [
     {
-      "fetched_at": "2026-05-12",
+      "fetched_at": "2026-05-16",
       "id": "world_bank",
       "label": "World Bank FP.CPI.TOTL (annual, CA baseline)",
       "status": "ok"
     },
     {
-      "fetched_at": "2026-05-12",
+      "fetched_at": "2026-05-16",
       "id": "statcan",
       "label": "Statistics Canada WDS (table 18-10-0004-01, monthly) + World Bank (annual baseline)",
       "status": "ok"

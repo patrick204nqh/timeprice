@@ -20,13 +20,13 @@
   ],
   "providers": [
     {
-      "fetched_at": "2026-05-12",
+      "fetched_at": "2026-05-16",
       "id": "world_bank",
       "label": "World Bank FP.CPI.TOTL (annual)",
       "status": "ok"
     },
     {
-      "fetched_at": "2026-05-12",
+      "fetched_at": "2026-05-16",
       "id": "imf",
       "label": "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
       "status": "ok"

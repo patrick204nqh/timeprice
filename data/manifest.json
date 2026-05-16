@@ -20,6 +20,25 @@
       ]
     },
     {
+      "code": "BR",
+      "cpi_file": "cpi/br.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1980"
+        },
+        "monthly": {
+          "max": "2026-03",
+          "min": "1990-01"
+        }
+      },
+      "currency": "BRL",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
       "code": "CA",
       "cpi_file": "cpi/ca.json",
       "cpi_ranges": {
@@ -33,6 +52,25 @@
         }
       },
       "currency": "CAD",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
+      "code": "CH",
+      "cpi_file": "cpi/ch.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1960"
+        },
+        "monthly": {
+          "max": "2026-03",
+          "min": "1990-01"
+        }
+      },
+      "currency": "CHF",
       "granularities": [
         "monthly",
         "annual"
@@ -58,6 +96,25 @@
       ]
     },
     {
+      "code": "CZ",
+      "cpi_file": "cpi/cz.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1991"
+        },
+        "monthly": {
+          "max": "2026-03",
+          "min": "1991-01"
+        }
+      },
+      "currency": "CZK",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
       "code": "EU",
       "cpi_file": "cpi/eu.json",
       "cpi_ranges": {
@@ -71,6 +128,101 @@
         }
       },
       "currency": "EUR",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
+      "code": "HK",
+      "cpi_file": "cpi/hk.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1981"
+        },
+        "monthly": {
+          "max": "2026-03",
+          "min": "2004-10"
+        }
+      },
+      "currency": "HKD",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
+      "code": "HU",
+      "cpi_file": "cpi/hu.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1972"
+        },
+        "monthly": {
+          "max": "2026-03",
+          "min": "1990-01"
+        }
+      },
+      "currency": "HUF",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
+      "code": "ID",
+      "cpi_file": "cpi/id.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1960"
+        },
+        "monthly": {
+          "max": "2026-04",
+          "min": "1990-01"
+        }
+      },
+      "currency": "IDR",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
+      "code": "IL",
+      "cpi_file": "cpi/il.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1960"
+        },
+        "monthly": {
+          "max": "2026-03",
+          "min": "1990-01"
+        }
+      },
+      "currency": "ILS",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
+      "code": "IN",
+      "cpi_file": "cpi/in.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1960"
+        },
+        "monthly": {
+          "max": "2026-03",
+          "min": "1990-01"
+        }
+      },
+      "currency": "INR",
       "granularities": [
         "monthly",
         "annual"
@@ -110,6 +262,115 @@
       ]
     },
     {
+      "code": "MX",
+      "cpi_file": "cpi/mx.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1960"
+        },
+        "monthly": {
+          "max": "2026-04",
+          "min": "1990-01"
+        }
+      },
+      "currency": "MXN",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
+      "code": "MY",
+      "cpi_file": "cpi/my.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1960"
+        },
+        "monthly": {
+          "max": "2026-03",
+          "min": "2000-01"
+        }
+      },
+      "currency": "MYR",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
+      "code": "NO",
+      "cpi_file": "cpi/no.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1960"
+        },
+        "monthly": {
+          "max": "2026-03",
+          "min": "1990-01"
+        }
+      },
+      "currency": "NOK",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
+      "code": "NZ",
+      "cpi_file": "cpi/nz.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2024",
+          "min": "1960"
+        }
+      },
+      "currency": "NZD",
+      "granularities": [
+        "annual"
+      ]
+    },
+    {
+      "code": "PH",
+      "cpi_file": "cpi/ph.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1960"
+        },
+        "monthly": {
+          "max": "2026-03",
+          "min": "2010-01"
+        }
+      },
+      "currency": "PHP",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
+      "code": "PL",
+      "cpi_file": "cpi/pl.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1970"
+        },
+        "monthly": {
+          "max": "2026-03",
+          "min": "1990-01"
+        }
+      },
+      "currency": "PLN",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
       "code": "RU",
       "cpi_file": "cpi/ru.json",
       "cpi_ranges": {
@@ -123,6 +384,82 @@
         }
       },
       "currency": "RUB",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
+      "code": "SE",
+      "cpi_file": "cpi/se.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1960"
+        },
+        "monthly": {
+          "max": "2026-03",
+          "min": "1990-01"
+        }
+      },
+      "currency": "SEK",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
+      "code": "SG",
+      "cpi_file": "cpi/sg.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1960"
+        },
+        "monthly": {
+          "max": "2026-03",
+          "min": "2005-01"
+        }
+      },
+      "currency": "SGD",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
+      "code": "TH",
+      "cpi_file": "cpi/th.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1960"
+        },
+        "monthly": {
+          "max": "2026-03",
+          "min": "2010-01"
+        }
+      },
+      "currency": "THB",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
+    },
+    {
+      "code": "TR",
+      "cpi_file": "cpi/tr.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1960"
+        },
+        "monthly": {
+          "max": "2026-03",
+          "min": "1990-01"
+        }
+      },
+      "currency": "TRY",
       "granularities": [
         "monthly",
         "annual"
@@ -153,11 +490,11 @@
       "cpi_ranges": {
         "annual": {
           "max": "2024",
-          "min": "1990"
+          "min": "1913"
         },
         "monthly": {
           "max": "2026-04",
-          "min": "1990-01"
+          "min": "1913-01"
         }
       },
       "currency": "USD",
@@ -184,6 +521,25 @@
         "monthly",
         "annual"
       ]
+    },
+    {
+      "code": "ZA",
+      "cpi_file": "cpi/za.json",
+      "cpi_ranges": {
+        "annual": {
+          "max": "2025",
+          "min": "1960"
+        },
+        "monthly": {
+          "max": "2026-03",
+          "min": "1990-01"
+        }
+      },
+      "currency": "ZAR",
+      "granularities": [
+        "monthly",
+        "annual"
+      ]
     }
   ],
   "fx": {
@@ -195,25 +551,71 @@
     "base": "USD",
     "currencies": [
       "AUD",
+      "BGN",
+      "BRL",
       "CAD",
+      "CHF",
       "CNY",
+      "CZK",
+      "DKK",
       "EUR",
       "GBP",
+      "HKD",
+      "HUF",
+      "IDR",
+      "ILS",
+      "INR",
+      "ISK",
       "JPY",
       "KRW",
+      "MXN",
+      "MYR",
+      "NOK",
+      "NZD",
+      "PHP",
+      "PLN",
+      "RON",
       "RUB",
-      "VND"
+      "SEK",
+      "SGD",
+      "THB",
+      "TRY",
+      "VND",
+      "ZAR"
     ],
     "daily_currencies": [
       "AUD",
+      "BGN",
+      "BRL",
       "CAD",
+      "CHF",
       "CNY",
+      "CZK",
+      "DKK",
       "EUR",
       "GBP",
+      "HKD",
+      "HUF",
+      "IDR",
+      "ILS",
+      "INR",
+      "ISK",
       "JPY",
-      "KRW"
+      "KRW",
+      "MXN",
+      "MYR",
+      "NOK",
+      "NZD",
+      "PHP",
+      "PLN",
+      "RON",
+      "SEK",
+      "SGD",
+      "THB",
+      "TRY",
+      "ZAR"
     ],
-    "daily_max": "2026-05-13",
+    "daily_max": "2026-05-15",
     "daily_min": "1999-01-04",
     "daily_years": [
       1999,

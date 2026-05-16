@@ -2,7 +2,7 @@
   "country": "VN",
   "index": {
     "base_period": "2010",
-    "rebased_at": "2026-05-12"
+    "rebased_at": "2026-05-16"
   },
   "provenance": [
     {
@@ -26,13 +26,13 @@
   ],
   "providers": [
     {
-      "fetched_at": "2026-05-12",
+      "fetched_at": "2026-05-16",
       "id": "world_bank",
       "label": "World Bank FP.CPI.TOTL (annual)",
       "status": "ok"
     },
     {
-      "fetched_at": "2026-05-12",
+      "fetched_at": "2026-05-16",
       "id": "imf",
       "label": "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
       "status": "ok"
@@ -41,13 +41,13 @@
   "schema_version": 4,
   "series": {
     "annual": {
-      "1995": 21.083683,
-      "1996": 22.280182,
-      "1997": 22.99527,
-      "1998": 24.666152,
-      "1999": 25.681682,
-      "2000": 25.242439,
-      "2001": 25.133507,
+      "1995": 21.0836,
+      "1996": 22.280094,
+      "1997": 22.99518,
+      "1998": 24.666055,
+      "1999": 25.681582,
+      "2000": 25.24234,
+      "2001": 25.133408,
       "2002": 26.0962,
       "2003": 26.9403,
       "2004": 29.0296,
