@@ -155,7 +155,11 @@ module Tools
       SwitzerlandCPI = define_country_cpi(code: "ch", iso3: "CHE", label: "Switzerland")
       SingaporeCPI   = define_country_cpi(code: "sg", iso3: "SGP", label: "Singapore")
       HongKongCPI    = define_country_cpi(code: "hk", iso3: "HKG", label: "Hong Kong SAR, China")
-      NewZealandCPI  = define_country_cpi(code: "nz", iso3: "NZL", label: "New Zealand")
+      # NZ is intentionally NOT registered here: Stats NZ publishes CPI
+      # quarterly only, and the IMF CPI._T.IX.M (monthly) key returns HTTP
+      # 400 for NZL because the series doesn't exist on that dataflow. The
+      # World Bank annual baseline (NewZealandCPI in world_bank.rb) covers
+      # the country.
       IndonesiaCPI   = define_country_cpi(code: "id", iso3: "IDN", label: "Indonesia")
       TurkeyCPI      = define_country_cpi(code: "tr", iso3: "TUR", label: "Türkiye")
       SouthAfricaCPI = define_country_cpi(code: "za", iso3: "ZAF", label: "South Africa")
