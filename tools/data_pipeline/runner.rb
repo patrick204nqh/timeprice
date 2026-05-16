@@ -149,10 +149,15 @@ module Tools
         return [] unless File.exist?(manifest_path)
 
         manifest = JSON.parse(File.read(manifest_path))
-        present = Array(manifest["countries"]).map { |c| c["code"] }.compact
+        # Manifest stores country codes upcased (Timeprice::Schema.dump_cpi
+        # upcases the country field); Provider.country_code is whatever the
+        # subclass passed to `configure` (lowercase by current convention).
+        # Normalise both sides before comparing, otherwise every registered
+        # provider gets falsely flagged as drift and the runner exits 1.
+        present = Array(manifest["countries"]).map { |c| c["code"]&.upcase }.compact
         Provider.registry.filter_map do |klass|
           code = klass.country_code
-          next if code.nil? || present.include?(code)
+          next if code.nil? || present.include?(code.upcase)
 
           {
             label: label_for(klass),

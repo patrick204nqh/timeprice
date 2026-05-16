@@ -71,6 +71,16 @@ RSpec.describe Tools::DataPipeline::Runner do
       fake_provider(country: "ZZ", log_label: "FakeZZ")
       expect(runner.send(:manifest_drift_set)).to be_empty
     end
+
+    it "matches case-insensitively (provider lower-case vs manifest upper-case)" do
+      # Manifest writer upcases country codes via Timeprice::Schema.dump_cpi;
+      # Provider.country_code is passed lowercase by convention. The drift
+      # check must normalise before comparing.
+      fake_provider(country: "vn", log_label: "FakeVN")
+      write_manifest(%w[VN])
+
+      expect(runner.send(:manifest_drift_set)).to be_empty
+    end
   end
 
   describe "exit code wiring" do
