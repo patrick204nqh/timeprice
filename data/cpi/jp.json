@@ -16,7 +16,7 @@
     {
       "fetched_at": "2026-05-12",
       "id": "world_bank",
-      "label": "World Bank FP.CPI.TOTL (annual, JP fallback)",
+      "label": "World Bank FP.CPI.TOTL (annual)",
       "status": "ok"
     }
   ],
