@@ -39,7 +39,7 @@ module Timeprice
         id: "jp_cpi",
         kind: "cpi",
         country: "JP",
-        name: "World Bank — FP.CPI.TOTL (annual, JP fallback)",
+        name: "World Bank — FP.CPI.TOTL (annual)",
         license: "CC BY 4.0",
         license_url: "https://datacatalog.worldbank.org/public-licenses#cc-by",
         attribution: "Source: World Bank, FP.CPI.TOTL",
