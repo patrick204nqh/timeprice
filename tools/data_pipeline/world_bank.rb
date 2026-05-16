@@ -13,8 +13,7 @@ require_relative "provider"
 #     VND; this fills the gap honestly at annual resolution. The Exchange
 #     lookup falls back from daily to annual and tags the result accordingly.
 #
-# Also exposes a fetch_cpi(country_iso3) helper so the e-Stat fallback for
-# Japan can reuse it.
+# Also exposes a fetch_cpi(country_iso3) helper for shared reuse.
 require_relative "fx_year_file"
 
 module Tools
@@ -41,10 +40,6 @@ module Tools
         VietnamCPI.run
       end
 
-      def run_jp_cpi_fallback
-        JapanCPI.run
-      end
-
       def run_au_cpi_fallback = AustraliaCPI.run
       def run_ca_cpi_fallback = CanadaCPI.run
       def run_kr_cpi_fallback = KoreaCPI.run
@@ -54,8 +49,7 @@ module Tools
       # Builds and registers a one-shot WorldBank CPI Provider subclass.
       # Used for every WB-CPI country: all share the same fetch shape
       # (annual-only FP.CPI.TOTL) so the only per-country variation is
-      # (code, iso3, label, source_label suffix). JP is `register: false`
-      # because it's reached only via the EStat fallback path.
+      # (code, iso3, label, source_label suffix).
       def self.register_cpi(code:, iso3:, label:, suffix: nil, register: true)
         full_label = "#{["World Bank FP.CPI.TOTL (annual", suffix].compact.join(", ")})"
         klass = Class.new(Provider) do
@@ -85,8 +79,7 @@ module Tools
       KoreaCPI    = register_cpi(code: "kr", iso3: "KOR", label: "Korea, Rep.", suffix: "KR baseline")
       ChinaCPI    = register_cpi(code: "cn", iso3: "CHN", label: "China")
       RussiaCPI   = register_cpi(code: "ru", iso3: "RUS", label: "Russia")
-      JapanCPI    = register_cpi(code: "jp", iso3: "JPN", label: "Japan",
-                                 suffix: "JP fallback", register: false)
+      JapanCPI = register_cpi(code: "jp", iso3: "JPN", label: "Japan")
 
       # VND per USD, annual averages. All years land in the single
       # data/fx/usd/_annual.json — the canonical home for annual FX rates.
