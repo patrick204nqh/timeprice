@@ -11,7 +11,7 @@ module Tools
   module DataPipeline
     class BLS < Provider
       SERIES_ID  = "CUUR0000SA0"
-      START_YEAR = 1990
+      START_YEAR = 1913
 
       configure(
         country_code: "us",

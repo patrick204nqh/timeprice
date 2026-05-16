@@ -42,6 +42,8 @@ module Tools
       def cpi_countries
         Dir[File.join(Tools::DataPipeline::DATA_ROOT, "cpi", "*.json")].map do |path|
           cpi = JSON.parse(File.read(path))
+          Timeprice::Schema.load_cpi(cpi, path: path)
+
           code = cpi["country"]
           series = cpi["series"] || {}
           grans = []
@@ -54,6 +56,11 @@ module Tools
             keys = points.keys.sort
             ranges[gran] = { "min" => keys.first, "max" => keys.last }
           end
+
+          if grans.empty?
+            fail ValidationError, "manifest: #{path} has no non-empty series — refusing to emit a degenerate manifest entry"
+          end
+
           {
             "code" => code,
             "currency" => Tools::DataPipeline::COUNTRY_TO_CURRENCY.fetch(code),

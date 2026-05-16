@@ -40,11 +40,11 @@ module Tools
 
     module_function
 
-    # Perform an HTTP GET (or POST when body given) with one retry on transient errors.
+    # Perform an HTTP GET (or POST when body given) with retries on transient errors.
     def http_request(url, method: :get, body: nil, headers: {}, timeout: 30)
       uri = URI.parse(url)
       last_error = nil
-      2.times do |attempt|
+      3.times do |attempt|
         Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https",
                                             open_timeout: timeout, read_timeout: timeout) do |http|
           req = case method
@@ -67,7 +67,10 @@ module Tools
         end
       rescue StandardError => e
         last_error = e
-        sleep(2) if attempt.zero?
+        # Exponential backoff with jitter: ~2s, ~4s before attempts 2 and 3.
+        # IMF SDMX in particular flakes intermittently with 5xx, so a single
+        # retry isn't enough.
+        sleep((2**(attempt + 1)) + rand) unless attempt == 2
       end
       fail last_error
     end
