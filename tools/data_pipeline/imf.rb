@@ -9,11 +9,11 @@ require_relative "fx_year_file"
 #
 # Public endpoint, no API key. Provides three things this gem leans on:
 #
-#   * Monthly CPI all-items (CPI dataflow, key COUNTRY.CPI._T.IX.M):
-#     - VN (primary monthly source on top of World Bank annual baseline)
-#     - KR (primary monthly source on top of World Bank annual baseline)
-#     - CN (primary monthly source on top of World Bank annual baseline)
-#     - RU (primary monthly source on top of World Bank annual baseline)
+#   * Monthly CPI all-items (CPI dataflow, key COUNTRY.CPI._T.IX.M).
+#     One CountryCPI subclass per country layered on top of the World Bank
+#     annual baseline. See the CountryCPI subclasses below for the current
+#     set — adding a new country means a new subclass here plus a matching
+#     register_cpi line in world_bank.rb.
 #
 #   * RUB/USD exchange rate (ER dataflow, key RUS.XDC_USD.PA_RT.M —
 #     domestic currency per USD, period average, monthly).
@@ -169,6 +169,97 @@ module Tools
         configure(
           country_code: "ru",
           country_label: "Russia",
+          source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
+          default_base_year: "2010=100",
+          log_label: "IMF",
+          provider_id: "imf",
+          priority: 40
+        )
+      end
+
+      class BrazilCPI < CountryCPI
+        ISO3 = "BRA"
+        configure(
+          country_code: "br",
+          country_label: "Brazil",
+          source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
+          default_base_year: "2010=100",
+          log_label: "IMF",
+          provider_id: "imf",
+          priority: 40
+        )
+      end
+
+      class IndiaCPI < CountryCPI
+        ISO3 = "IND"
+        configure(
+          country_code: "in",
+          country_label: "India",
+          source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
+          default_base_year: "2010=100",
+          log_label: "IMF",
+          provider_id: "imf",
+          priority: 40
+        )
+      end
+
+      class MexicoCPI < CountryCPI
+        ISO3 = "MEX"
+        configure(
+          country_code: "mx",
+          country_label: "Mexico",
+          source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
+          default_base_year: "2010=100",
+          log_label: "IMF",
+          provider_id: "imf",
+          priority: 40
+        )
+      end
+
+      class SwitzerlandCPI < CountryCPI
+        ISO3 = "CHE"
+        configure(
+          country_code: "ch",
+          country_label: "Switzerland",
+          source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
+          default_base_year: "2010=100",
+          log_label: "IMF",
+          provider_id: "imf",
+          priority: 40
+        )
+      end
+
+      class SingaporeCPI < CountryCPI
+        ISO3 = "SGP"
+        configure(
+          country_code: "sg",
+          country_label: "Singapore",
+          source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
+          default_base_year: "2010=100",
+          log_label: "IMF",
+          provider_id: "imf",
+          priority: 40
+        )
+      end
+
+      class HongKongCPI < CountryCPI
+        ISO3 = "HKG"
+        configure(
+          country_code: "hk",
+          country_label: "Hong Kong SAR, China",
+          source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
+          default_base_year: "2010=100",
+          log_label: "IMF",
+          provider_id: "imf",
+          priority: 40
+        )
+      end
+
+      class NewZealandCPI < CountryCPI
+        ISO3 = "NZL"
+        configure(
+          country_code: "nz",
+          country_label: "New Zealand",
           source_label: "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
           default_base_year: "2010=100",
           log_label: "IMF",

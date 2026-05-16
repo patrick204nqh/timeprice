@@ -80,6 +80,13 @@ module Tools
       ChinaCPI    = register_cpi(code: "cn", iso3: "CHN", label: "China")
       RussiaCPI   = register_cpi(code: "ru", iso3: "RUS", label: "Russia")
       JapanCPI = register_cpi(code: "jp", iso3: "JPN", label: "Japan")
+      BrazilCPI      = register_cpi(code: "br", iso3: "BRA", label: "Brazil")
+      IndiaCPI       = register_cpi(code: "in", iso3: "IND", label: "India")
+      MexicoCPI      = register_cpi(code: "mx", iso3: "MEX", label: "Mexico")
+      SwitzerlandCPI = register_cpi(code: "ch", iso3: "CHE", label: "Switzerland")
+      SingaporeCPI   = register_cpi(code: "sg", iso3: "SGP", label: "Singapore")
+      HongKongCPI    = register_cpi(code: "hk", iso3: "HKG", label: "Hong Kong SAR, China")
+      NewZealandCPI  = register_cpi(code: "nz", iso3: "NZL", label: "New Zealand")
 
       # VND per USD, annual averages. All years land in the single
       # data/fx/usd/_annual.json — the canonical home for annual FX rates.
