@@ -104,6 +104,9 @@ module Tools
         @results[name] = annotate_failure(name, e)
       end
 
+      # Any new fallback path (e.g. provider A fails -> use provider B) MUST also
+      # emit a GitHub ::warning via `annotate_failure` or an equivalent helper,
+      # so degraded runs are visible in PR check output rather than only in logs.
       def annotate_failure(name, error)
         msg = "#{name}: FAILED — #{error.class}: #{error.message}"
         Tools::DataPipeline.log msg
