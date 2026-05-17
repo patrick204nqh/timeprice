@@ -135,10 +135,37 @@ export function renderHero(out) {
     const toCode = showFromCode ? ` ${out.to_currency}` : "";
     const sameDate = out.from_date === out.to_date;
     const tail = sameDate ? "" : ` in ${humanDate(out.to_date)}`;
-    setText("#hero-to", `${toSym}${fmtNumber(out.amount, decimalsFor(out.to_currency))}${toCode}${tail}`);
+    const forecastTag = out.forecast ? " (forecast)" : "";
+    setText("#hero-to", `${toSym}${fmtNumber(out.amount, decimalsFor(out.to_currency))}${toCode}${tail}${forecastTag}`);
   } else {
     const sameDate = fromGemDate(f) === toGemDate(f);
     setText("#hero-to", sameDate ? "…" : `… in ${humanDate(toGemDate(f))}`);
+  }
+}
+
+function renderForecast(out) {
+  const block = document.getElementById("forecast-block");
+  if (!block) return;
+  if (!out.forecast) {
+    block.classList.add("hidden");
+    return;
+  }
+  const fc = out.forecast;
+  const dec = decimalsFor(out.to_currency);
+  block.classList.remove("hidden");
+  setText("#forecast-low",  `${fmtNumber(fc.low,  dec)} ${out.to_currency}`);
+  setText("#forecast-mid",  `${fmtNumber(out.amount, dec)} ${out.to_currency}`);
+  setText("#forecast-high", `${fmtNumber(fc.high, dec)} ${out.to_currency}`);
+  setText(
+    "#forecast-basis",
+    `Basis: trailing ${fc.window_years}y CAGR · last data ${fc.last_known_date} · σ ±${(fc.sigma_pct * 100).toFixed(1)}%/yr · horizon +${fc.horizon_months}mo`,
+  );
+  const caveat = document.getElementById("forecast-caveat");
+  if (fc.warnings && fc.warnings.includes("horizon_exceeds_cap")) {
+    caveat.classList.remove("hidden");
+    setText("#forecast-caveat", "Long-horizon forecast — results are illustrative, not predictive.");
+  } else {
+    caveat.classList.add("hidden");
   }
 }
 
@@ -156,10 +183,12 @@ export function renderResult(out) {
   );
   setText("#calc-meta", metaLine(out));
   renderHero(out);
+  renderForecast(out);
   state.lastResultValid = true;
 }
 
 export function renderError(message) {
+  document.getElementById("forecast-block")?.classList.add("hidden");
   state.lastResultValid = false;
   setResultState("error");
   setText("#calc-amount-out", "—");
@@ -174,6 +203,7 @@ export function renderError(message) {
 }
 
 export function renderEmpty(message = "Warming up Ruby VM…") {
+  document.getElementById("forecast-block")?.classList.add("hidden");
   setResultState("ok");
   setText("#calc-amount-out", "—");
   setText("#calc-detail", message);
