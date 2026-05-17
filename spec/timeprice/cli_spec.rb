@@ -140,6 +140,28 @@ RSpec.describe "timeprice CLI" do
       expect(status.exitstatus).to eq(1)
       expect(err).to match(/\AError: /)
     end
+
+    context "with --forecast flag" do
+      it "prints a (forecast) tag and the low/most-likely/high range" do
+        out, _err, status = run_cli("compare", "100", "--from", "2010 USD", "--to", "2030 VND",
+                                    "--forecast", data_root: REAL_DATA)
+        expect(status.exitstatus).to eq(0)
+        expect(out).to include("forecast")
+        expect(out).to match(/range/)
+        expect(out).to include("basis")
+      end
+
+      it "emits forecast fields under --json" do
+        out, _err, status = run_cli("compare", "100", "--from", "2010 USD", "--to", "2030 VND",
+                                    "--forecast", "--json", data_root: REAL_DATA)
+        expect(status.exitstatus).to eq(0)
+        json = JSON.parse(out)
+        expect(json["granularity"]).to eq("forecast")
+        expect(json.dig("forecast", "low")).to be_a(Numeric)
+        expect(json.dig("forecast", "high")).to be_a(Numeric)
+        expect(json.dig("forecast", "last_known_date")).to match(/\A\d{4}(-\d{2})?\z/)
+      end
+    end
   end
 
   describe "sources" do
