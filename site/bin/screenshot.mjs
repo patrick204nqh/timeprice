@@ -27,8 +27,12 @@ const REPO_ROOT = resolve(SITE_ROOT, "..");
 const DEFAULT_OUT = join(REPO_ROOT, "docs/img/calculator.png");
 const PLAYWRIGHT = resolve(SITE_ROOT, "node_modules/playwright/index.js");
 
+// Default hash showcases the forecast feature: $100 in 2008 → 2030 VND with
+// the toggle on. Pass --hash="" for the bare default-seeded page.
+const DEFAULT_HASH = "from=USD:2008-01-02&to=VND:2030-03&amount=100&forecast=1";
+
 function parseArgs(argv) {
-  const opts = { theme: "dark", out: DEFAULT_OUT, port: 0 };
+  const opts = { theme: "dark", out: DEFAULT_OUT, port: 0, hash: DEFAULT_HASH };
   for (const arg of argv.slice(2)) {
     const m = arg.match(/^--([^=]+)(?:=(.*))?$/);
     if (!m) continue;
@@ -36,6 +40,7 @@ function parseArgs(argv) {
     if (k === "theme") opts.theme = v;
     else if (k === "out") opts.out = resolve(v);
     else if (k === "port") opts.port = Number(v);
+    else if (k === "hash") opts.hash = v ?? "";
   }
   if (!["light", "dark"].includes(opts.theme)) {
     throw new Error(`--theme must be light|dark (got ${opts.theme})`);
@@ -100,7 +105,7 @@ async function main() {
   const { chromium } = await import(PLAYWRIGHT).then((m) => m.default ?? m);
 
   const { server, port } = await startServer(SITE_ROOT, opts.port);
-  const url = `http://127.0.0.1:${port}/index.html`;
+  const url = `http://127.0.0.1:${port}/index.html${opts.hash ? "#" + opts.hash : ""}`;
   console.error(`serving ${SITE_ROOT} at ${url}`);
 
   const browser = await chromium.launch();
