@@ -86,6 +86,12 @@ FX) don't block the forecast — they raise a `horizon_exceeds_cap` warning
 in the result. Run `bundle exec rake forecast:backtest` to see per-country
 MAPE for the bundled data.
 
+On the web calculator the forecast is opt-in per query: when you enter a
+target date past the bundled CPI window, an inline **📈 Forecast this
+date** button appears under the result. A small SVG strip below the result
+visualises the measured series and, when forecast is on, a striped fan band
+for the projected tail.
+
 The first line of each result is the answer — pipe through `head -1` if a
 script only needs the headline figure.
 

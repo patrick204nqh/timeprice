@@ -101,14 +101,16 @@
         <!-- Amount: simple row, label + input -->
         <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
           <label for="calc-amount" class="text-xs font-medium text-stone-600 dark:text-stone-400 sm:w-14 sm:text-right shrink-0">Amount</label>
-          <input id="calc-amount" type="number" step="any" inputmode="decimal" value="100"
-                 class="mono w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
+          <input id="calc-amount" type="text" inputmode="decimal" autocomplete="off" spellcheck="false"
+                 value="100"
+                 class="mono tabular w-full px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
         </div>
 
-        <!-- From row: label + currency + "in" + segmented date + grain pill, reads as one sentence -->
+        <!-- From row: label + currency (50%) + "in" + date (50%) -->
         <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-          <div class="text-xs font-medium text-stone-600 dark:text-stone-400 sm:w-14 sm:text-right shrink-0">From</div>
-          <select id="from-currency" class="mono w-full sm:w-[14rem] px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
+          <label for="from-currency" class="text-xs font-medium text-stone-600 dark:text-stone-400 sm:w-14 sm:text-right shrink-0">From</label>
+          <div class="w-full sm:flex-[6] sm:w-0 sm:min-w-0">
+          <select id="from-currency" class="mono w-full min-w-0 px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
             <option value="AUD">AUD — Australian dollar</option>
             <option value="CAD">CAD — Canadian dollar</option>
             <option value="CNY">CNY — Chinese yuan</option>
@@ -120,8 +122,9 @@
             <option value="USD" selected>USD — US dollar</option>
             <option value="VND">VND — Vietnamese dong</option>
           </select>
-          <div class="when-group flex items-center gap-2 shrink-0" data-side="from">
-            <span class="text-xs text-stone-500" aria-hidden="true">in</span>
+          </div>
+          <span class="text-xs text-stone-500 shrink-0" aria-hidden="true">in</span>
+          <div class="when-group flex items-center gap-2 sm:flex-[4] sm:w-0 sm:min-w-0" data-side="from">
             <div class="when-segmented inline-flex items-stretch rounded-md border border-stone-300 dark:border-stone-700 overflow-hidden divide-x divide-stone-300 dark:divide-stone-700 focus-within:ring-2 focus-within:ring-stone-400 dark:focus-within:ring-stone-500">
               <input id="from-year" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
                      maxlength="4" placeholder="YYYY" aria-label="From year"
@@ -140,8 +143,9 @@
 
         <!-- To row: mirrors From -->
         <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-          <div class="text-xs font-medium text-stone-600 dark:text-stone-400 sm:w-14 sm:text-right shrink-0">To</div>
-          <select id="to-currency" class="mono w-full sm:w-[14rem] px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
+          <label for="to-currency" class="text-xs font-medium text-stone-600 dark:text-stone-400 sm:w-14 sm:text-right shrink-0">To</label>
+          <div class="w-full sm:flex-[6] sm:w-0 sm:min-w-0">
+          <select id="to-currency" class="mono w-full min-w-0 px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
             <option value="AUD">AUD — Australian dollar</option>
             <option value="CAD">CAD — Canadian dollar</option>
             <option value="CNY">CNY — Chinese yuan</option>
@@ -153,8 +157,9 @@
             <option value="USD">USD — US dollar</option>
             <option value="VND" selected>VND — Vietnamese dong</option>
           </select>
-          <div class="when-group flex items-center gap-2 shrink-0" data-side="to">
-            <span class="text-xs text-stone-500" aria-hidden="true">in</span>
+          </div>
+          <span class="text-xs text-stone-500 shrink-0" aria-hidden="true">in</span>
+          <div class="when-group flex items-center gap-2 sm:flex-[4] sm:w-0 sm:min-w-0" data-side="to">
             <div class="when-segmented inline-flex items-stretch rounded-md border border-stone-300 dark:border-stone-700 overflow-hidden divide-x divide-stone-300 dark:divide-stone-700 focus-within:ring-2 focus-within:ring-stone-400 dark:focus-within:ring-stone-500">
               <input id="to-year" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
                      maxlength="4" placeholder="YYYY" aria-label="To year"
@@ -171,24 +176,6 @@
           </div>
         </div>
 
-        <!-- Forecast toggle -->
-        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 pt-1">
-          <div class="sm:w-14 shrink-0" aria-hidden="true"></div>
-          <div class="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="forecast-toggle"
-              class="w-4 h-4 rounded border-stone-300 dark:border-stone-700 text-emerald-700 dark:text-emerald-400 focus:ring-emerald-700 dark:focus:ring-emerald-400"
-            />
-            <label for="forecast-toggle" class="text-sm text-stone-700 dark:text-stone-300">
-              Forecast past bundled data
-              <span class="text-stone-500 dark:text-stone-400 text-xs">
-                (trailing-CAGR, ±1σ band)
-              </span>
-            </label>
-          </div>
-        </div>
-
         <p id="calc-range-hint" class="text-xs text-stone-500"></p>
       </form>
 
@@ -202,6 +189,26 @@
         <div class="tabular text-2xl font-semibold pr-20" id="calc-amount-out">242.09 USD</div>
         <div class="tabular text-sm text-stone-600 dark:text-stone-400" id="calc-detail">100.00 USD in 1990 → 242.09 USD in 2024</div>
         <div class="tabular mt-3 text-xs text-stone-500 mono" id="calc-meta">United States CPI</div>
+        <!-- Inline forecast affordance: surfaces only when validateForm
+             returns `{ offerForecast: true }`. Replaces the old toggle in
+             the form area — it's contextual to the date the user just
+             entered. -->
+        <div id="forecast-affordance" class="hidden mt-3 flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            id="forecast-enable"
+            class="mono text-xs px-2.5 py-1.5 rounded-md border border-emerald-700 dark:border-emerald-400 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950">
+            📈 Forecast this date
+          </button>
+          <span id="forecast-affordance-message" class="text-xs text-stone-500 dark:text-stone-400"></span>
+        </div>
+        <!-- Time-series strip: measured polyline + forecast fan when active.
+             Hidden until the JS chart renderer paints children into it. -->
+        <svg
+          id="result-chart"
+          viewBox="0 0 600 80"
+          aria-hidden="true"
+          class="mt-4 w-full text-emerald-700 dark:text-emerald-400 empty:hidden"></svg>
         <!-- Forecast range / basis / caveat — shown only when out.forecast is present -->
         <div id="forecast-block" class="hidden mt-4 pt-4 border-t border-stone-200 dark:border-stone-800 space-y-2">
           <div class="text-xs font-medium text-stone-500 mb-1">Range</div>

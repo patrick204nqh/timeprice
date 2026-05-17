@@ -82,30 +82,30 @@ describe("writeUrl", () => {
 });
 
 describe("URL forecast param", () => {
-  it("reads forecast=1 into the toggle on load", () => {
+  it("reads forecast=1 into state.form.forecast on load", () => {
     document.body.innerHTML = `
       <input id="calc-amount" />
       <select id="from-currency"><option value="USD" selected>USD</option></select>
       <select id="to-currency"><option value="VND" selected>VND</option></select>
       <input id="from-when" /> <input id="to-when" />
-      <input type="checkbox" id="forecast-toggle" />
     `;
+    state.form.forecast = false;
     location.hash = "#from=USD:2010&to=VND:2030&amount=100&forecast=1";
     readUrl();
-    expect(document.getElementById("forecast-toggle").checked).toBe(true);
+    expect(state.form.forecast).toBe(true);
   });
 
-  it("leaves toggle unchecked when forecast param is absent", () => {
+  it("leaves state.form.forecast false when forecast param is absent", () => {
     document.body.innerHTML = `
       <input id="calc-amount" />
       <select id="from-currency"><option value="USD" selected>USD</option></select>
       <select id="to-currency"><option value="VND" selected>VND</option></select>
       <input id="from-when" /> <input id="to-when" />
-      <input type="checkbox" id="forecast-toggle" />
     `;
+    state.form.forecast = false;
     location.hash = "#from=USD:2010&to=VND:2024&amount=100";
     readUrl();
-    expect(document.getElementById("forecast-toggle").checked).toBe(false);
+    expect(state.form.forecast).toBe(false);
   });
 
   it("writes forecast=1 when state.form.forecast is true, omits it when false", () => {
@@ -172,7 +172,6 @@ describe("URL with forecast=1 + future target — regression for user bug", () =
       <select id="to-currency"><option value="VND" selected>VND</option></select>
       <input id="from-when" />
       <input id="to-when" />
-      <input type="checkbox" id="forecast-toggle" />
     `;
     // countryByCurrency stores full country objects (same shape as applyMetadata builds).
     // widestCpi() reads country.cpi.monthly|quarterly|annual so we must nest correctly.
@@ -186,7 +185,6 @@ describe("URL with forecast=1 + future target — regression for user bug", () =
   it("after readUrl with forecast=1, state.form.forecast is true and validateForm returns null", () => {
     location.hash = "#from=USD:2008-01-02&to=VND:2030-03&amount=100&forecast=1";
     readUrl();
-    expect(document.getElementById("forecast-toggle").checked).toBe(true);
     expect(state.form.forecast).toBe(true);
     expect(state.form.from).toBe("2008-01-02");
     expect(state.form.to).toBe("2030-03");
