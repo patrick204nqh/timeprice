@@ -118,9 +118,10 @@ describe("validateForm", () => {
     expect(msg).toMatch(/United States.*1990/);
   });
 
-  it("flags too-late year against destination CPI end", () => {
+  it("flags too-late year against destination CPI end (offers forecast)", () => {
     const msg = validateForm(form({ to: "2099" }));
-    expect(msg).toMatch(/United States.*2026/);
+    expect(msg).toEqual(expect.objectContaining({ offerForecast: true }));
+    expect(msg.message).toMatch(/United States.*2026/);
   });
 
   it("checks FX bounds when currencies differ and dates match", () => {
@@ -170,10 +171,11 @@ describe("validateForm with forecast toggle", () => {
 
   beforeEach(() => seedBounds());
 
-  it("blocks future target years when forecast is off", () => {
+  it("blocks future target years when forecast is off (and offers forecast)", () => {
     const f = { fromCurrency: "USD", toCurrency: "VND", from: "2010", to: "2050", forecast: false };
     const err = validateForm(f);
-    expect(err).toMatch(/inflation data ends|Pick a year up to/);
+    expect(err).toEqual(expect.objectContaining({ offerForecast: true }));
+    expect(err.message).toMatch(/inflation data ends|Enable Forecast/);
   });
 
   it("allows future target years when forecast is on", () => {
@@ -208,8 +210,8 @@ describe("compute with forecast", () => {
       <select id="to-currency"><option value="VND" selected>VND</option></select>
       <input id="from-when" value="${from}">
       <input id="to-when" value="${to}">
-      <input id="forecast-toggle" type="checkbox" ${forecastChecked ? "checked" : ""}>
     `;
+    state.form.forecast = forecastChecked;
   }
 
   beforeEach(() => {
@@ -217,7 +219,7 @@ describe("compute with forecast", () => {
     state.metadata = { fx: { daily_min: "1999-01-04", daily_max: "2026-05-10" } };
   });
 
-  it("forecast: true is sent to the gem when toggle is on", () => {
+  it("forecast: true is sent to the gem when state.form.forecast is true", () => {
     seedForecastDom({ forecastChecked: true });
     const forecastResult = {
       amount: 1000, original_amount: 100, from_currency: "USD",
@@ -235,7 +237,7 @@ describe("compute with forecast", () => {
     expect(rubySource).toMatch(/forecast:\s*true/);
   });
 
-  it("forecast: false is sent to the gem when toggle is off", () => {
+  it("forecast: false is sent to the gem when state.form.forecast is false", () => {
     seedForecastDom({ forecastChecked: false });
     const normalResult = {
       amount: 1000, original_amount: 100, from_currency: "USD",

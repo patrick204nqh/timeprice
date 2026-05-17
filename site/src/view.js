@@ -3,6 +3,8 @@ import { state } from "./state.js";
 import { CURRENCY_SYMBOLS } from "./data.js";
 import { countryFor, countryNameFor } from "./lookups.js";
 import { fromGemDate, toGemDate } from "./compute.js";
+import * as affordance from "./affordance.js";
+import { renderChart } from "./chart.js";
 
 // All DOM-as-output for the calculator. Inputs come from `state.form` and
 // the optional `out` value returned by the VM. Nothing here reaches into
@@ -184,16 +186,28 @@ export function renderResult(out) {
   setText("#calc-meta", metaLine(out));
   renderHero(out);
   renderForecast(out);
+  affordance.hide();
   state.lastResultValid = true;
 }
 
-export function renderError(message) {
+export function renderError(reason) {
   document.getElementById("forecast-block")?.classList.add("hidden");
   state.lastResultValid = false;
   setResultState("error");
   setText("#calc-amount-out", "—");
+  // `reason` may be a plain string OR a `{ offerForecast, message }` marker
+  // from validateForm. The marker means "this is recoverable by turning on
+  // forecast" — surface the inline affordance instead of a flat error.
+  const isOffer = reason && typeof reason === "object" && reason.offerForecast;
+  const message = isOffer ? reason.message : reason;
   setText("#calc-detail", message);
   setText("#calc-meta", "");
+  if (isOffer) {
+    affordance.show(reason);
+  } else {
+    affordance.hide();
+  }
+  renderChart([]);
   // Update only the "from" half, then plant a permanent em-dash on the
   // "to" side — leaving "…" there reads as "still computing," when in fact
   // we've given up. Em-dash + muted colour = "no value."
@@ -204,6 +218,8 @@ export function renderError(message) {
 
 export function renderEmpty(message = "Warming up Ruby VM…") {
   document.getElementById("forecast-block")?.classList.add("hidden");
+  affordance.hide();
+  renderChart([]);
   setResultState("ok");
   setText("#calc-amount-out", "—");
   setText("#calc-detail", message);

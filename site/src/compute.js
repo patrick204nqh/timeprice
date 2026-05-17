@@ -2,6 +2,7 @@ import { $ } from "./dom.js";
 import { state } from "./state.js";
 import { widestCpi, countryNameFor } from "./lookups.js";
 import { renderResult, renderError, renderEmpty } from "./view.js";
+import { renderChart } from "./chart.js";
 
 // Form reading, validation, and the VM call. Rendering is in view.js;
 // input min/max sync is in bounds.js. This module owns the orchestration
@@ -18,6 +19,17 @@ import { renderResult, renderError, renderEmpty } from "./view.js";
 // through unchanged.
 export const DATE_SHAPE = /^\d{4}(-\d{2}(-\d{2})?)?$/;
 const DATE_FORMAT_HINT = "Use YYYY, YYYY-MM, or YYYY-MM-DD (e.g. 2008, 2008-03, 2008-03-14).";
+
+// The amount input is `type="text"` so it can carry thousands separators
+// while the user is editing. Strip everything that isn't a digit, decimal
+// point, or leading minus before parsing. Returns 0 on garbage — same
+// fallback as the old `parseFloat(...) || 0`.
+export function parseAmount(raw) {
+  if (raw == null) return 0;
+  const cleaned = String(raw).replace(/[^0-9.\-]/g, "");
+  const n = parseFloat(cleaned);
+  return Number.isFinite(n) ? n : 0;
+}
 
 export function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -36,12 +48,14 @@ export function readForm() {
   const fromRaw = ($("#from-when")?.value || "").trim();
   const toRaw = ($("#to-when")?.value || "").trim();
   state.form = {
-    amount: parseFloat($("#calc-amount").value) || 0,
+    amount: parseAmount($("#calc-amount")?.value),
     fromCurrency: $("#from-currency").value,
     from: fromRaw,
     toCurrency: $("#to-currency").value,
     to: toRaw,
-    forecast: $("#forecast-toggle")?.checked ?? false,
+    // forecast lives in state.form (the affordance writes there directly,
+    // and readUrl seeds it). No DOM element to read it from.
+    forecast: state.form?.forecast ?? false,
   };
 }
 
@@ -102,9 +116,14 @@ export function validateForm(f) {
           ? `${cName} inflation data ends ${max}. The forecast extrapolates forward, so the source year must still be measured.`
           : `${cName} inflation data ends ${max}. Pick a year up to ${max}.`;
       }
-      // Target year past data: blocked only when forecast is off.
+      // Target year past data: still blocked when forecast is off, but the
+      // marker carries `offerForecast: true` so the view layer can swap the
+      // plain error for an inline "enable forecast" affordance.
       if (toYear > max && !f.forecast) {
-        return `${cName} inflation data ends ${max}. Pick a year up to ${max}, or enable Forecast.`;
+        return {
+          offerForecast: true,
+          message: `${cName} inflation data ends ${max}. Enable Forecast to project past ${max}.`,
+        };
       }
     }
   }
@@ -162,6 +181,7 @@ export function compute() {
       fx_rate: 1,
       cpi_ratio: 1,
     });
+    renderChart([]);
     return;
   }
 
@@ -185,9 +205,33 @@ export function compute() {
       JSON.generate(r.to_h)
     `);
     renderResult(JSON.parse(rb.toString()));
+    renderSeries(f);
   } catch (e) {
     console.error(e);
     const raw = (e && e.message) ? String(e.message) : String(e);
     renderError(humaniseError(raw));
+    renderChart([]);
+  }
+}
+
+// Second VM eval to populate the time-series strip. Kept off the main
+// compute path: if it throws (or the gem method isn't there in older
+// builds), the chart silently clears rather than breaking the headline.
+function renderSeries(f) {
+  if (!state.vm) return;
+  try {
+    const rb = state.vm.eval(`
+      require "timeprice"
+      JSON.generate(Timeprice::Compare.series_for(
+        from:     ["${f.fromCurrency}", "${fromGemDate(f)}"],
+        to:       ["${f.toCurrency}",   "${toGemDate(f)}"],
+        amount:   ${f.amount},
+        forecast: ${f.forecast ? "true" : "false"}
+      ))
+    `);
+    renderChart(JSON.parse(rb.toString()));
+  } catch (e) {
+    console.warn("series eval failed", e);
+    renderChart([]);
   }
 }

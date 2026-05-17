@@ -19,9 +19,9 @@ export function readUrl() {
   if (amount) $("#calc-amount").value = amount;
   if (from) applyPoint(from, "from");
   if (to)   applyPoint(to, "to");
-  if (forecast === "1" && $("#forecast-toggle")) {
-    $("#forecast-toggle").checked = true;
-  }
+  // Forecast lives in state.form (the affordance writes there directly).
+  // Seed it before readForm so the next compute carries the flag through.
+  if (forecast === "1") state.form.forecast = true;
   readForm();
 }
 
