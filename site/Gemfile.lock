@@ -1,7 +1,7 @@
 PATH
   remote: ..
   specs:
-    timeprice (0.7.0)
+    timeprice (0.8.0)
 
 GEM
   remote: https://rubygems.org/
@@ -47,7 +47,7 @@ CHECKSUMS
   ruby_wasm (2.9.4-x86_64-darwin) sha256=f9bf6860beb268c3375d91fd085be2f309a6bd80a21ae4768b2533fb042a589b
   ruby_wasm (2.9.4-x86_64-linux) sha256=0d5e19430745742c09f35167d58586ce68c7f124090c722b8e4f9c21b6adc943
   ruby_wasm (2.9.4-x86_64-linux-musl) sha256=05eba60cfb90b2e69068b4bc0b7a2ac74031c9387b4cd3d8094487b161bc31d7
-  timeprice (0.7.0)
+  timeprice (0.8.0)
 
 BUNDLED WITH
   4.0.8

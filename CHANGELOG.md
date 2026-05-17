@@ -5,6 +5,50 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-05-17
+
+### Added
+- **Offline forecasting past the bundled data.** New `Timeprice::Forecast`
+  module: `CpiForecaster.project` and `FxForecaster.project` use a
+  trailing-window CAGR for the point estimate and ±1σ of year-over-year
+  changes for the band. Pure-Ruby, deterministic, no network calls or
+  stats dependencies. Defaults: 10-year window for CPI, 5-year for FX;
+  horizon caps 5y CPI / 2y FX (caps raise `horizon_exceeds_cap`
+  warnings, they don't block). `Forecast::Result` is a frozen value
+  object with `value`, `low`, `high`, `projection_method`, `sigma_pct`,
+  `last_known_date`, `target_date`, `horizon_months`, `basis_kind`,
+  `warnings`. `Timeprice.forecast(...)` is the public dispatcher.
+- `Timeprice.compare` accepts `forecast: true`; when the target date
+  is past the bundled CPI window the result carries a populated
+  `forecast: { basis_kind:, projection_method:, window_years:,
+  sigma_pct:, last_known_date:, horizon_months:, low:, high:,
+  warnings: }` block and `granularity: :forecast`.
+- CLI: `timeprice compare --forecast` prints the range, basis, and
+  caveats; `--json` exposes the same fields machine-readably.
+- `Timeprice::Compare.series_for(from:, to:, forecast:, amount:)` returns
+  annual sample points for the chart strip; forecast points carry
+  `:low` / `:high` for the ±1σ band.
+- `rake forecast:backtest` reports per-country MAPE for the bundled
+  data with assertions, so accuracy regressions are caught in CI.
+
+### Web calculator
+- Inline **📈 Forecast this date** affordance replaces the old form-level
+  checkbox. It only appears when the entered target year is past the
+  destination country's bundled CPI window. Clicking toggles
+  `state.form.forecast` and re-computes; the toggle round-trips through
+  the existing `&forecast=1` URL param.
+- New SVG strip beneath the result paints the measured polyline, the
+  dashed forecast line, a striped ±1σ fan, and tick labels — answers
+  "how did we get this number?" visually.
+- Amount input now carries locale thousands separators with a
+  caret-preserving live formatter; `parseAmount` strips them before
+  parsing.
+- From/To rows reflow to `label + currency (60%) + 'in' + date (40%)`
+  on a single line, all three form rows ending at the same right edge.
+- Footer meta line ("refreshed …, gem v…") now hydrates from
+  `Timeprice.metadata` at boot; the HTML carries placeholders only, so
+  releases no longer hand-edit the index.
+
 ### Changed
 - `thor` is now a development dependency, not a runtime dependency. The
   CLI (`exe/timeprice`) still works exactly as before, but users who only

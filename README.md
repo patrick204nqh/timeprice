@@ -142,7 +142,7 @@ without hardcoding what the gem already knows.
 ```ruby
 Timeprice.metadata
 # => {
-#   version: "0.7.0",
+#   version: "0.8.0",
 #   generated_at: "2026-05-12",
 #   countries: [
 #     { code: "US", name: "United States", currency: "USD",
