@@ -7,6 +7,7 @@ require_relative "inflation"
 require_relative "exchange"
 require_relative "granularity"
 require_relative "cpi_lookup"
+require_relative "compare/series"
 
 module Timeprice
   CompareResult = Data.define(
