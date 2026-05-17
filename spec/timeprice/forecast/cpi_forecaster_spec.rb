@@ -68,5 +68,17 @@ RSpec.describe Timeprice::Forecast::CpiForecaster do
       expect(result.horizon_months).to eq(36)
       expect(result.value).to be > 100.0 * (1.04**15) # higher than last measured
     end
+
+    it "raises DataNotFound when both monthly and annual series are empty" do
+      empty = {
+        "schema_version" => 3, "country" => "ZZ",
+        "series" => { "monthly" => {}, "annual" => {} }
+      }
+      allow(Timeprice::DataLoader).to receive(:load_cpi).with("ZZ").and_return(empty)
+
+      expect do
+        described_class.project(country: "ZZ", target: "2030", window_years: 10)
+      end.to raise_error(Timeprice::DataNotFound, /no CPI series/)
+    end
   end
 end

@@ -24,9 +24,12 @@ module Timeprice
       def project(country:, target:, window_years: DEFAULT_WINDOW_YEARS)
         series = load_series(country)
         last_key, last_value = last_entry(series)
-        warnings = build_warnings(series, last_key, target, window_years)
+        horizon_months = months_between(last_key, target)
+        warnings = build_warnings(series, last_key, window_years, horizon_months)
         stats = Cagr.compute(series: series, last_date: last_key, window_years: window_years)
-        build_result(last_key, last_value, target, { window_years: window_years, stats: stats, warnings: warnings })
+        build_result(last_key: last_key, last_value: last_value, target: target,
+                     horizon_months: horizon_months, window_years: window_years,
+                     stats: stats, warnings: warnings)
       end
 
       # Prefer monthly when present; fall back to annual.
@@ -56,36 +59,30 @@ module Timeprice
         [last_key, series[last_key].to_f]
       end
 
-      def build_warnings(series, last_key, target, window_years)
+      def build_warnings(series, last_key, window_years, horizon_months)
         warnings = []
         earliest = series.keys.map { |k| Cagr.parse(k).year }.min
         warnings << "insufficient_window" if Cagr.parse(last_key).year - window_years < earliest
-        horizon_months = months_between(last_key, target)
         warnings << "horizon_exceeds_cap" if horizon_months > HORIZON_CAP_YEARS * 12
         warnings.uniq
       end
 
-      def build_result(last_key, last_value, target, opts)
-        window_years = opts[:window_years]
-        stats = opts[:stats]
-        warnings = opts[:warnings]
-        horizon_months = months_between(last_key, target)
+      def build_result(last_key:, last_value:, target:, horizon_months:, window_years:, stats:, warnings:)
         years_forward = horizon_months / 12.0
-        cagr = stats[:cagr]
-        sigma = stats[:sigma_yoy]
+        value = last_value * ((1.0 + stats[:cagr])**years_forward)
+        low   = last_value * ((1.0 + stats[:cagr] - stats[:sigma_yoy])**years_forward)
+        high  = last_value * ((1.0 + stats[:cagr] + stats[:sigma_yoy])**years_forward)
 
         Forecast::Result.new(
-          value: last_value * ((1.0 + cagr)**years_forward),
-          low: last_value * ((1.0 + cagr - sigma)**years_forward),
-          high: last_value * ((1.0 + cagr + sigma)**years_forward),
+          value: value, low: low, high: high,
           projection_method: "cagr_trailing",
           window_years: window_years,
-          sigma_pct: sigma,
+          sigma_pct: stats[:sigma_yoy],
           last_known_date: last_key,
           target_date: target,
           horizon_months: horizon_months,
           basis_kind: :cpi,
-          warnings: warnings
+          warnings: warnings.uniq
         )
       end
     end
