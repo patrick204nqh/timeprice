@@ -28,6 +28,8 @@ module Timeprice
               low: round_money(fc[:low], @result.to_currency),
               high: round_money(fc[:high], @result.to_currency)
             )
+          else
+            base.delete(:forecast)
           end
           base
         end
