@@ -53,6 +53,11 @@ export function bindCalcForm() {
     el.addEventListener("change", onInput);
   }
 
+  $("#forecast-toggle")?.addEventListener("change", () => {
+    compute();
+    writeUrl();
+  });
+
   $("#calc-form").addEventListener("submit", (e) => {
     e.preventDefault();
     clearTimeout(calcTimer);

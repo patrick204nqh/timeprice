@@ -41,6 +41,7 @@ export function readForm() {
     from: fromRaw,
     toCurrency: $("#to-currency").value,
     to: toRaw,
+    forecast: $("#forecast-toggle")?.checked ?? false,
   };
 }
 
