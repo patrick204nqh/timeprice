@@ -236,6 +236,10 @@ components:
     border: "1px {colors.hairline-input}"
     padding: 8px 12px
     hoverBackground: "{colors.surface-inset}"
+  forecast-indicator:
+    appearance: "striped emerald fill (45° stripes, 6px) for the forecast portion of the timeline"
+    low-high-band: "stone-700/300 (not emerald) to read as muted alternatives"
+    caveat-pill: "amber-500 text + amber-50 background when horizon_exceeds_cap warning is present"
   install-card:
     backgroundColor: "transparent"
     textColor: "{colors.ink}"
