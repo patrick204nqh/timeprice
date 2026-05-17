@@ -15,7 +15,7 @@ RSpec.describe Timeprice::Forecast::Cagr do
 
       result = described_class.compute(series: series, last_date: "2025-01", window_years: 10)
 
-      expect(result[:cagr]).to be_within(1e-6).of(0.05)
+      expect(result[:cagr]).to be_within(1e-4).of(0.05)
       expect(result[:sigma_yoy]).to be_within(1e-6).of(0.0)
       expect(result[:window_start]).to eq("2015-01")
       expect(result[:window_end]).to eq("2025-01")
@@ -29,7 +29,7 @@ RSpec.describe Timeprice::Forecast::Cagr do
       }
       result = described_class.compute(series: series, last_date: "2025-01", window_years: 5)
       expect(result[:cagr]).to be_within(1e-3).of(((120.0 / 100.0)**(1.0 / 5)) - 1.0)
-      expect(result[:sigma_yoy]).to be > 0.01
+      expect(result[:sigma_yoy]).to be_within(1e-6).of(0.02205010909620981)
       expect(result[:samples]).to eq(6)
     end
 
@@ -42,9 +42,18 @@ RSpec.describe Timeprice::Forecast::Cagr do
     it "accepts annual-only series" do
       series = (2015..2025).to_h { |y| [y.to_s, 100.0 * (1.04**(y - 2015))] }
       result = described_class.compute(series: series, last_date: "2025", window_years: 10)
-      expect(result[:cagr]).to be_within(1e-6).of(0.04)
+      expect(result[:cagr]).to be_within(1e-4).of(0.04)
       expect(result[:window_start]).to eq("2015")
       expect(result[:window_end]).to eq("2025")
+    end
+
+    it "raises when first window value is non-positive" do
+      expect do
+        described_class.compute(
+          series: { "2020-01" => 0.0, "2025-01" => 100.0 },
+          last_date: "2025-01", window_years: 5
+        )
+      end.to raise_error(ArgumentError, /first window value must be positive/)
     end
   end
 end

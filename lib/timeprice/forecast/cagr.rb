@@ -33,19 +33,28 @@ module Timeprice
 
         fail ArgumentError, "need at least 2 points in window" if sorted.size < 2
 
-        first_v = sorted.first.last.to_f
-        last_v  = sorted.last.last.to_f
-        cagr = ((last_v / first_v)**(1.0 / window_years)) - 1.0
-
-        sigma = stdev_of_yoy(sorted)
+        cagr = annualised_return(sorted)
 
         {
           cagr: cagr,
-          sigma_yoy: sigma,
+          sigma_yoy: stdev_of_yoy(sorted),
           window_start: sorted.first.first,
           window_end: sorted.last.first,
           samples: sorted.size,
         }
+      end
+
+      def annualised_return(sorted)
+        first_v = sorted.first.last.to_f
+        last_v  = sorted.last.last.to_f
+
+        fail ArgumentError, "first window value must be positive (got #{first_v})" unless first_v.positive?
+        fail ArgumentError, "last window value must be positive (got #{last_v})"   unless last_v.positive?
+
+        years_elapsed = (parse(sorted.last.first) - parse(sorted.first.first)) / 365.2425
+        fail ArgumentError, "window has zero elapsed time" unless years_elapsed.positive?
+
+        ((last_v / first_v)**(1.0 / years_elapsed)) - 1.0
       end
 
       def parse(s)
@@ -65,7 +74,7 @@ module Timeprice
         d.between?(start_date, end_date)
       end
 
-      # Stdev of 1-year-spaced log returns (annualized YoY changes).
+      # Stdev of simple (arithmetic) 1-year-spaced returns within the window.
       # Returns 0.0 when fewer than 2 paired samples exist.
       def stdev_of_yoy(sorted)
         by_date = sorted.to_h
