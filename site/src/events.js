@@ -107,6 +107,11 @@ export function bindCalcForm() {
 
   affordance.bind({ compute, writeUrl });
 
+  $("#forecast-toggle")?.addEventListener("change", () => {
+    compute();
+    writeUrl();
+  });
+
   $("#calc-form").addEventListener("submit", (e) => {
     e.preventDefault();
     clearTimeout(calcTimer);
