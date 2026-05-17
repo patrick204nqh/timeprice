@@ -240,6 +240,18 @@ components:
     appearance: "striped emerald fill (45° stripes, 6px) for the forecast portion of the timeline"
     low-high-band: "stone-700/300 (not emerald) to read as muted alternatives"
     caveat-pill: "amber-500 text + amber-50 background when horizon_exceeds_cap warning is present"
+  forecast-affordance:
+    appearance: "small monospace pill button inside the result block"
+    label: "📈 Forecast this date (toggles to ✕ Disable forecast when active)"
+    color: "emerald-700 border + text (matches hero accent); hover emerald-50 background"
+    surfaces: "only when validateForm returns { offerForecast: true } — i.e. the user picked a target past the bundled CPI window with forecast off"
+  result-chart:
+    appearance: "inline SVG strip beneath the meta line, 320×80 viewBox, fluid-width"
+    measured-line: "1.5px solid emerald polyline"
+    forecast-line: "1.5px dashed emerald polyline (3 3 dasharray, 70% opacity)"
+    fan: "45° emerald stripes (6px) between low and high"
+    handoff: "0.5px dashed vertical line at last measured x (35% opacity) — visual break between known and projected"
+    ticks: "9px year labels every 5 years (10y for spans over 40y) at 55% opacity"
   install-card:
     backgroundColor: "transparent"
     textColor: "{colors.ink}"
