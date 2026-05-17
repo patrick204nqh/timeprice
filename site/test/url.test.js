@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { readUrl, writeUrl, applyPoint } from "../src/url.js";
-import { readForm, todayIso } from "../src/compute.js";
+import { readForm, todayIso, validateForm } from "../src/compute.js";
 import { state } from "../src/state.js";
 
 // Minimal calculator DOM. url.js writes into the same `#from-when`/`#to-when`
@@ -161,5 +161,37 @@ describe("URL round-trip", () => {
     readForm();
     expect(state.form.from).toBe("");
     expect(state.form.to).toBe(today);
+  });
+});
+
+describe("URL with forecast=1 + future target — regression for user bug", () => {
+  beforeEach(() => {
+    document.body.innerHTML = `
+      <input id="calc-amount" value="100" />
+      <select id="from-currency"><option value="USD" selected>USD</option></select>
+      <select id="to-currency"><option value="VND" selected>VND</option></select>
+      <input id="from-when" />
+      <input id="to-when" />
+      <input type="checkbox" id="forecast-toggle" />
+    `;
+    // countryByCurrency stores full country objects (same shape as applyMetadata builds).
+    // widestCpi() reads country.cpi.monthly|quarterly|annual so we must nest correctly.
+    state.countryByCurrency = new Map([
+      ["USD", { code: "US", name: "United States", currency: "USD", cpi: { monthly: { min: "1990-01", max: "2026-03" } } }],
+      ["VND", { code: "VN", name: "Vietnam",       currency: "VND", cpi: { monthly: { min: "2001-01", max: "2026-03" } } }],
+    ]);
+    state.metadata = { fx: { daily_min: "1999-01-04", daily_max: "2026-04-30" } };
+  });
+
+  it("after readUrl with forecast=1, state.form.forecast is true and validateForm returns null", () => {
+    location.hash = "#from=USD:2008-01-02&to=VND:2030-03&amount=100&forecast=1";
+    readUrl();
+    expect(document.getElementById("forecast-toggle").checked).toBe(true);
+    expect(state.form.forecast).toBe(true);
+    expect(state.form.from).toBe("2008-01-02");
+    expect(state.form.to).toBe("2030-03");
+
+    const err = validateForm(state.form);
+    expect(err).toBeNull();
   });
 });
