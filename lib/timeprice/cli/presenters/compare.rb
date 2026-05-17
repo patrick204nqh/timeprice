@@ -72,7 +72,7 @@ module Timeprice
             "            sigma ±#{format("%.1f", fc[:sigma_pct] * 100)}%/yr · horizon +#{fc[:horizon_months]}mo",
           ]
           if fc[:warnings].include?("horizon_exceeds_cap")
-            extra << "  caveat    forecasts past 5y are illustrative, not predictive"
+            extra << "  caveat    long-horizon forecast: results are illustrative, not predictive"
           end
           extra
         end

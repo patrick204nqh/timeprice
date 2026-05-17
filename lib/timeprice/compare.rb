@@ -131,7 +131,6 @@ module Timeprice
     # Returns true when to_point.date is past the destination country's last
     # bundled CPI date.
     def future_target?(to_point, to_country)
-      require_relative "forecast/cpi_forecaster"
       data   = DataLoader.load_cpi(to_country)
       series = Forecast::CpiForecaster.pick_series(data)
       last   = series.keys.max_by { |k| Forecast::Cagr.parse(k) }
@@ -164,7 +163,7 @@ module Timeprice
     def forecast_hash(cpi_fwd:, converted:, source_cpi:)
       {
         basis_kind: cpi_fwd.basis_kind,
-        method: cpi_fwd.projection_method,
+        projection_method: cpi_fwd.projection_method,
         window_years: cpi_fwd.window_years,
         sigma_pct: cpi_fwd.sigma_pct,
         last_known_date: cpi_fwd.last_known_date,
