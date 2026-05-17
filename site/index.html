@@ -109,7 +109,7 @@
         <!-- From row: label + currency (50%) + "in" + date (50%) -->
         <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
           <label for="from-currency" class="text-xs font-medium text-stone-600 dark:text-stone-400 sm:w-14 sm:text-right shrink-0">From</label>
-          <select id="from-currency" class="mono w-full sm:flex-1 sm:w-0 sm:min-w-0 px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
+          <select id="from-currency" class="mono w-full sm:flex-[6] sm:w-0 sm:min-w-0 px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
             <option value="AUD">AUD — Australian dollar</option>
             <option value="CAD">CAD — Canadian dollar</option>
             <option value="CNY">CNY — Chinese yuan</option>
@@ -122,7 +122,7 @@
             <option value="VND">VND — Vietnamese dong</option>
           </select>
           <span class="text-xs text-stone-500 shrink-0" aria-hidden="true">in</span>
-          <div class="when-group flex items-center gap-2 sm:flex-1 sm:w-0 sm:min-w-0 justify-end" data-side="from">
+          <div class="when-group flex items-center gap-2 sm:flex-[4] sm:w-0 sm:min-w-0 justify-end" data-side="from">
             <div class="when-segmented inline-flex items-stretch rounded-md border border-stone-300 dark:border-stone-700 overflow-hidden divide-x divide-stone-300 dark:divide-stone-700 focus-within:ring-2 focus-within:ring-stone-400 dark:focus-within:ring-stone-500">
               <input id="from-year" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
                      maxlength="4" placeholder="YYYY" aria-label="From year"
@@ -142,7 +142,7 @@
         <!-- To row: mirrors From -->
         <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
           <label for="to-currency" class="text-xs font-medium text-stone-600 dark:text-stone-400 sm:w-14 sm:text-right shrink-0">To</label>
-          <select id="to-currency" class="mono w-full sm:flex-1 sm:w-0 sm:min-w-0 px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
+          <select id="to-currency" class="mono w-full sm:flex-[6] sm:w-0 sm:min-w-0 px-3 py-2 rounded-md border border-stone-300 dark:border-stone-700 bg-transparent">
             <option value="AUD">AUD — Australian dollar</option>
             <option value="CAD">CAD — Canadian dollar</option>
             <option value="CNY">CNY — Chinese yuan</option>
@@ -155,7 +155,7 @@
             <option value="VND" selected>VND — Vietnamese dong</option>
           </select>
           <span class="text-xs text-stone-500 shrink-0" aria-hidden="true">in</span>
-          <div class="when-group flex items-center gap-2 sm:flex-1 sm:w-0 sm:min-w-0 justify-end" data-side="to">
+          <div class="when-group flex items-center gap-2 sm:flex-[4] sm:w-0 sm:min-w-0 justify-end" data-side="to">
             <div class="when-segmented inline-flex items-stretch rounded-md border border-stone-300 dark:border-stone-700 overflow-hidden divide-x divide-stone-300 dark:divide-stone-700 focus-within:ring-2 focus-within:ring-stone-400 dark:focus-within:ring-stone-500">
               <input id="to-year" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
                      maxlength="4" placeholder="YYYY" aria-label="To year"
