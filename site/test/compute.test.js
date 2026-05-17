@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { humaniseError, validateForm, readForm, todayIso, DATE_SHAPE, fromGemDate, toGemDate } from "../src/compute.js";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { humaniseError, validateForm, readForm, todayIso, DATE_SHAPE, fromGemDate, toGemDate, compute } from "../src/compute.js";
 import { state } from "../src/state.js";
 
 const form = (overrides = {}) => ({
@@ -156,5 +156,99 @@ describe("validateForm", () => {
     // Same currency, dates within CPI window — no FX bound to violate.
     const f = form({ from: "1995", to: "2024" });
     expect(validateForm(f)).toBeNull();
+  });
+});
+
+describe("validateForm with forecast toggle", () => {
+  function seedBounds() {
+    state.countryByCurrency = new Map([
+      ["USD", { code: "US", name: "United States", currency: "USD", cpi: { monthly: { min: "1990-01", max: "2026-03" }, annual: { min: "1990", max: "2025" } } }],
+      ["VND", { code: "VN", name: "Vietnam",       currency: "VND", cpi: { monthly: { min: "1995-01", max: "2026-03" }, annual: { min: "1995", max: "2025" } } }],
+    ]);
+    state.metadata = { fx: { daily_min: "1999-01-04", daily_max: "2026-05-10" } };
+  }
+
+  beforeEach(() => seedBounds());
+
+  it("blocks future target years when forecast is off", () => {
+    const f = { fromCurrency: "USD", toCurrency: "VND", from: "2010", to: "2050", forecast: false };
+    const err = validateForm(f);
+    expect(err).toMatch(/inflation data ends|Pick a year up to/);
+  });
+
+  it("allows future target years when forecast is on", () => {
+    const f = { fromCurrency: "USD", toCurrency: "VND", from: "2010", to: "2030", forecast: true };
+    const err = validateForm(f);
+    expect(err).toBeNull();
+  });
+
+  it("still blocks pre-data dates when forecast is on", () => {
+    const f = { fromCurrency: "USD", toCurrency: "VND", from: "1850", to: "2030", forecast: true };
+    const err = validateForm(f);
+    expect(err).toMatch(/starts/);
+  });
+
+  it("still blocks source years past data even when forecast is on", () => {
+    const f = { fromCurrency: "USD", toCurrency: "VND", from: "2050", to: "2060", forecast: true };
+    const err = validateForm(f);
+    expect(err).toMatch(/must still be measured|inflation data ends/);
+  });
+});
+
+describe("compute with forecast", () => {
+  const countryByCurrency = new Map([
+    ["USD", { code: "US", name: "United States", currency: "USD", cpi: { monthly: { min: "1990-01", max: "2026-03" }, annual: { min: "1990", max: "2025" } } }],
+    ["VND", { code: "VN", name: "Vietnam",       currency: "VND", cpi: { monthly: { min: "1995-01", max: "2026-03" }, annual: { min: "1995", max: "2025" } } }],
+  ]);
+
+  function seedForecastDom({ from = "2010", to = "2024", forecastChecked = false } = {}) {
+    document.body.innerHTML = `
+      <input id="calc-amount" value="100">
+      <select id="from-currency"><option value="USD" selected>USD</option></select>
+      <select id="to-currency"><option value="VND" selected>VND</option></select>
+      <input id="from-when" value="${from}">
+      <input id="to-when" value="${to}">
+      <input id="forecast-toggle" type="checkbox" ${forecastChecked ? "checked" : ""}>
+    `;
+  }
+
+  beforeEach(() => {
+    state.countryByCurrency = countryByCurrency;
+    state.metadata = { fx: { daily_min: "1999-01-04", daily_max: "2026-05-10" } };
+  });
+
+  it("forecast: true is sent to the gem when toggle is on", () => {
+    seedForecastDom({ forecastChecked: true });
+    const forecastResult = {
+      amount: 1000, original_amount: 100, from_currency: "USD",
+      to_currency: "VND", from_date: "2010", to_date: "2024",
+      granularity: "forecast", fx_rate: 18000, cpi_ratio: 2.3,
+      forecast: { low: 950, high: 1050, last_known_date: "2026-03", warnings: [] },
+    };
+    const evalSpy = vi.fn(() => ({ toString: () => JSON.stringify(forecastResult) }));
+    state.vm = { eval: evalSpy };
+
+    compute();
+
+    expect(evalSpy.mock.calls.length).toBeGreaterThan(0);
+    const rubySource = evalSpy.mock.calls[0][0];
+    expect(rubySource).toMatch(/forecast:\s*true/);
+  });
+
+  it("forecast: false is sent to the gem when toggle is off", () => {
+    seedForecastDom({ forecastChecked: false });
+    const normalResult = {
+      amount: 1000, original_amount: 100, from_currency: "USD",
+      to_currency: "VND", from_date: "2010", to_date: "2024",
+      granularity: "annual", fx_rate: 18000, cpi_ratio: 2.3,
+    };
+    const evalSpy = vi.fn(() => ({ toString: () => JSON.stringify(normalResult) }));
+    state.vm = { eval: evalSpy };
+
+    compute();
+
+    expect(evalSpy.mock.calls.length).toBeGreaterThan(0);
+    const rubySource = evalSpy.mock.calls[0][0];
+    expect(rubySource).toMatch(/forecast:\s*false/);
   });
 });

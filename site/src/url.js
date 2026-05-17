@@ -15,9 +15,13 @@ export function readUrl() {
   const from = params.get("from");
   const to = params.get("to");
   const amount = params.get("amount");
+  const forecast = params.get("forecast");
   if (amount) $("#calc-amount").value = amount;
   if (from) applyPoint(from, "from");
   if (to)   applyPoint(to, "to");
+  if (forecast === "1" && $("#forecast-toggle")) {
+    $("#forecast-toggle").checked = true;
+  }
   readForm();
 }
 
@@ -51,10 +55,12 @@ export function applyPoint(spec, side) {
 
 export function writeUrl() {
   const f = state.form;
-  const params = new URLSearchParams({
+  const entries = {
     from:   f.from ? `${f.fromCurrency}:${f.from}` : f.fromCurrency,
     to:     f.to   ? `${f.toCurrency}:${f.to}`     : f.toCurrency,
     amount: String(f.amount),
-  });
+  };
+  if (f.forecast) entries.forecast = "1";
+  const params = new URLSearchParams(entries);
   history.replaceState(null, "", `#${params.toString()}`);
 }

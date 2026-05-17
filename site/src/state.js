@@ -14,6 +14,7 @@ export const state = {
     amount: 100,
     fromCurrency: "USD", from: "",
     toCurrency: "USD",   to: "",
+    forecast: false,
   },
   // Tracks whether the last render reflects a successful Ruby computation.
   // Drives renderSnippet() — copying a `Timeprice.compare(...)` call that

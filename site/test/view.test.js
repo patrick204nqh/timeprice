@@ -16,6 +16,13 @@ function seedDom() {
     <div id="calc-amount-out"></div>
     <div id="calc-detail"></div>
     <div id="calc-meta"></div>
+    <div id="forecast-block" class="hidden">
+      <div id="forecast-low"></div>
+      <div id="forecast-mid"></div>
+      <div id="forecast-high"></div>
+      <div id="forecast-basis"></div>
+      <div id="forecast-caveat" class="hidden"></div>
+    </div>
     <pre id="snippet"></pre>
   `;
 }
@@ -124,6 +131,77 @@ describe("renderResult", () => {
     expect(to.classList.contains("dark:text-emerald-400")).toBe(true);
     expect(to.classList.contains("tabular")).toBe(true);
     expect(to.classList.contains("text-stone-500")).toBe(false);
+  });
+});
+
+describe("renderResult with forecast", () => {
+  beforeEach(() => {
+    seedDom();
+    state.form = baseForm();
+    state.lastResultValid = false;
+  });
+
+  it("populates the forecast block and tags the hero", () => {
+    renderResult({
+      amount: 4297876, original_amount: 100,
+      from_currency: "USD", to_currency: "VND",
+      from_date: "2010", to_date: "2030",
+      granularity: "forecast",
+      fx_rate: 18612.92, cpi_ratio: 2.3091,
+      forecast: {
+        basis_kind: "cpi",
+        projection_method: "cagr_trailing",
+        window_years: 10,
+        sigma_pct: 0.01047,
+        last_known_date: "2026-03",
+        horizon_months: 46,
+        low: 4133277,
+        high: 4467270,
+        warnings: [],
+      },
+    });
+
+    expect(document.getElementById("forecast-block").classList.contains("hidden")).toBe(false);
+    expect(document.getElementById("forecast-low").textContent).toMatch(/4,133,277/);
+    expect(document.getElementById("forecast-mid").textContent).toMatch(/4,297,876/);
+    expect(document.getElementById("forecast-high").textContent).toMatch(/4,467,270/);
+    expect(document.getElementById("forecast-basis").textContent).toMatch(/trailing 10y/);
+    expect(document.getElementById("forecast-basis").textContent).toMatch(/2026-03/);
+    expect(document.getElementById("forecast-caveat").classList.contains("hidden")).toBe(true);
+    // Hero tagged
+    expect(document.getElementById("hero-to").textContent).toMatch(/forecast/i);
+  });
+
+  it("shows the caveat when horizon_exceeds_cap warning is present", () => {
+    renderResult({
+      amount: 100, original_amount: 100,
+      from_currency: "USD", to_currency: "VND",
+      from_date: "2010", to_date: "2040",
+      granularity: "forecast",
+      fx_rate: 18000, cpi_ratio: 4,
+      forecast: {
+        basis_kind: "cpi", projection_method: "cagr_trailing",
+        window_years: 10, sigma_pct: 0.01,
+        last_known_date: "2026-03", horizon_months: 166,
+        low: 90, high: 110,
+        warnings: ["horizon_exceeds_cap"],
+      },
+    });
+    expect(document.getElementById("forecast-caveat").classList.contains("hidden")).toBe(false);
+    expect(document.getElementById("forecast-caveat").textContent).toMatch(/illustrative/);
+  });
+
+  it("hides the forecast block on measured (non-forecast) results", () => {
+    renderResult({
+      amount: 200, original_amount: 100,
+      from_currency: "USD", to_currency: "VND",
+      from_date: "2010", to_date: "2024",
+      granularity: "annual",
+      fx_rate: 18612.92, cpi_ratio: 2.0,
+      // no forecast key
+    });
+    expect(document.getElementById("forecast-block").classList.contains("hidden")).toBe(true);
+    expect(document.getElementById("hero-to").textContent).not.toMatch(/forecast/i);
   });
 });
 

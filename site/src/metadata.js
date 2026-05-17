@@ -55,6 +55,9 @@ export function applyMetadata() {
 function clampSeedToCpiWindow() {
   const toEl = $("#to-when");
   if (!toEl?.value) return;
+  // Forecast mode opts into projecting past the bundled data — leave the
+  // user's chosen future to-date alone. The gem extrapolates from there.
+  if (state.form?.forecast) return;
   const toCurrency = $("#to-currency")?.value;
   if (!toCurrency) return;
   const widest = widestCpi(state.countryByCurrency.get(toCurrency));
