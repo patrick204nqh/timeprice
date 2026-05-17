@@ -10,6 +10,10 @@ require_relative "timeprice/point"
 require_relative "timeprice/inflation"
 require_relative "timeprice/exchange"
 require_relative "timeprice/compare"
+require_relative "timeprice/forecast"
+require_relative "timeprice/forecast/cagr"
+require_relative "timeprice/forecast/cpi_forecaster"
+require_relative "timeprice/forecast/fx_forecaster"
 require_relative "timeprice/sources"
 require_relative "timeprice/metadata"
 
@@ -52,6 +56,34 @@ module Timeprice
   # @raise [DataNotFound]        if no FX point exists within the fallback window
   def exchange(amount:, from:, to:, date:)
     Exchange.convert(amount: amount, from: from, to: to, date: date)
+  end
+
+  # Project a CPI index or FX rate forward past the last bundled data point.
+  #
+  # @param kind         [Symbol] :cpi or :fx
+  # @param target       [String] target date as "YYYY" or "YYYY-MM"
+  # @param country      [String] (only when kind: :cpi)
+  # @param from         [String] (only when kind: :fx) source currency
+  # @param to           [String] (only when kind: :fx) destination currency
+  # @param window_years [Integer, nil] override default trailing window
+  # @return [Forecast::Result]
+  def forecast(kind:, target:, country: nil, from: nil, to: nil, window_years: nil)
+    case kind
+    when :cpi
+      fail ArgumentError, "country: required for kind: :cpi" unless country
+
+      opts = { country: country, target: target }
+      opts[:window_years] = window_years if window_years
+      Forecast::CpiForecaster.project(**opts)
+    when :fx
+      fail ArgumentError, "from:/to: required for kind: :fx" unless from && to
+
+      opts = { from: from, to: to, target: target }
+      opts[:window_years] = window_years if window_years
+      Forecast::FxForecaster.project(**opts)
+    else
+      fail ArgumentError, "unknown forecast kind: #{kind.inspect} (expected :cpi or :fx)"
+    end
   end
 
   # Compare an amount across two (currency, date) points: convert at the
