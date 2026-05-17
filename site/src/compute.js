@@ -173,6 +173,7 @@ export function compute() {
         amount: ${f.amount},
         from:   ["${f.fromCurrency}", "${fromGemDate(f)}"],
         to:     ["${f.toCurrency}",   "${toGemDate(f)}"],
+        forecast: ${f.forecast ? "true" : "false"},
       )
       JSON.generate(r.to_h)
     `);
