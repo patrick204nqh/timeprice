@@ -94,8 +94,8 @@ module Timeprice
   # @param from   [Point, Array(String, String)] source point
   # @param to     [Point, Array(String, String)] destination point
   # @return [CompareResult]
-  def compare(amount:, from:, to:)
-    Compare.run(amount: amount, from: from, to: to)
+  def compare(amount:, from:, to:, forecast: false)
+    Compare.run(amount: amount, from: from, to: to, forecast: forecast)
   end
 
   # Snapshot describing the bundled dataset: version, refresh date, country
