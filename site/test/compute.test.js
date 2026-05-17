@@ -159,6 +159,42 @@ describe("validateForm", () => {
   });
 });
 
+describe("validateForm with forecast toggle", () => {
+  function seedBounds() {
+    state.countryByCurrency = new Map([
+      ["USD", { code: "US", name: "United States", currency: "USD", cpi: { monthly: { min: "1990-01", max: "2026-03" }, annual: { min: "1990", max: "2025" } } }],
+      ["VND", { code: "VN", name: "Vietnam",       currency: "VND", cpi: { monthly: { min: "1995-01", max: "2026-03" }, annual: { min: "1995", max: "2025" } } }],
+    ]);
+    state.metadata = { fx: { daily_min: "1999-01-04", daily_max: "2026-05-10" } };
+  }
+
+  beforeEach(() => seedBounds());
+
+  it("blocks future target years when forecast is off", () => {
+    const f = { fromCurrency: "USD", toCurrency: "VND", from: "2010", to: "2050", forecast: false };
+    const err = validateForm(f);
+    expect(err).toMatch(/inflation data ends|Pick a year up to/);
+  });
+
+  it("allows future target years when forecast is on", () => {
+    const f = { fromCurrency: "USD", toCurrency: "VND", from: "2010", to: "2030", forecast: true };
+    const err = validateForm(f);
+    expect(err).toBeNull();
+  });
+
+  it("still blocks pre-data dates when forecast is on", () => {
+    const f = { fromCurrency: "USD", toCurrency: "VND", from: "1850", to: "2030", forecast: true };
+    const err = validateForm(f);
+    expect(err).toMatch(/starts/);
+  });
+
+  it("still blocks source years past data even when forecast is on", () => {
+    const f = { fromCurrency: "USD", toCurrency: "VND", from: "2050", to: "2060", forecast: true };
+    const err = validateForm(f);
+    expect(err).toMatch(/must still be measured|inflation data ends/);
+  });
+});
+
 describe("compute with forecast", () => {
   const countryByCurrency = new Map([
     ["USD", { code: "US", name: "United States", currency: "USD", cpi: { monthly: { min: "1990-01", max: "2026-03" }, annual: { min: "1990", max: "2025" } } }],

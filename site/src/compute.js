@@ -93,11 +93,18 @@ export function validateForm(f) {
       const min = Number(widest.min.slice(0, 4));
       const max = Number(widest.max.slice(0, 4));
       const cName = countryNameFor(f.toCurrency);
-      if (toYear < min || fromYear < min) {
+      if (fromYear < min || toYear < min) {
         return `${cName} inflation data starts ${min}. Pick a year from ${min} on.`;
       }
-      if (toYear > max || fromYear > max) {
-        return `${cName} inflation data ends ${max}. Pick a year up to ${max}.`;
+      // Source year past data: forecast can't fix this (source CPI must be measured).
+      if (fromYear > max) {
+        return f.forecast
+          ? `${cName} inflation data ends ${max}. The forecast extrapolates forward, so the source year must still be measured.`
+          : `${cName} inflation data ends ${max}. Pick a year up to ${max}.`;
+      }
+      // Target year past data: blocked only when forecast is off.
+      if (toYear > max && !f.forecast) {
+        return `${cName} inflation data ends ${max}. Pick a year up to ${max}, or enable Forecast.`;
       }
     }
   }
