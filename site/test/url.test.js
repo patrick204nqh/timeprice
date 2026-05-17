@@ -81,6 +81,49 @@ describe("writeUrl", () => {
   });
 });
 
+describe("URL forecast param", () => {
+  it("reads forecast=1 into the toggle on load", () => {
+    document.body.innerHTML = `
+      <input id="calc-amount" />
+      <select id="from-currency"><option value="USD" selected>USD</option></select>
+      <select id="to-currency"><option value="VND" selected>VND</option></select>
+      <input id="from-when" /> <input id="to-when" />
+      <input type="checkbox" id="forecast-toggle" />
+    `;
+    location.hash = "#from=USD:2010&to=VND:2030&amount=100&forecast=1";
+    readUrl();
+    expect(document.getElementById("forecast-toggle").checked).toBe(true);
+  });
+
+  it("leaves toggle unchecked when forecast param is absent", () => {
+    document.body.innerHTML = `
+      <input id="calc-amount" />
+      <select id="from-currency"><option value="USD" selected>USD</option></select>
+      <select id="to-currency"><option value="VND" selected>VND</option></select>
+      <input id="from-when" /> <input id="to-when" />
+      <input type="checkbox" id="forecast-toggle" />
+    `;
+    location.hash = "#from=USD:2010&to=VND:2024&amount=100";
+    readUrl();
+    expect(document.getElementById("forecast-toggle").checked).toBe(false);
+  });
+
+  it("writes forecast=1 when state.form.forecast is true, omits it when false", () => {
+    seedDom();
+    setHash("");
+    state.form = {
+      amount: 100, fromCurrency: "USD", from: "2010",
+      toCurrency: "VND", to: "2030", forecast: true,
+    };
+    writeUrl();
+    expect(location.hash).toMatch(/forecast=1/);
+
+    state.form.forecast = false;
+    writeUrl();
+    expect(location.hash).not.toMatch(/forecast=/);
+  });
+});
+
 describe("URL round-trip", () => {
   beforeEach(() => seedDom());
 
