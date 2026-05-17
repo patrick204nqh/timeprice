@@ -120,8 +120,10 @@ module Timeprice
     end
 
     desc "compare AMOUNT", "Combine FX + inflation across two (year, currency) points"
-    method_option :from, type: :string, required: true, desc: "Source as \"YEAR CURRENCY\" or \"CURRENCY YEAR\""
-    method_option :to,   type: :string, required: true, desc: "Target as \"YEAR CURRENCY\" or \"CURRENCY YEAR\""
+    method_option :from,     type: :string,  required: true,  desc: "Source as \"YEAR CURRENCY\" or \"CURRENCY YEAR\""
+    method_option :to,       type: :string,  required: true,  desc: "Target as \"YEAR CURRENCY\" or \"CURRENCY YEAR\""
+    method_option :forecast, type: :boolean, default: false,
+                             desc: "Allow target dates past bundled data via trailing-CAGR forecast"
     def compare(amount)
       with_error_handling do
         from_tuple = parse_compare_token(options[:from], label: "--from")
@@ -129,7 +131,8 @@ module Timeprice
         result = Timeprice.compare(
           amount: parse_amount(amount),
           from: from_tuple,
-          to: to_tuple
+          to: to_tuple,
+          forecast: options[:forecast]
         )
         render Presenters::Compare.new(result)
       end

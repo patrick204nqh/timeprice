@@ -60,6 +60,32 @@ $ timeprice compare 100 --from "2010 USD" --to "2024 VND"
     -> inflate x1.8970 VN -> 3,530,921 VND (2024, annual)
 ```
 
+### Forecasting (target dates past the bundled data)
+
+`compare` accepts target dates beyond the last bundled CPI / FX point when
+you pass `--forecast` (CLI) or `forecast: true` (Ruby). The forecast uses a
+trailing-window CAGR with a ±1σ band derived from historical year-over-year
+volatility — no network calls, no stats dependencies, fully deterministic.
+
+```bash
+$ timeprice compare 100 --from "2010 USD" --to "2030 VND" --forecast
+4,297,876 VND  in 2030  (forecast)
+  100.00 USD (2010)
+    -> fx @ 18,612.92     -> 1,861,292 VND (2010)
+    -> inflate x2.3091 VN -> 4,297,876 VND (2030, forecast)
+
+  range     4,133,277 VND  —  4,297,876 VND  —  4,467,270 VND
+            (low -1σ)        (most likely)      (high +1σ)
+
+  basis     trailing 10y CAGR · last data 2026-03
+            sigma ±1.0%/yr · horizon +46mo
+```
+
+Defaults: 10-year window for CPI, 5-year for FX. Horizon caps (5y CPI, 2y
+FX) don't block the forecast — they raise a `horizon_exceeds_cap` warning
+in the result. Run `bundle exec rake forecast:backtest` to see per-country
+MAPE for the bundled data.
+
 The first line of each result is the answer — pipe through `head -1` if a
 script only needs the headline figure.
 

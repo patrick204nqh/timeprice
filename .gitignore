@@ -9,3 +9,4 @@
 /coverage/
 *.gem
 node_modules/
+docs/superpowers/
