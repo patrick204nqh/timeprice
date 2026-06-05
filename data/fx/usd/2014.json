@@ -41,7 +41,7 @@
   ],
   "providers": [
     {
-      "fetched_at": "2026-05-16",
+      "fetched_at": "2026-06-05",
       "id": "frankfurter",
       "label": "Frankfurter (ECB) — daily reference rates",
       "status": "ok"
