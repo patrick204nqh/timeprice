@@ -147,7 +147,7 @@ RSpec.describe "timeprice CLI" do
                                     "--forecast", data_root: REAL_DATA)
         expect(status.exitstatus).to eq(0)
         expect(out).to include("forecast")
-        expect(out).to match(/range/)
+        expect(out).to include("range")
         expect(out).to include("basis")
       end
 
