@@ -9,7 +9,7 @@
       "from": "1992-01",
       "provider": "imf",
       "series": "monthly",
-      "to": "2026-03"
+      "to": "2026-04"
     },
     {
       "from": "1992",
@@ -20,13 +20,13 @@
   ],
   "providers": [
     {
-      "fetched_at": "2026-06-05",
+      "fetched_at": "2026-07-05",
       "id": "world_bank",
       "label": "World Bank FP.CPI.TOTL (annual)",
       "status": "ok"
     },
     {
-      "fetched_at": "2026-06-05",
+      "fetched_at": "2026-07-05",
       "id": "imf",
       "label": "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
       "status": "ok"
@@ -481,7 +481,8 @@
       "2025-12": 288.1,
       "2026-01": 292.8,
       "2026-02": 294.9,
-      "2026-03": 296.6
+      "2026-03": 296.6,
+      "2026-04": 297.1
     }
   }
 }

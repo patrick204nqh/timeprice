@@ -2,7 +2,7 @@
   "country": "TH",
   "index": {
     "base_period": "2010",
-    "rebased_at": "2026-06-05"
+    "rebased_at": "2026-07-05"
   },
   "provenance": [
     {
@@ -26,13 +26,13 @@
   ],
   "providers": [
     {
-      "fetched_at": "2026-06-05",
+      "fetched_at": "2026-07-05",
       "id": "world_bank",
       "label": "World Bank FP.CPI.TOTL (annual)",
       "status": "ok"
     },
     {
-      "fetched_at": "2026-06-05",
+      "fetched_at": "2026-07-05",
       "id": "imf",
       "label": "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
       "status": "ok"
