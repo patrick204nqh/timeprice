@@ -2,14 +2,14 @@
   "country": "TR",
   "index": {
     "base_period": "2010",
-    "rebased_at": "2026-06-05"
+    "rebased_at": "2026-08-05"
   },
   "provenance": [
     {
       "from": "1990-01",
       "provider": "imf",
       "series": "monthly",
-      "to": "2026-03"
+      "to": "2026-06"
     },
     {
       "from": "1960",
@@ -26,13 +26,13 @@
   ],
   "providers": [
     {
-      "fetched_at": "2026-06-05",
+      "fetched_at": "2026-08-05",
       "id": "world_bank",
       "label": "World Bank FP.CPI.TOTL (annual)",
       "status": "ok"
     },
     {
-      "fetched_at": "2026-06-05",
+      "fetched_at": "2026-08-05",
       "id": "imf",
       "label": "IMF Data Portal CPI dataflow (monthly) + World Bank FP.CPI.TOTL (annual)",
       "status": "ok"
@@ -69,7 +69,7 @@
       "1985": 0.000486,
       "1986": 0.000655,
       "1987": 0.000909,
-      "1988": 0.001535,
+      "1988": 0.001534,
       "1989": 0.002505,
       "1990": 0.004,
       "1991": 0.0067,
@@ -543,7 +543,10 @@
       "2025-12": 110.386963,
       "2026-01": 115.73,
       "2026-02": 119.16,
-      "2026-03": 121.47
+      "2026-03": 121.47,
+      "2026-04": 126.55,
+      "2026-05": 128.72,
+      "2026-06": 129.99
     }
   }
 }
