@@ -9,24 +9,24 @@
       "from": "1948-Q3",
       "provider": "abs",
       "series": "quarterly",
-      "to": "2026-Q1"
+      "to": "2026-Q2"
     },
     {
       "from": "1960",
       "provider": "world_bank",
       "series": "annual",
-      "to": "2024"
+      "to": "2025"
     }
   ],
   "providers": [
     {
-      "fetched_at": "2026-06-05",
+      "fetched_at": "2026-08-05",
       "id": "world_bank",
       "label": "World Bank FP.CPI.TOTL (annual, AU baseline)",
       "status": "ok"
     },
     {
-      "fetched_at": "2026-06-05",
+      "fetched_at": "2026-08-05",
       "id": "abs",
       "label": "ABS 6401.0 Consumer Price Index (quarterly) + World Bank (annual baseline)",
       "status": "ok"
@@ -99,7 +99,8 @@
       "2021": 124.271592622831,
       "2022": 132.466181470806,
       "2023": 139.880337389597,
-      "2024": 144.309741509281
+      "2024": 144.309741509281,
+      "2025": 148.457258197608
     },
     "monthly": {},
     "quarterly": {
@@ -413,7 +414,8 @@
       "2025-Q2": 98.43,
       "2025-Q3": 99.73,
       "2025-Q4": 100.32,
-      "2026-Q1": 101.7
+      "2026-Q1": 101.7,
+      "2026-Q2": 102.31
     }
   }
 }
