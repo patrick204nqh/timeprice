@@ -2,14 +2,14 @@
   "country": "CA",
   "index": {
     "base_period": "2010",
-    "rebased_at": "2026-06-05"
+    "rebased_at": "2026-09-05"
   },
   "provenance": [
     {
       "from": "1914-01",
       "provider": "statcan",
       "series": "monthly",
-      "to": "2026-04"
+      "to": "2026-07"
     },
     {
       "from": "1914",
@@ -20,13 +20,13 @@
   ],
   "providers": [
     {
-      "fetched_at": "2026-06-05",
+      "fetched_at": "2026-09-05",
       "id": "world_bank",
       "label": "World Bank FP.CPI.TOTL (annual, CA baseline)",
       "status": "ok"
     },
     {
-      "fetched_at": "2026-06-05",
+      "fetched_at": "2026-09-05",
       "id": "statcan",
       "label": "Statistics Canada WDS (table 18-10-0004-01, monthly) + World Bank (annual baseline)",
       "status": "ok"
@@ -1496,7 +1496,10 @@
       "2026-01": 165.0,
       "2026-02": 165.9,
       "2026-03": 167.4,
-      "2026-04": 168.0
+      "2026-04": 168.0,
+      "2026-05": 169.6,
+      "2026-06": 169.0,
+      "2026-07": 169.9
     }
   }
 }

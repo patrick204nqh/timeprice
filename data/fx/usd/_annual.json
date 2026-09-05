@@ -149,6 +149,9 @@
     "2024": {
       "RUB": 92.5524,
       "VND": 24164.89
+    },
+    "2025": {
+      "RUB": 83.6525
     }
   },
   "base": "USD",
@@ -169,18 +172,18 @@
       "from": "1993",
       "provider": "imf",
       "series": "annual",
-      "to": "2024"
+      "to": "2025"
     }
   ],
   "providers": [
     {
-      "fetched_at": "2026-06-05",
+      "fetched_at": "2026-09-05",
       "id": "world_bank",
       "label": "World Bank PA.NUS.FCRF",
       "status": "ok"
     },
     {
-      "fetched_at": "2026-06-05",
+      "fetched_at": "2026-09-05",
       "id": "imf",
       "label": "IMF ER dataflow XDC_USD/PA_RT (period-average, annual mean)",
       "status": "ok"
